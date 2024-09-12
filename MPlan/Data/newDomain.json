@@ -1,0 +1,44 @@
+{
+  "horizon": 5,
+  "total_states": 6,
+  "actions": ["A", "B"],
+  "state_transitions": [
+    {
+      "A": [[0.5, 0, 1, 0, 0], [0.5, 0, 2, 0, 0]],
+      "B": [[1, 0, 3, -1, 0]]
+    },
+    {
+      "A": [[1,0,4,-1,0]]
+    },
+    {
+      "A": [[1,0,4,0,0]]
+    },
+    {
+      "A": [[1,0,5,0,1]],
+      "B": [[1,0,0,-100,-1]]
+    },
+    {
+      "A": [[1,0,4,5,0]]
+    },
+    {
+    }
+  ],
+  "goals":[],
+  "theories": [
+    {
+      "Name": "Utilitarianism",
+      "Rank": 5,
+      "Type": "Utility",
+      "Heuristic":[0,0,0,0,0,0],
+      "default": 0
+    },
+    {
+      "Name": "Other Utility",
+      "Rank": 5,
+      "Type": "Utility",
+      "Heuristic":[0,0,0,0,0,0],
+      "default": 0
+    }
+
+  ]
+}
