@@ -1,13 +1,28 @@
 from EnvironmentBuilder.TutorProblem.TeacherProblem import TeacherProblem
 from EnvironmentBuilder.GridWorld.GridWorldProblem import GridWorldProblem
+from EnvironmentBuilder.LostInsulin.LostInsulinProblem import LostInsulin
 import EnvironmentBuilder.CustomJSON as myJSON
 import argparse
 import os
 import ast
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+os.system('color')
 
 
 parser = argparse.ArgumentParser()
+
+args = parser.add_argument("--policy", type=str, default='', help='Load a policy to output to file and console.')
 
 args = parser.add_argument("--domain", type=str, default='WindyDrone', help='Select the environment to use')
 
@@ -24,11 +39,27 @@ if (args.domain=='WindyDrone'):
     mdp = GridWorldProblem(theoryClasses=theoryTags)
 elif (args.domain=='Teacher'):
     mdp = TeacherProblem(theoryClasses=theoryTags)
-
+elif (True or args.domain=='LostInsulin'):
+    mdp = LostInsulin(theoryClasses=theoryTags)
+    
+mdp = LostInsulin(theoryClasses=[['LifeAndDeath']])
 mdp.makeAllStatesExplicit()
 
+actionList = [a for a in mdp.actions]
+
+if (args.policy!=''):
+    with open(args.policy, 'r') as file:  # 'output.json' is the name of your file
+        json_policy = myJSON.json.load(file)['policy']
+        pi = ""
+        for i in json_policy:
+            sIdx, time, action = i[0], i[1], i[2]
+            pi += str(mdp.states[sIdx]) + "@" + str(time) + " --> " + str(actionList[action]) + "\n"
+            pi += "   " + str(mdp.states[sIdx].props) + "\n"
+        
+
+
 # The JSON output structure
-output = {'total_states': len(mdp.states), 'actions': [a for a in mdp.actions]}
+output = {'total_states': len(mdp.states), 'actions': actionList}
 
 
 state_transitions = []
@@ -81,15 +112,17 @@ def printHeuristics(mdp, state):
         s += "tag={}, Heuristic={} :: ".format(t.tag, t.StateHeuristic(state))
     return s
 
-def printProps(props, propNames=[]):
+def printProps(props, propNames=[], showOnlyChanges=False, oldProps={}):
     if (len(propNames)==0):
-        return props
+        propNames = list(props.keys())
     if (not any(pn in props.keys() for pn in propNames)):
         return props
     out="{"
     for idx in range(len(propNames)-1):
-        out += str(propNames[idx]) + str(props[propNames[idx]]) + ", "
-    out += str(propNames[-1]) + str(props[propNames[-1]]) + "}"
+        if (showOnlyChanges and props[propNames[idx]]==oldProps[propNames[idx]]):
+            continue
+        out += str(propNames[idx]) + ": " + str(props[propNames[idx]]) + ", "
+    out += str(propNames[-1]) + ": " + str(props[propNames[-1]]) + "}"
     return out
 
 def getStateByProps():
@@ -117,17 +150,23 @@ def getStateByProps():
 
 chosenProps = []
 choice = 0
+onlyShowChanges=True
+print("There are {} states, {} actions and {} theories.".format(len(mdp.states), len(output['actions']), len(mdp.Theories)))
 while (choice!="Q"):
-    print("There are {} states, {} actions and {} theories.".format(len(mdp.states), len(output['actions']), len(mdp.Theories)))
-    choice = str(input("Inspect state with ID? Optionally, specify props to display. To remove previously selected props, just enter clear. Use command props to select state by props (Q to exit). ")).split(" ")
+    choice = str(input("Inspect state with ID? Optionally, specify props to display. To remove selected props, just enter clear. Toggle show only changed props with 'delta'. Use command props to select state by props (Q to exit). ")).split(" ")
     if (len(choice)==0):
         continue
     nextState = choice.pop(0)
+    if (nextState=="Q" or nextState=="q"):
+        break
     if nextState=="props":
         nextState = getStateByProps()
         if nextState=="":
             continue
-
+    
+    if "delta" in choice:
+        onlyShowChanges = not onlyShowChanges
+        
     if "clear" in choice:
         chosenProps = []
     elif len(choice)!=0:
@@ -143,16 +182,16 @@ while (choice!="Q"):
         continue
 
     state = mdp.states[nextState]
-    print("**** State ID {} ****".format(state.id))
+    print(f"**** State ID {bcolors.OKBLUE}{state.id}{bcolors.ENDC} ****")
     print("** Theory Heuristics")
     print(printHeuristics(mdp,state))
     print("** Properties:")
-    print(printProps(state.props, chosenProps))
+    print(printProps(state.props, chosenProps, False))
     print("** ACTIONS:")
     for a in mdp.getActions(state):
-        print(" Action {}:".format(a))
+        print(f" Action {bcolors.OKBLUE}{a}{bcolors.ENDC}:")
         for successor in mdp.getActionSuccessors(state, a, True):
-            print("     - chance={}; cost={}; To state={} with {}".format(round(successor.probability,4), mdp.CostTheory.judge(successor), successor.targetState.id, printProps(successor.targetState.props, chosenProps)))
+            print("     - chance={}; cost={}; To state={}{}{} with {}".format(round(successor.probability,4), mdp.CostTheory.judge(successor), bcolors.OKBLUE, successor.targetState.id, bcolors.ENDC, printProps(successor.targetState.props, chosenProps, onlyShowChanges, state.props)))
             for t in mdp.Theories:
                 print("         Theory with tag {} values at {}".format(t.tag, t.judge(successor)))
         print("     DONE ACTION {}".format(a))
