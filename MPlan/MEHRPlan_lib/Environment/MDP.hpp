@@ -17,6 +17,7 @@
 #include "State.hpp"
 #include "Successor.hpp"
 #include "MoralTheory.hpp"
+#include "QValue.hpp"
 
 class QValue;
 
@@ -33,6 +34,8 @@ public:
     std::vector<MoralTheory*> theories;// Should not change size after initial assignment.
     int total_states=0;
     int horizon=3;
+    float budget = -1;// initial budget is infinite
+    int non_moralTheoryIdx=-1;
 
     explicit MDP(const std::string& fileName);
     explicit MDP(nlohmann::json& data);
@@ -41,13 +44,16 @@ public:
     void outNout();
 
     std::vector<Successor*>* getActionSuccessors(const State& state, const int stateActionIndex) {
+        if (state.actionSuccessors.size()==0) {
+            return nullptr;
+        }
         return state.actionSuccessors[stateActionIndex];
     }
     std::vector<Successor*>* getActionSuccessors(const State& state, const Action& action) {
         // Finds state-action index of 'action' then returns its successors.
         int i = 0;
         for (auto a : *getActions(state, 0)) {
-            if (a->label == action.label) {//EW TODO Make whole thing better!!!!
+            if (a->label == action.label) { //EW TODO Make whole thing better!!!!
                 return getActionSuccessors(state, i);
             }
             i++;
@@ -60,7 +66,12 @@ public:
         }
         return &(stateActions[state.id]);
     }
-    int compareQValues(QValue& qv1, QValue& qv2);;
+    void addCertainSuccessorToQValue(QValue& qval, Successor* scr);
+    int compareQValues(QValue& qv1, QValue& qv2, bool useRanks=false);
+    int countAttacks(QValue& qv1, QValue& qv2);
+    void blankQValue(QValue& qval);
+    bool checkInBudget(QValue& qval);
+
 
 
 

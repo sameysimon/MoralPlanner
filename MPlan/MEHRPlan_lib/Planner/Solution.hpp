@@ -12,32 +12,7 @@
 #include "Utilitarianism.hpp"
 #include "MDP.hpp"
 #include "Expecter.hpp"
-
-
-// Object for pointing to worth values in a solution/elsewhere (WorthBase*)
-// Instantiated by calling vectorGather on a Solution. Holds
-// Used to hold/compare/add state-time-action's worth/state's estimation easily.
-class QValue {
-public:
-    std::vector<WorthBase*> expectations;
-    QValue() {
-        expectations = std::vector<WorthBase*>();
-    }
-    bool greaterThan(QValue& qval);
-    void addToExpectations(WorthBase* ev) {
-        expectations.push_back(ev);
-    };
-    std::string toString() {
-        std::string result = "";
-        for (WorthBase* ev : expectations) {
-            result += ev->ToString() + "; ";
-        }
-        return result;
-    }
-};
-
-
-
+#include "QValue.hpp"
 
 class Solution {
     MDP* mdp;
@@ -72,14 +47,20 @@ public:
     // Create empty Solution (hanging pointers)
     Solution() {}
     // Creates an expectation for each theory in the MDP.
-    Solution(MDP &_mdp) {
+    Solution(MDP &_mdp, bool useHeuristics=false) {
         this->mdp = &_mdp;
         this->expecters = std::vector<Expecter*>();
         this->policy = std::vector<std::vector<int>>(mdp->horizon+1);
         // Initialise empty expecters.
         for (auto& m : _mdp.theories) {
             // Make expecter for the moral theory
-            Expecter* e = m->makeExpecter(mdp->total_states, mdp->horizon);
+            Expecter* e;
+            if (useHeuristics) {
+                e = m->makeHeuristicExpecter(mdp->states, mdp->horizon);
+            } else {
+                e = m->makeExpecter(mdp->total_states, mdp->horizon);
+            }
+
             // Add it to the list.
             this->expecters.push_back(e);
         }
@@ -135,16 +116,21 @@ public:
         }
         return true;
     }
+    //
+    // SETTERS...
+    //
     void setToQValue(State& state, int time, QValue& qval) {
-       for (int i = 0; i < qval.expectations.size(); ++i) {
-           expecters[i]->setToValue(state, time, qval.expectations[i]);
-       }
+        for (int i = 0; i < qval.expectations.size(); ++i) {
+            expecters[i]->setToValue(state, time, qval.expectations[i]);
+        }
     }
     void setAction(State& state, int time, Action& a) {
         policy[time][state.id] = a.id;
     }
-    void setToHeuristic(MDP &mdp, State& state, int time);
-    void setAllToHeuristic(MDP &mdp);
+
+    //
+    // GETTERS AND GATHERERS
+    //
     QValue vectorGather(std::vector<Successor*>& successors, int time) {
         QValue qval = QValue();
         for (auto exp : expecters) {
@@ -153,7 +139,13 @@ public:
         }
         return qval;
     };
-
+    void loadQValue(State& state, int time, QValue& qval) {
+        for (auto exp : expecters) {
+            WorthBase* wb = exp->expectations[time][state.id];
+            qval.addToExpectations(wb);
+        }
+    }
+    // Policy hasher function.
     std::size_t policyHash(int time_replace, int state_replace, int action_replace) {
         std::size_t hashValue = 0;
         std::hash<int> hashFn;
@@ -169,8 +161,6 @@ public:
     }
     std::string policyToString();
     std::string worthToString();
-
-
 
 };
 

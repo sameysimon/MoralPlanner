@@ -1,5 +1,5 @@
 {
-  "horizon": 2,
+  "horizon": 3,
   "total_states": 5,
   "actions": ["A", "B"],
   "state_transitions": [
@@ -12,9 +12,12 @@
     {
       "A": [[1, 1, 4, 0, -10]]
     },
-    {}
+    {
+      "A": [[1,1,2,0,50]]
+    }
   ],
   "goals":[],
+  "budget": 0,
   "theories": [
     {
       "Name": "Utilitarianism",

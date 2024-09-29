@@ -3,36 +3,54 @@
 //
 
 #include "MEHR.hpp"
-/*
-vector<int> MEHR::findNonAccept(vector<QValue*>& expectedWorths, vector<vector<QValue*>>&& outcomeWorths, vector<vector<double>>&& probability) {
-    vector<int> non_accept = vector<int>(expectedWorths.size(), 0);
+
+vector<double>* MEHR::findNonAccept(vector<QValue>& expectedWorths, vector<vector<QValue>*>& outcomeWorths, vector<vector<double>*>& probability) {
+    vector<double>* non_accept = new vector<double>(expectedWorths.size(), 0);
+    int potential_attacks = 0;
+    int r = 0;
+    vector<int*> expected_edges = vector<int*>(); // Stores [x,y] if policy x defeats policy y in expectation.
+
     for (int oneIdx=0; oneIdx<expectedWorths.size(); ++oneIdx) {
+        QValue oneExp = expectedWorths[oneIdx];
         for (int twoIdx=oneIdx; twoIdx<expectedWorths.size(); ++twoIdx) {
-            QValue* oneExp = expectedWorths[oneIdx];
-            QValue* twoExp = expectedWorths[twoIdx];
-            for (int outcomeOneIdx=0; outcomeOneIdx<outcomeWorths[oneIdx].size(); ++outcomeOneIdx) {
-                QValue* outcomeOne = outcomeWorths[oneIdx][outcomeOneIdx];
-                double probOne = probability[oneIdx][outcomeOneIdx];
-                for (int outcomeTwoIdx=0; outcomeOneIdx<outcomeWorths[twoIdx].size(); ++outcomeTwoIdx) {
-                    QValue* outcomeTwo = outcomeWorths[twoIdx][outcomeTwoIdx];
-                    double probTwo = probability[twoIdx][outcomeTwoIdx];
-                    Attack result = biRetrospect(outcomeOne, oneExp, probOne, outcomeTwo, twoExp, probTwo);
-                    if (result==Attack::FORWARD || result==Attack::DILEMMA) {
-                        // add non-accept probTwo to expTwo non-accept.
-                    } else if (result==Attack::BACKWARD || result==Attack::DILEMMA) {
-                        // add non-accept probOne to expOne non-accept.
-                    }
+            QValue twoExp = expectedWorths[twoIdx];
+            r = mdp.compareQValues(oneExp, twoExp, true);
 
+            if (r == 0) { continue; }
+            // New attack
+            expected_edges.push_back(new int[2]);
 
-                }
+            if (r==1 or r==2) {
+                int* l = expected_edges[potential_attacks];
+                l[0] = oneIdx;
+                l[1] = twoIdx;
+            }
+            if (r==2) {
+                expected_edges.push_back( new int[2] );
+                potential_attacks++;
+            }
+            if (r==-1 or r==2) {
+                expected_edges[potential_attacks][0] = twoIdx;
+                expected_edges[potential_attacks][1] = oneIdx;
+            }
+            potential_attacks++;
+        }
+    }
+    int attacks;
+    for (int* edge: expected_edges) {
+        int attPolicyIdx = edge[0];
+        int defPolicyIdx = edge[1];
+        vector<QValue>* attackerWorths = outcomeWorths[attPolicyIdx];
+        vector<QValue>* defenderWorths = outcomeWorths[defPolicyIdx];
+        vector<double>*defenderProbs = probability[defPolicyIdx];
+
+        for (int attIdx = 0; attIdx < attackerWorths->size(); ++attIdx) {
+            for (int defIdx = 0; defIdx < defenderWorths->size(); ++defIdx) {
+                attacks = mdp.countAttacks(attackerWorths->at(attIdx), defenderWorths->at(defIdx));
+                (*non_accept)[defPolicyIdx] += attacks * defenderProbs->at(defIdx);
             }
         }
     }
-
     return non_accept;
 }
 
-Attack MEHR::biRetrospect(QValue* outOne, QValue* expOne, double probOne, QValue* outTwo, QValue* expTwo, double probTwo) {
-    return Attack::FORWARD;
-}
-*/

@@ -137,24 +137,34 @@ void MDP::buildFromJSON(nlohmann::json& data) {
     }
 
     for (json t : data["theories"] ) {
-        // Case Utilitarianism
         std::string type = t["Type"];
-        if (true) {//(type == "Utility") {
+        if (type == "Utility") {
             // Make Utiltarian theory
             Utilitarianism* u = new Utilitarianism();
             u->label = t["Name"];
             u->rank = t["Rank"];
-
+            u->processHeuristics(t["Heuristic"]);
             int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
             groupedTheoryIndices[index].push_back(theories.size());
-
             this->theories.push_back(u);
+        } else if (type=="Amoral" and budget>-1) {
+            throw runtime_error("MDP::buildFromJSON: Cannot have two amoral theories.");
+        }
+        else if (type=="Amoral") {
+            // Make Utiltarian theory
+            Utilitarianism* u = new Utilitarianism();
+            u->label = t["Name"];
+            budget = t["Budget"];
+            u->processHeuristics(t["Heuristic"]);
+            non_moralTheoryIdx = this->theories.size();
+            this->theories.push_back(u);
+
+            // Does not have a rank. Left out of rankings.
+        } else {
+            throw runtime_error("MDP::buildFromJSON: unrecognized theory type.");
         }
         // TODO Other theories...
     }
-
-    // RESERVE SUCCESSOR SPACE
-
 
     // STATES
     total_states = data["total_states"];

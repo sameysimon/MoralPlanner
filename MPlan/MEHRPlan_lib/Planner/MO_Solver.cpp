@@ -19,8 +19,24 @@ std::string Solver::SolutionSetToString(std::vector<std::shared_ptr<Solution>>& 
     stream << endl;
     return stream.str();
 }
+void Solver::copySolSets(vector<shared_ptr<Solution>>& solSet, vector<shared_ptr<Solution>>& solSetCopy) {
+    int minSize = solSet.size();
+    if (minSize > solSetCopy.size()) {minSize = solSetCopy.size();}
+    // Copy by value.
+    for (int i=0; i<minSize; i++) {
+        *solSetCopy[i] = *solSet[i];
+    }
+    // Add additional if solSet is bigger
+    for (int i=minSize; i<solSet.size(); i++) {
+        solSetCopy.push_back(make_shared<Solution>(*solSet[i]));
+    }
+    // Remove additional if solSetCopy is bigger
+    while (solSetCopy.size() > solSet.size()) {
+        solSetCopy.pop_back();
+    }
+}
 
-bool hasConverged(vector<shared_ptr<Solution>>& solSet, vector<shared_ptr<Solution>>& solSet_) {
+bool Solver::hasConverged(vector<shared_ptr<Solution>>& solSet, vector<shared_ptr<Solution>>& solSet_) {
     // TODO seems broken.
     if (solSet.size() != solSet_.size()) {
         return false;
@@ -48,17 +64,16 @@ bool hasConverged(vector<shared_ptr<Solution>>& solSet, vector<shared_ptr<Soluti
 vector<shared_ptr<Solution>> Solver::MOValueIteration() {
     // Initial set of solutions has one policy.
     vector<shared_ptr<Solution>> solSet = vector<shared_ptr<Solution>>();
-    vector<shared_ptr<Solution>> solSetCopy = solSet;
     shared_ptr<Solution> sol = make_shared<Solution>(mdp);
     solSet.push_back(sol);
+    vector<shared_ptr<Solution>> solSetCopy;
+    //copySolSets(solSet, solSetCopy);
     int backups = 0;
     int iterations = 0;
 
     do {
         // Copy Sol_Set
-        solSetCopy = solSet;
-        for (int i=0; i<solSet.size(); ++i)
-            solSetCopy[i] = make_shared<Solution>(*solSet[i]);
+        copySolSets(solSet, solSetCopy);
 
         // Bellman Backup on all states + actions
         for (int t = 0; t < mdp.horizon; t++) {
@@ -158,17 +173,24 @@ void Solver::pprune(std::vector<QValue>& inSet, std::vector<int>& outSet) {
 
         auto it = inSetIndex.begin();
         while (it != inSetIndex.end()) {
-            QValue& inSetQValue = inSet[*it];
-            int result = mdp.compareQValues(dominantQ, inSetQValue);
+            QValue& inSetQValue = inSet[*it];// New potentially dominant (undominated) solution.
+            // Automatically pruned if not in budget
+            if (not mdp.checkInBudget(inSetQValue)) {
+                dominantQ = inSet[*it];// Set new dominant
+                dominantIdx = *it;
+                it = inSetIndex.erase(it);// Remove new dominant
+                continue;
+            }
+            // Compare undominated to current.
+            int result = mdp.compareQValues(dominantQ, inSetQValue, false);
 
-
-            if (result == -1) {//(*inSet[i] > *dominant) New dominating Solution.
+            if (result == -1) {// New dominating Solution.
                 // Set new dominant
                 dominantQ = inSet[*it];
                 dominantIdx = *it;
                 // Remove new dominant
                 it = inSetIndex.erase(it);
-            } else if (result == 1) { //(*dominant > *inSet[i]) Dominant solution dominates inSet solution.
+            } else if (result == 1) { // Dominant solution dominates inSet solution.
                 it = inSetIndex.erase(it);
             } else {
                 ++it;

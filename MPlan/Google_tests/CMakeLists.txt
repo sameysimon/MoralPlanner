@@ -5,7 +5,10 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 # adding the Google_Tests_run target
 add_executable(Google_Tests_run JsonMDPTest.cpp
         CompareQValues.cpp
-        MO_Test.cpp)
+        MO_Test.cpp
+        ExtractOutcomes.cpp
+        MEHRTests.cpp
+        TestBase.hpp)
 
 # linking Google_Tests_run with DateConverter_lib which will be tested
 target_link_libraries(Google_Tests_run MEHRPlan_lib)

@@ -9,10 +9,12 @@ set(HEADER_FILES
     Environment/MoralTheories/MoralTheory.hpp
     Planner/Expecter.hpp
     Environment/MDP.hpp
-    Environment/MoralTheories/Utilitarianism.hpp
     Planner/Solver.hpp
+    Planner/QValue.hpp
+    Environment/MoralTheories/Utilitarianism.hpp
     Planner/Solution.hpp
-    Planner/MEHR.hpp)
+    Planner/MEHR.hpp
+)
 
 set(SOURCE_FILES
         Environment/MoralTheories/Utilitarianism.cpp
@@ -21,6 +23,7 @@ set(SOURCE_FILES
         Environment/State.cpp
         Environment/Successor.cpp
         Planner/Expecter.cpp
+        Planner/QValue.cpp
         Planner/Solution.cpp
         Planner/Solver.cpp
         Environment/MoralTheories/MoralTheory.cpp
@@ -28,6 +31,7 @@ set(SOURCE_FILES
         Planner/MO_Solver.cpp
         Planner/MEHR.cpp
         Planner/Attack.hpp
+        Planner/MO_ILAO_STAR.cpp
 )
 
 

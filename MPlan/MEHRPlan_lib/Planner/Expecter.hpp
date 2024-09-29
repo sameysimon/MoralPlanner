@@ -18,7 +18,6 @@ class WorthBase;
 
 class Expecter {
 private:
-    MoralTheory* moralTheory;
     bool checkForDominance(const Expecter& other, int oppositeDirection) {
         if (expectations.size() != other.expectations.size())
             throw std::runtime_error("Expecter::operator>: Expecter expectations have different sizes. Something very wrong has happened.");
@@ -34,6 +33,7 @@ private:
         return true;
     }
 public:
+    MoralTheory* moralTheory;
     std::vector<std::vector<WorthBase*>> expectations;
     // Constructor
     Expecter(int num_of_states, int horizon, MoralTheory* theory) {
@@ -49,7 +49,7 @@ public:
         for (int t =0; t < other.expectations.size(); ++t) {
             expectations[t] = std::vector<WorthBase*>(other.expectations[t].size());
             for (int s = 0; s < other.expectations[t].size(); ++s) {
-                expectations[t][s] = other.moralTheory->newExpectation();
+                expectations[t][s] = other.moralTheory->newWorth();
                 *expectations[t][s] = *other.expectations[t][s];
             }
         }
@@ -95,9 +95,9 @@ public:
             throw new std::runtime_error("Tried to check equivalence between expecters of different type. Likely an error");//return false;
         }
         // If states at any time/state are not equivalent, then no equivalence.
-        for (int t = 0; t < expectations.size(); ++t) {
-            for (int s = 0; s < expectations[t].size(); ++s) {
-                if (not expectations[t][s]->isEquivalent(*other.expectations[t][s])) {
+        for (int t = 0; t < this->expectations.size(); ++t) {
+            for (int s = 0; s < this->expectations[t].size(); ++s) {
+                if (not this->expectations[t][s]->isEquivalent(*other.expectations[t][s])) {
                     return false;
                 }
             }
