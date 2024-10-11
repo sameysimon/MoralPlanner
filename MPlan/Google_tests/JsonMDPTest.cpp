@@ -15,14 +15,14 @@ class JsonMDPFixture : public ::testing::Test {
     bool checkPointerBy(std::vector<T>& objs, T& target) {
         return std::find(objs.begin(), objs.end(), target) != objs.end();
     }
-    void checkForSuccessor(std::vector<Successor*>& successors, int source, int target, double prob, double cost) {
+    void checkForSuccessor(std::vector<Successor*>& successors, int source, int target, double prob) {
 
         for (int i = 0; i < successors.size(); i++) {
-            if ((successors[i]->source==source and successors[i]->target==target) and (successors[i]->probability==prob and successors[i]->cost==cost)) {
+            if ((successors[i]->source==source and successors[i]->target==target) and (successors[i]->probability==prob)) {
                 return;
             }
         }
-        FAIL() << "No successor with source " << source << ", target " << target << ", probability " << prob << ", cost " << cost << ".";
+        FAIL() << "No successor with source " << source << ", target " << target << ", probability " << prob << ".";
     }
 };
 
@@ -57,12 +57,12 @@ TEST_F(JsonMDPFixture, ConstructorTest) {
     // Action A, state 0
     std::vector<Successor*> successors;
     successors = *mdp.getActionSuccessors(*mdp.states[0], 0);
-    checkForSuccessor(successors, 0, 1, 0.5, 1);
-    checkForSuccessor(successors, 0, 1, 0.5, 1);
+    checkForSuccessor(successors, 0, 1, 0.5);
+    checkForSuccessor(successors, 0, 1, 0.5);
 
     // Action B, state 0
     successors = *mdp.getActionSuccessors(*mdp.states[0], 1);
-    checkForSuccessor(successors, 0, 1, 1, 1);
+    checkForSuccessor(successors, 0, 1, 1);
 
 }
 

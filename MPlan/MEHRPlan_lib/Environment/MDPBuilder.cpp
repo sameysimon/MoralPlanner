@@ -8,8 +8,12 @@
 #include <set>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
+
+#include "Absolutism.hpp"
 #include "Utilitarianism.hpp"
+#include "Threshold.hpp"
 #include "MoralTheory.hpp"
+#include "Solution.hpp"
 
 
 using json = nlohmann::json;
@@ -82,17 +86,17 @@ void verifyJSON(nlohmann::json& data) {
             }
             int successor_count=0;
             for (auto successor : transition.value()) {
-                if (successor.size() < theories + 3) {
+                if (successor.size() < theories + 2) {
                     throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + " not enough theory data.");
                 }
-                if (not (isJSONNumeric(successor[0]) and isJSONNumeric(successor[1]) and isJSONNumeric(successor[2]))) {
-                    throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "probability, cost, or transition not numeric.");
+                if (not (isJSONNumeric(successor[0]) and isJSONNumeric(successor[1]))) {
+                    throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "probability, or transition not numeric.");
                 }
 
                 if (successor[0] > 1) {
                     throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "probability greater than 1.");
                 }
-                if (successor[2] > data["total_states"] or successor[2] < 0) {
+                if (successor[1] > data["total_states"] or successor[1] < 0) {
                     throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "successor index not in state range.");
                 }
                 successor_count++;
@@ -135,24 +139,24 @@ void MDP::buildFromJSON(nlohmann::json& data) {
     for (auto& i : groupedTheoryIndices) {
         i = vector<int>();
     }
-
+    int theoryId = 0;
     for (json t : data["theories"] ) {
         std::string type = t["Type"];
         if (type == "Utility") {
             // Make Utiltarian theory
-            Utilitarianism* u = new Utilitarianism();
+            Utilitarianism* u = new Utilitarianism(theoryId);
             u->label = t["Name"];
             u->rank = t["Rank"];
             u->processHeuristics(t["Heuristic"]);
             int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
             groupedTheoryIndices[index].push_back(theories.size());
             this->theories.push_back(u);
-        } else if (type=="Amoral" and budget>-1) {
+        } else if (type=="Cost" and budget>-1) {
             throw runtime_error("MDP::buildFromJSON: Cannot have two amoral theories.");
         }
-        else if (type=="Amoral") {
+        else if (type=="Cost") {
             // Make Utiltarian theory
-            Utilitarianism* u = new Utilitarianism();
+            Utilitarianism* u = new Utilitarianism(theoryId);
             u->label = t["Name"];
             budget = t["Budget"];
             u->processHeuristics(t["Heuristic"]);
@@ -160,9 +164,27 @@ void MDP::buildFromJSON(nlohmann::json& data) {
             this->theories.push_back(u);
 
             // Does not have a rank. Left out of rankings.
+        } else if (type=="Threshold") {
+            double long th = t["Threshold"];
+            Threshold* u = new Threshold(theoryId, th);
+            u->label = t["Name"];
+            u->rank = t["Rank"];
+            u->processHeuristics(t["Heuristic"]);
+            int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
+            groupedTheoryIndices[index].push_back(theories.size());
+            this->theories.push_back(u);
+        } else if (type=="Absolutism") {
+            Absolutism* a = new Absolutism(theoryId);
+            a->label = t["Name"];
+            a->rank = t["Rank"];
+            a->processHeuristics(t["Heuristic"]);
+            int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
+            groupedTheoryIndices[index].push_back(theories.size());
+            this->theories.push_back(a);
         } else {
             throw runtime_error("MDP::buildFromJSON: unrecognized theory type.");
         }
+        theoryId++;
         // TODO Other theories...
     }
 
@@ -207,14 +229,13 @@ void MDP::buildFromJSON(nlohmann::json& data) {
             // Create successor and populate
             json successorObjects = actionSuccessors.value();
             for (auto& successorData : successorObjects) {
-                double prob = successorData[0];
-                double cost = successorData[1];
-                int targetID = successorData[2];
-                successor = new Successor(sourceIdx, targetID, prob, cost);
+                double long prob = successorData[0];
+                int targetID = successorData[1];
+                successor = new Successor(sourceIdx, targetID, prob);
                 successorSet->push_back(successor);
 
                 for (int i = 0; i < this->theories.size(); ++i) {
-                    this->theories[i]->processSuccessor(successor, successorData[i+3]);
+                    this->theories[i]->processSuccessor(successor, successorData[i+2]);
                 }
             }
             stateActionIndex++;

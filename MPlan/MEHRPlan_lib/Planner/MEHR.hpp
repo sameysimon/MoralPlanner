@@ -5,7 +5,7 @@
 #define MEHR_H
 #include "Solution.hpp"
 #include "Attack.hpp"
-#include <algorithm>
+#include "iostream"
 #include <unordered_set>
 
 using namespace std;
@@ -13,19 +13,26 @@ using namespace std;
 class MEHR {
 private:
     MDP& mdp;
-    void DFS_baseCase(QValue& qval, double prob, unordered_map<QValue, double, QValueHash, QValueEqual>& worthMap) {
+    int mycount=0;
+    void DFS_baseCase(QValue& qval, double long prob, unordered_map<QValue, double long, QValueHash, QValueEqual>& worthMap) {
         if (worthMap.find(qval) == worthMap.end())
             worthMap[qval] = prob;
         else
             worthMap[qval] += prob;
     }
-    void DFS_Histories(State& state, int time, Solution& sol, QValue& qval, double prob, unordered_map<QValue, double, QValueHash, QValueEqual>& worthMap) {
+
+    void DFS_Histories(State& state, int time, Solution& sol, QValue& qval, double long prob, unordered_map<QValue, double long, QValueHash, QValueEqual>& worthMap) {
         // Base Case. Stop when reaching the horizon.
         if (time >= mdp.horizon) {
             DFS_baseCase(qval, prob, worthMap);
             return;
         }
-        auto successors = mdp.getActionSuccessors(state, sol.policy[time][state.id]);
+        int stateAction = sol.policy[time][state.id];
+        if (stateAction == -1) {
+            DFS_baseCase(qval, prob, worthMap);
+            return;
+        }
+        auto successors = mdp.getActionSuccessors(state, stateAction);
         if (successors==nullptr) {
             DFS_baseCase(qval, prob, worthMap);
             return;
@@ -37,39 +44,51 @@ private:
             DFS_Histories(*mdp.states[successor->target], time+1, sol, qval_, prob*successor->probability, worthMap);
         }
     }
+
+
   public:
     MEHR(MDP& mdp) : mdp(mdp) { }
+    ~MEHR() {
+
+    }
     // Main algorithm
-    vector<double>* solve(MDP& mdp, vector<shared_ptr<Solution>>& solSet) {
+    vector<double long>* solve(MDP& mdp, vector<shared_ptr<Solution>>& solSet) {
         this->mdp = mdp;
-        auto solExpectations = vector<QValue>();
-        auto outcomeWorths = vector<vector<QValue>*>();
-        auto outcomeProbability = vector<vector<double>*>();
-        extractInfo(solSet, solExpectations, outcomeWorths, outcomeProbability);
+        auto solExpectations = new vector<QValue>();
+        auto outcomeWorths = new vector<shared_ptr<vector<QValue>>>;
+        auto outcomeProbability = new vector<shared_ptr<vector<double long>>>;
+        extractInfo(solSet, *solExpectations, *outcomeWorths, *outcomeProbability);
 
         // Get Non-Acceptability through Machine-Ethics-Hypothetical-Retrospection.
-        return findNonAccept(solExpectations, outcomeWorths, outcomeProbability);
+        auto na = findNonAccept(*solExpectations, *outcomeWorths, *outcomeProbability);
+        delete solExpectations;
+        delete outcomeWorths;
+        delete outcomeProbability;
+
+        return na;
 
     }
     // Load solution expectations, outcome expectations, and the outcome probabilities.
-    void extractInfo(vector<shared_ptr<Solution>>& solSet, vector<QValue>& solExpectations, vector<vector<QValue>*>& outcomeWorth, vector<vector<double>*>& outcomeProbs) {
+    void extractInfo(vector<shared_ptr<Solution>>& solSet, vector<QValue>& solExpectations, vector<shared_ptr<vector<QValue>>>& outcomeWorth, vector<shared_ptr<vector<double long>>>& outcomeProbs) {
         // Extract information from solution set.
         for (shared_ptr<Solution> sol : solSet) {
             // Add Policy expectation
-            solExpectations.push_back(QValue());// TODO Initialise QValue
+            solExpectations.push_back(QValue());
             sol->loadQValue(*mdp.states[0], 0, solExpectations[solExpectations.size()-1]);
             // Add/Extract History outcomes
-            vector<QValue>* ows = new vector<QValue>();
-            vector<double>* ops = new vector<double>();
+            shared_ptr<vector<QValue>> ows = make_shared<vector<QValue>>();
+            shared_ptr<vector<double long>> ops = make_shared<vector<double long>>();
+
             extractHistoryWorths(sol, ows, ops);
+            mycount++;
             outcomeWorth.push_back(ows);
             outcomeProbs.push_back(ops);
         }
     }
-    void extractHistoryWorths(shared_ptr<Solution>& sol, vector<QValue>* worths, vector<double>* probs) {
+    void extractHistoryWorths(shared_ptr<Solution>& sol, shared_ptr<vector<QValue>> worths, shared_ptr<vector<double long>> probs) {
         QValue qval = QValue();
         mdp.blankQValue(qval);
-        auto worthMap = unordered_map<QValue, double, QValueHash, QValueEqual>();
+        auto worthMap = unordered_map<QValue, double long, QValueHash, QValueEqual>();
         DFS_Histories(*mdp.states[0], 0, *sol, qval, 1, worthMap);
         for (auto& it: worthMap) {
             worths->push_back(it.first);
@@ -77,11 +96,10 @@ private:
         }
 
     }
-
-    vector<double>* findNonAccept(vector<QValue>& expectedWorths, vector<vector<QValue>*>& outcomeWorths, vector<vector<double>*>& probability);
-    Attack biRetrospect(QValue* outOne, QValue* expOne, double probOne, QValue* outTwo, QValue* expTwo, double probTwo);
-    void verifyInput(vector<QValue*>& expOne, vector<vector<QValue*>>&& outsOne, vector<vector<double>>&& probOne,
-        vector<QValue*>& expTwo, vector<vector<QValue*>>& outsTwo, vector<vector<double>>& probTwo) {
+    vector<double long>* findNonAccept(vector<QValue>& expectedWorths, vector<shared_ptr<vector<QValue>>>& outcomeWorths, vector<shared_ptr<vector<double long>>>& probability);
+    Attack biRetrospect(QValue* outOne, QValue* expOne, double long probOne, QValue* outTwo, QValue* expTwo, double long probTwo);
+    void verifyInput(vector<QValue*>& expOne, vector<vector<QValue*>>&& outsOne, vector<vector<double long>>&& probOne,
+        vector<QValue*>& expTwo, vector<vector<QValue*>>& outsTwo, vector<vector<double long>>& probTwo) {
         if (expOne.size() != outsOne.size() || outsOne.size() != probOne.size())
             throw runtime_error("MEHR::verifyInput size mismatch between expectations and arguments/probabilities");
         if (expTwo.size() != outsTwo.size() || outsTwo.size() != probTwo.size())
@@ -98,9 +116,7 @@ private:
             }
         }
     }
-
-
-
+    void checkForAttack(int sourceSol, int targetSol, vector<shared_ptr<vector<QValue>>>& outcomeWorths, vector<shared_ptr<vector<double long>>>& probability, vector<vector<int*>>& attackedOutcomes, vector<double long>* non_accept, vector<int>& theories);
 
 };
 

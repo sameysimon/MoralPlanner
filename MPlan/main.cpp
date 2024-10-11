@@ -10,61 +10,63 @@
 #include "Solver.hpp"
 #include "MEHR.hpp"
 #include <chrono>
+#include <fstream>
+#include "Outputter.hpp"
 using json = nlohmann::json;
 
-// Function to sort and get indices in ascending order
-std::vector<size_t> sort_indices(const std::vector<double>& non_accept) {
-    // Create a vector of indices (0, 1, 2, ..., non_accept.size() - 1)
-    std::vector<size_t> indices(non_accept.size());
-    for (size_t i = 0; i < indices.size(); ++i) {
-        indices[i] = i;
-    }
-    // Sort indices based on comparing the values in non_accept
-    std::sort(indices.begin(), indices.end(),
-              [&non_accept](size_t i1, size_t i2) { return non_accept[i1] < non_accept[i2]; });
 
-    return indices;
-}
 
 
 int main(int argc, const char * argv[]) {
     std::cout << "THE 2024 MACHINE ETHICS HYPOTHETICAL RETROSPECTION PLANNER (MEHR-PLAN)" << std::endl;
     std::string dataFolder = DATA_FOLDER_PATH;
-    std::string fn = dataFolder + "/my_test.json";
+    std::string outputFolder = DATA_FOLDER_PATH;
 
-    if (false) {//argc == 1) {
-        fn = argv[0];
+
+    std::string fileIn;
+    fileIn = dataFolder + "/lostInsulin.json";
+    fileIn = dataFolder + "/windyDrone.json";
+    std::string fileOut = outputFolder + "MPlan-Out.json";
+
+
+    if (false and argc == 1) {
+        fileIn = argv[0];
         std::cout << "Please provide an environment file." << std::endl;
         return 0;
     }
-    if (argc > 2)
-        fn = argv[1];
+    if (argc == 2)
+        fileIn = argv[1];
 
     // Initialisation
-    MDP* mdp = new MDP(fn);
+    MDP* mdp = new MDP(fileIn);
     Solver solver = Solver(*mdp);
     MEHR mehr = MEHR(*mdp);
+    std::cout << "Initialised Environment in " << fileIn << ". Beginning Planning..." <<  std::endl;
+
 
     // Timing and operation
+    std::cout << "Starting planning..." << std::endl;
     auto start = chrono::high_resolution_clock::now();
-    vector<shared_ptr<Solution>> candidates = solver.MOiLAO();
-    auto non_accept = mehr.solve(*mdp, candidates);
+    solver.MOiLAO();
     auto end = chrono::high_resolution_clock::now();
+    auto durationPlan = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+    std::cout << "Finished Planning in " << durationPlan << " milliseconds." <<  std::endl;
 
-    // Output results
-    auto duration = chrono::duration_cast<chrono::microseconds>(end-start);
-    std::cout << "Finished in " << duration.count() << " microseconds." <<  std::endl;
-    std::vector<size_t> sorted_indices = sort_indices(*non_accept);
-    int counter = 0;
-    for (auto i : sorted_indices) {
-        std::cout << counter << std::endl;
-        std::cout << "Non-Acceptability=" << (*non_accept)[i] << std::endl;
-        std::cout <<  (candidates)[i]->worthToString() << std::endl;
-        std::cout <<  (candidates)[i]->policyToString() << std::endl << std::endl;
-        counter++;
-    }
+    std::cout << "Extracting Solutions..." << std::endl;
+    start = chrono::high_resolution_clock::now();
+    auto candidates = solver.extractSolutions();
+    end = chrono::high_resolution_clock::now();
+    auto durationExtraction = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+    std::cout << "Finished Extracting solutions in " << durationExtraction << " milliseconds." <<  std::endl;
 
 
+    start = chrono::high_resolution_clock::now();
+    auto non_accept = mehr.solve(*mdp, candidates);
+    end = chrono::high_resolution_clock::now();
+    auto durationMEHR = chrono::duration_cast<chrono::milliseconds>(end-start).count();
+    std::cout << "Finished MEHR in " << durationMEHR << " milliseconds." <<  std::endl;
+
+    Outputter::outputResults(mdp, non_accept, durationPlan, durationMEHR, candidates, fileOut);
 
     return 0;
 }

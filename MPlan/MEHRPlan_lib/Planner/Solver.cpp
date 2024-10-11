@@ -22,7 +22,7 @@ Solution Solver::valueIteration() {
         // Select best and update
         for (int t = 0; t < mdp.horizon; t++) {
             for (int i = 0; i < mdp.total_states; i++) {
-                getBestAction(sol, *mdp.states[i], t, true);
+                getBestAction(sol, *mdp.states[i], t);
                 backups++;
             }
             cout << "Time #" << t << endl;
@@ -40,10 +40,10 @@ Solution Solver::valueIteration() {
     return sol;
 }
 
-Action* Solver::getBestAction(Solution& sol, State& state, int time, bool setQValue) {
+void Solver::getBestAction(Solution& sol, State& state, int time) {
     vector<Action*>* actions = mdp.getActions(state, time);
     if (actions->size()==0) {
-        return nullptr;
+        return;
     }
     // Collect Q-Value for every Action
     vector<QValue> qvals = vector<QValue>();
@@ -61,21 +61,11 @@ Action* Solver::getBestAction(Solution& sol, State& state, int time, bool setQVa
         }
     }
 
-    // Output best Q-Value.
-    Action* bestAction = actions->at(bestQIdx);
-    //std::cout << "State " << state.id << " at time " << time << " maps to Action " << bestAction->label << std::endl;
+    // kind of janky but easy.
+    sol.setToQValue(state, time, qvals[bestQIdx]);// TODO may not work right, needs overhaul tbh.
+    sol.setAction(state, time, bestQIdx);
 
-    if (setQValue) {
-        // kind of janky but easy.
-        sol.setToQValue(state, time, qvals[bestQIdx]);
-        sol.setAction(state, time, *bestAction);
-    }
-
-    return bestAction;
 }
-
-
-
 
 
 

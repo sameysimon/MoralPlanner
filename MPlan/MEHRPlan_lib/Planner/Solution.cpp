@@ -23,7 +23,9 @@ string Solution::policyToString() {
                 stream << "_" << " | ";
                 continue;
             }
-            stream << *(mdp->actions[policy[t][s]]->label) << " | ";
+            int stateActionIdx = policy[t][s];
+            auto a = mdp->getActions(*mdp->states[s],0)->at(stateActionIdx);
+            stream << *(a->label) << " | ";
         }
         stream << endl;
     }

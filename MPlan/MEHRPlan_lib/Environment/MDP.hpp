@@ -28,6 +28,7 @@ class MDP {
     // Groups of moral theory indices, first holds lowest ranked theories.
     std::vector<std::vector<int>> groupedTheoryIndices;
     void buildFromJSON(nlohmann::json& data);
+    int compareQValueByRank(QValue& qv1, QValue& qv2, int rank);
 public:
     std::vector<Action*> actions;
     std::vector<State*> states;
@@ -41,13 +42,11 @@ public:
     explicit MDP(nlohmann::json& data);
     ~MDP();
 
-    void outNout();
-
     std::vector<Successor*>* getActionSuccessors(const State& state, const int stateActionIndex) {
         if (state.actionSuccessors.size()==0) {
             return nullptr;
         }
-        return state.actionSuccessors[stateActionIndex];
+         return state.actionSuccessors[stateActionIndex];
     }
     std::vector<Successor*>* getActionSuccessors(const State& state, const Action& action) {
         // Finds state-action index of 'action' then returns its successors.
@@ -71,6 +70,7 @@ public:
     int countAttacks(QValue& qv1, QValue& qv2);
     void blankQValue(QValue& qval);
     bool checkInBudget(QValue& qval);
+    int compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories);
 
 
 

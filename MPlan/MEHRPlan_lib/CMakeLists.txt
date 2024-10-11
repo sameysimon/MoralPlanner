@@ -3,21 +3,26 @@ project(MEHRPlan_lib)
 include_directories(Environment, Planner, Environment/MoralTheories)
 
 set(HEADER_FILES
-    Environment/Successor.hpp
-    Environment/Action.hpp
-    Environment/State.hpp
-    Environment/MoralTheories/MoralTheory.hpp
-    Planner/Expecter.hpp
-    Environment/MDP.hpp
-    Planner/Solver.hpp
-    Planner/QValue.hpp
-    Environment/MoralTheories/Utilitarianism.hpp
-    Planner/Solution.hpp
-    Planner/MEHR.hpp
+        Environment/Successor.hpp
+        Environment/Action.hpp
+        Environment/State.hpp
+        Environment/MoralTheories/MoralTheory.hpp
+        Planner/Expecter.hpp
+        Environment/MDP.hpp
+        Planner/Solver.hpp
+        Planner/QValue.hpp
+        Environment/MoralTheories/Utilitarianism.hpp
+        Environment/MoralTheories/Threshold.hpp
+        Planner/Solution.hpp
+        Planner/MEHR.hpp
+        ../Outputter.hpp
+        Environment/MoralTheories/Absolutism.cpp
+        Environment/MoralTheories/Absolutism.hpp
 )
 
 set(SOURCE_FILES
         Environment/MoralTheories/Utilitarianism.cpp
+        Environment/MoralTheories/Threshold.cpp
         Environment/Action.cpp
         Environment/MDP.cpp
         Environment/State.cpp
@@ -32,6 +37,9 @@ set(SOURCE_FILES
         Planner/MEHR.cpp
         Planner/Attack.hpp
         Planner/MO_ILAO_STAR.cpp
+        ../Output.cpp
+        Environment/MoralTheories/Absolutism.cpp
+        Environment/MoralTheories/Absolutism.hpp
 )
 
 

@@ -22,7 +22,6 @@ protected:
         return new MDP(fn);
     }
     void checkExpectedUtility(QValue& solValue, int theoryIndex, double utility, bool& found) {
-        found = false;
         if (theoryIndex > solValue.expectations.size()) {
             FAIL() << "QValue has not got expectation for theory with index " << theoryIndex << ". Likely a testing error?";
         }
@@ -30,18 +29,13 @@ protected:
         if (eu==nullptr) {
             FAIL() << "Should be an expected utility object.";
         }
-
         found = eu->value==utility;
+
     }
-    bool checkPolicyStateInTime(Solution& sol, int stateID, vector<int>& actions) {
-        for (int t=0; t<actions.size(); t++) {
-            if (actions[t] != sol.policy[t][stateID]) {
-                return false;
-            }
-        }
-        return true;
+    bool checkPolicyAtTime(shared_ptr<Solution> sol, int state, int time, int action) {
+        return sol->policy[time][state]==action;
     }
-    bool checkContainsQValue(vector<QValue>* outcomeWorths, vector<double>* outcomeProbs, int theoryOne, int theoryTwo, double probability) {
+    bool checkContainsQValue(shared_ptr<vector<QValue>> outcomeWorths, shared_ptr<vector<double long>> outcomeProbs, int theoryOne, int theoryTwo, double long probability) {
         bool one = false;
         bool two = false;
         bool three;

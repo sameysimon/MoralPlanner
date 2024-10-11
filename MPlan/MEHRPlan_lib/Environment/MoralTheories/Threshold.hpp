@@ -1,12 +1,9 @@
 //
-//  Utilitarianism.hpp
-//  MPlan
-//
-//  Created by e56834sk on 29/07/2024.
+// Created by Simon Kolker on 01/10/2024.
 //
 
-#ifndef Utilitarianism_hpp
-#define Utilitarianism_hpp
+#ifndef THRESHOLD_HPP
+#define THRESHOLD_HPP
 
 #include "Expecter.hpp"
 #include "MoralTheory.hpp"
@@ -15,13 +12,13 @@
 #include <sstream>
 #include <iomanip>
 
-
-class ExpectedUtility : public WorthBase {
+// The Morally Relevant Information
+class ExpectedValue : public WorthBase {
 public:
-    double long value=0;
+    double value=0;
     // Use simple numeric operators
     int compare(WorthBase& wb) const override {
-        ExpectedUtility* eu = static_cast<ExpectedUtility*>(&wb);
+        ExpectedValue* eu = static_cast<ExpectedValue*>(&wb);
         if (value < eu->value)
             return -1;
         if (value > eu->value)
@@ -32,57 +29,60 @@ public:
         return doubleToString(value);
     }
     bool isEquivalent(WorthBase& w) const override {
-        ExpectedUtility* eu = dynamic_cast<ExpectedUtility*>(&w);
+        ExpectedValue* eu = dynamic_cast<ExpectedValue*>(&w);
         if (eu==nullptr) {
-            throw std::invalid_argument("Expected WorthBase to be of type ExpectedUtility");
+            throw std::invalid_argument("Expected WorthBase to be of type ExpectedValue");
             return false;
         }
         return (abs(value - eu->value) < 1e-3);
     }
     WorthBase* clone() const override {
-        return new ExpectedUtility(*this);
+        return new ExpectedValue(*this);
     }
-    ExpectedUtility() {value=0;}
-    ExpectedUtility(const ExpectedUtility& other) {
+    ExpectedValue() {value=0;}
+    ExpectedValue(const ExpectedValue& other) {
         this->value = other.value;
     }
-    ~ExpectedUtility() = default;
-    ExpectedUtility& operator=(WorthBase& w) override {
-        if (const ExpectedUtility* eu = dynamic_cast<const ExpectedUtility*>(&w)) {
+    ~ExpectedValue() = default;
+    ExpectedValue& operator=(WorthBase& w) override {
+        if (const ExpectedValue* eu = dynamic_cast<const ExpectedValue*>(&w)) {
             this->value = eu->value;
         }
         return *this;
     }
     std::size_t hash() override {
-        return std::hash<double long>()(value);
+        return std::hash<double>()(value);
     }
 };
 
 
 
-class Utilitarianism : public MoralTheory {
-    std::unordered_map<Successor*, ExpectedUtility*> judgementMap;
+
+// The Moral Consideration
+class Threshold : public MoralTheory {
+    std::unordered_map<Successor*, ExpectedValue*> judgementMap;
     std::vector<double> heuristicList;
 
-    ExpectedUtility& quickCast(WorthBase& w) {
-        return static_cast<ExpectedUtility&>(w);
+    ExpectedValue& quickCast(WorthBase& w) {
+        return static_cast<ExpectedValue&>(w);
     }
+    double threshold = 0;
 public:
-    Utilitarianism(int id_) : MoralTheory(id_) {
-        judgementMap = std::unordered_map<Successor*, ExpectedUtility*>();
+    Threshold(int id_, double threshold_) : MoralTheory(id_ ), threshold(threshold_) {
+        judgementMap = std::unordered_map<Successor*, ExpectedValue*>();
     }
     //
     // Getters
     //
-    ExpectedUtility* judge(Successor& successor) {
+    ExpectedValue* judge(Successor& successor) {
         return judgementMap[&successor];
     }
     WorthBase* gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability=false) override {
         double utility = 0;
-        ExpectedUtility* ex;
+        ExpectedValue* ex;
         for (int i = 0; i < successors.size(); i++) {
-            ExpectedUtility* j = judge(*successors[i]);
-            ex = static_cast<ExpectedUtility*>(baselines[i]);// May be better way to do this?
+            ExpectedValue* j = judge(*successors[i]);
+            ex = static_cast<ExpectedValue*>(baselines[i]);// May be better way to do this?
             double newVal = j->value + ex->value;
             if (not ignoreProbability) {
                 newVal *= successors[i]->probability;
@@ -90,25 +90,24 @@ public:
             utility+=newVal;
         }
 
-        ex = new ExpectedUtility();
+        ex = new ExpectedValue();
         ex->value = utility;
         return ex;
     };
     WorthBase* newHeuristic(State& s) override {
-        ExpectedUtility* eu = new ExpectedUtility();
+        ExpectedValue* eu = new ExpectedValue();
         eu->value = heuristicList[s.id];
         return eu;
     };
     WorthBase* newWorth() override {
-        return new ExpectedUtility();
+        return new ExpectedValue();
     }
-
     //
     // Initialisation
     //
     void processSuccessor(Successor* successor, nlohmann::json successorData) override {
         double val = successorData;
-        auto u = new ExpectedUtility();
+        auto u = new ExpectedValue();
         u->value = val;
         this->judgementMap.insert(std::make_pair(successor, u));
     }
@@ -122,5 +121,4 @@ public:
 
 
 
-
-#endif /* Utilitarianism_hpp */
+#endif //THRESHOLD_HPP

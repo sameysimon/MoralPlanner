@@ -3,12 +3,16 @@ project(MPlan)
 
 set(CMAKE_CXX_STANDARD 14)
 
+option(ENABLE_DEBUG "Enable Debug output" ON)
+#if(ENABLE_DEBUG)
+
+#endif()
+add_definitions(-DDEBUG)
 #include_directories(include)
 #include_directories(include/Expected)
 include_directories(MEHRPlan_lib/Environment)
 include_directories(MEHRPlan_lib/Environment/MoralTheories)
 include_directories(MEHRPlan_lib/Planner)
-
 
 
 add_executable(MPlan main.cpp)
@@ -21,3 +25,4 @@ add_subdirectory(Google_tests)
 target_link_libraries(MPlan PUBLIC MEHRPlan_lib PRIVATE nlohmann_json::nlohmann_json)
 
 target_compile_definitions(MPlan PRIVATE DATA_FOLDER_PATH="${CMAKE_SOURCE_DIR}/Data")
+target_compile_definitions(MPlan PRIVATE OUTPUT_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data")

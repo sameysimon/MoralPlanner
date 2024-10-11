@@ -13,6 +13,7 @@
 #include "MDP.hpp"
 #include "Expecter.hpp"
 #include "QValue.hpp"
+#include <iostream>
 
 class Solution {
     MDP* mdp;
@@ -44,6 +45,7 @@ class Solution {
 public:
     std::vector<Expecter*> expecters;
     std::vector<std::vector<int>> policy;
+    std::vector<std::vector<int>> updateIndex;
     // Create empty Solution (hanging pointers)
     Solution() {}
     // Creates an expectation for each theory in the MDP.
@@ -51,6 +53,7 @@ public:
         this->mdp = &_mdp;
         this->expecters = std::vector<Expecter*>();
         this->policy = std::vector<std::vector<int>>(mdp->horizon+1);
+        this->updateIndex = std::vector<std::vector<int>>(mdp->horizon+1);
         // Initialise empty expecters.
         for (auto& m : _mdp.theories) {
             // Make expecter for the moral theory
@@ -60,13 +63,13 @@ public:
             } else {
                 e = m->makeExpecter(mdp->total_states, mdp->horizon);
             }
-
             // Add it to the list.
             this->expecters.push_back(e);
         }
         // Initialise empty policy
         for (int t =0; t < _mdp.horizon; ++t) {
-            this->policy[t] = std::vector<int>(mdp->states.size());
+            this->policy[t] = std::vector<int>(mdp->states.size(), -1);
+            this->updateIndex[t] = std::vector<int>(mdp->states.size(), -1);
         }
     }
     // Clones by value an existing Solution (including its expecters and policy.).
@@ -77,6 +80,7 @@ public:
             this->expecters[i] = other.expecters[i]->clone();
         }
         policy = other.policy;
+        updateIndex = other.updateIndex;
     }
     Solution* clone() {
         return new Solution(*this);
@@ -124,8 +128,8 @@ public:
             expecters[i]->setToValue(state, time, qval.expectations[i]);
         }
     }
-    void setAction(State& state, int time, Action& a) {
-        policy[time][state.id] = a.id;
+    void setAction(State& state, int time, int stateActionID) {
+        policy[time][state.id] = stateActionID;
     }
 
     //
@@ -145,23 +149,60 @@ public:
             qval.addToExpectations(wb);
         }
     }
-    // Policy hasher function.
-    std::size_t policyHash(int time_replace, int state_replace, int action_replace) {
-        std::size_t hashValue = 0;
-        std::hash<int> hashFn;
-        for (int t = 0; t < policy.size()-1; ++t) {//TODO sort horizon issue out. Time step 5 is blank. Not sure if it should be.
-            for (int s = 0; s < policy.size(); ++s) {
-                if (time_replace==t and state_replace==s) {
-                    hashValue ^= hashFn(action_replace) + 0x9e3779b9 + (hashValue << 6) + (hashValue >> 2); // Combine hash values
-                } else
-                    hashValue ^= hashFn(policy[t][s]) + 0x9e3779b9 + (hashValue << 6) + (hashValue >> 2); // Combine hash values
+    void cautiousCopyAtTime(int time, Solution& oth) {
+        if (time > mdp->horizon-1) { return; }
+        for (int stateIdx = 0; stateIdx < mdp->states.size(); stateIdx++) {
+            if (updateIndex[time][stateIdx] < oth.updateIndex[time][stateIdx]) {
+                // This solution behind other solution.
+                for (int expIdx = 0; expIdx < expecters.size(); expIdx++) {
+
+                    expecters[expIdx]->expectations[time][stateIdx] = oth.expecters[expIdx]->expectations[time][stateIdx]->clone();
+                    policy[time][stateIdx] = oth.policy[time][stateIdx];
+                    // Make the copy.
+                }
+                updateIndex[time][stateIdx] = oth.updateIndex[time][stateIdx];
             }
         }
-        return hashValue;
     }
+
     std::string policyToString();
     std::string worthToString();
 
 };
 
+struct SolutionHash {
+    size_t operator()(const std::shared_ptr<Solution> sol) const {
+        std::size_t hashValue = 0;
+        std::hash<int> hashFn;
+        int horizon = sol->expecters[0]->expectations.size();
+        int num_states = sol->expecters[0]->expectations[0].size();
+        for (int t = 0; t < horizon-1; ++t) {
+            for (int s = 0; s < num_states; ++s) {
+                hashValue ^= hashFn(sol->policy[t][s]) + 0x9e3779b9 + (hashValue << 6) + (hashValue >> 2);
+            }
+        }
+        return hashValue;
+    }
+};
+struct SolutionCompare {
+    bool operator()(const std::shared_ptr<Solution> lhs, const std::shared_ptr<Solution> rhs) const {
+        std::cout << "HELLO" << std::endl;
+        int horizon = lhs->expecters[0]->expectations.size();
+        int num_states = lhs->expecters[0]->expectations[0].size();
+        for (int t = 0; t < horizon-1; ++t) {
+            for (int s = 0; s < num_states; ++s) {
+                if (lhs->policy[t][s] != rhs->policy[t][s]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+};
+
+struct InsertOrderCompare {
+    bool operator()(const std::shared_ptr<Solution> lhs, const std::shared_ptr<Solution> rhs) const {
+        return true;
+    }
+};
 #endif /* Solution_hpp */
