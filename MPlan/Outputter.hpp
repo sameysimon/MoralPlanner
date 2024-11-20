@@ -4,7 +4,6 @@
 
 #ifndef OUTPUTTER_HPP
 #define OUTPUTTER_HPP
-
 #include "MDP.hpp"
 #include <nlohmann/json.hpp>
 #include "Solver.hpp"
@@ -16,7 +15,7 @@ using namespace std;
 
 
 class Outputter {
-    public:
+public:
     std::vector<size_t> static sort_indices(const std::vector<double>& non_accept) {
         // Create a vector of indices (0, 1, 2, ..., non_accept.size() - 1)
         std::vector<size_t> indices(non_accept.size());
@@ -31,87 +30,79 @@ class Outputter {
     }
 
 
-    void static outputResults(MDP* mdp, vector<double>* non_accept, long long durationPlan, long long durationMEHR, vector<shared_ptr<Solution>>& candidates, std::string filePath) {
+    void static outputResults(MDP* mdp, vector<double>* non_accept, vector<long long> &durations, vector<Policy*>& policies, std::string fileOut, std::string fileIn, Solver& solver) {
         json results;// Overall file
 
-        results["duration_Plan"] = durationPlan;
-        results["duration_MEHR"] = durationMEHR;
-        results["duration_total"] = durationMEHR + durationPlan;
+
+        results["Expanded"] = solver.expanded_states;
+        results["Backups"] = solver.backups;
+        results["Iterations"] = solver.iterations;
+        results["SolutionTotal"] = policies.size();
+        /*for (int rank=0; rank < mdp->groupedTheoryIndices.size(); rank++) {
+            for (int thIdx=0; thIdx < mdp->groupedTheoryIndices[rank].size(); thIdx++) {
+                results["Theories"].push_back(to_string(rank));
+                results["Theories"].push_back(mdp->theories[mdp->groupedTheoryIndices[rank][thIdx]]->label);
+            }
+        }*/
+
+        results["duration_Plan"] = durations[0];
+        results["duration_MEHR"] = durations[1];
+        long long x = std::accumulate(durations.begin(), durations.end(), (long long)(0)) ;
+        results["duration_total"] = x;
 
         json solutions = json::array();
         std::vector<size_t> sorted_indices = sort_indices(*non_accept);
-        int counter = 0;
         for (auto i : sorted_indices) {
-            json solution_json;
+            json solution_json;// Init
             solution_json["Non-Acceptability"] = (*non_accept)[i];
-            if (mdp->non_moralTheoryIdx!=-1) {
-                solution_json["Expected Cost"] = candidates[i]->expecters[mdp->non_moralTheoryIdx]->expectations[0][0]->ToString();
+
+            json action_map = json::object();
+
+            for (auto state_time_action : policies[i]->policy) {
+                int time = state_time_action.first[0];
+                int stateID = state_time_action.first[1];
+                int actionID = state_time_action.second;
+
+                stringstream ss;
+                ss << time << "," << stateID;
+                action_map[ss.str()] = *mdp->getActions(*mdp->states[stateID], time)->at(actionID)->label;
+            }
+            solution_json["Action_Map"] = action_map;
+
+            if (mdp->non_moralTheoryIdx != -1) {
+                ExpectedUtility* cost = dynamic_cast<ExpectedUtility*>(policies[i]->worth[{0,0}].expectations[mdp->non_moralTheoryIdx]);
+                solution_json["Expected_Cost"] = cost->value;
             }
 
-            auto tree = DFS_Search(*mdp, candidates[i]);
-            json actions;
-            for (auto elem : *tree) {
-                std::ostringstream oss;
-                oss << elem[0] << ", " << elem[1];
-                actions[oss.str()] =  candidates[i]->policy[elem[0]][elem[1]];
+            solution_json["Expectation"] = json::object();
+            for (int thIdx=0; thIdx < mdp->theories.size(); thIdx++) {
+                solution_json["Expectation"][mdp->theories[thIdx]->label] = policies[i]->worth[{0,0}].expectations[thIdx]->ToString();
             }
-            solution_json["Action_Map"] = actions;
 
             solutions.push_back(solution_json);
             results["solutions"] = solutions;
-            // TODO Give info for state-0 time-0 for all.
-            // TODO Give Policy for sure with estimates along the way?
-            std::cout << counter << std::endl;
-            std::cout << "Non-Acceptability=" << (*non_accept)[i] << std::endl;
-            std::cout <<  (candidates)[i]->worthToString() << std::endl;
-            std::cout <<  (candidates)[i]->policyToString() << std::endl << std::endl;
-
-
-            counter++;
         }
+
+        // Add input file to end of json for easy processing!
+        std::ifstream inputFile(fileIn); // Don't know how/if to put on heap?
+        if (!inputFile.is_open()) {
+            throw std::runtime_error("Error loading input file: '" + fileIn + "'");
+        }
+        json inFile  = json::parse(inputFile);
+        results.merge_patch(inFile);
 
         //
         // Save File
         //
-        std::ofstream file(filePath);
+        std::ofstream file(fileOut);
         if (file.is_open()) {
             file << results.dump(4);
             file.close();
-            std::cout << "JSON file created successfully!" << std::endl;
+            std::cout << "JSON file '" << fileOut <<"' created successfully!" << std::endl;
         } else {
-            std::cerr << "Could not open the file for writing!" << std::endl;
+            std::cerr << "Could not open the file '" << fileOut <<"' for output." << std::endl;
         }
     }
-
-
-    bool static DFS_Search_Call(MDP& mdp, int stateIdx, int time, unordered_set<std::array<int, 2>, ArrayHash>& visited, set<array<int, 2>,ArrayCompare>* tree, std::shared_ptr<Solution>& sol) {
-        if (tree->find({time, stateIdx}) != tree->end()) {
-            return true; // If already visited, don't search.
-        }
-        if (time >= mdp.horizon) {
-            return false;// If post-horizon, don't search.
-        }
-        tree->insert({time,stateIdx});
-
-        int stateAction = sol->policy[time][stateIdx];
-        if (stateAction==-1) { return true; }
-        auto scrs = mdp.getActionSuccessors(*mdp.states[stateIdx], stateAction);
-        if (scrs==nullptr) { return true; }
-        for (auto scr : *scrs) {
-            int ttime = time+1;// CHANGED TIME HERE
-            DFS_Search_Call(mdp, scr->target, ttime, visited, tree, sol);
-        }
-        return true;
-    }
-
-    set<array<int, 2>,ArrayCompare> static *DFS_Search(MDP& mdp, std::shared_ptr<Solution>& sol) {
-        auto tree = new set<array<int, 2>,ArrayCompare>();
-        unordered_set<std::array<int, 2>, ArrayHash> visited = unordered_set<std::array<int, 2>, ArrayHash>();
-        DFS_Search_Call(mdp, 0, 0, visited, tree, sol);
-        return tree;
-    }
-
-
 };
 
 

@@ -14,9 +14,8 @@ class Successor {
 public:
     int source;
     int target;
-    double long probability;
+    double probability;
     Successor(int _sourceIdx, int _targetIdx, double _prob) : source(_sourceIdx), target(_targetIdx), probability(_prob){}
-    Successor() {}
 };
 
 

@@ -1,0 +1,8 @@
+config.,avg. total time,avg. plan time,avg. MEHR time,avg. expanded states,avg. backups,Num of Candidates,Min. non-acceptability,Num of Cands w/ Min non-acceptability
+CostCarla,5377011180.2,43006.2,1693.4,223.0,2269.0,3.0,0.0,2.0
+CostCarlaSteal,5460155852.4,54994.4,2015.6,223.0,2269.0,3.0,0.0,2.0
+HalCarlaEqual,5427580441.8,46314.8,3530.2,243.0,2472.0,8.0,0.10879,1.0
+HalCarlaHigher,5447488900.6,42741.4,2870.8,271.0,2862.0,10.0,0.0,1.0
+HalCarlaNoSteal,5229882067.0,59355.0,2825.0,243.0,2472.0,8.0,0.10879,1.0
+HalCarlaNoStealComp,5442417728.6,56746.0,2620.2,243.0,2472.0,8.0,0.10879,1.0
+HalHigherCarla,4395786184.0,43711.4,2376.8,243.0,2472.0,8.0,0.0,2.0

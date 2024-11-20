@@ -16,14 +16,14 @@ std::string Solver::SolutionSetToString(std::vector<std::shared_ptr<Solution>>& 
     for (auto sol : solSet) {
         if (sol==nullptr) { stream << "Solution NULL" << solNum << endl; continue; }
         stream << "Solution #" << solNum << endl;
-        stream << sol->worthToString() << endl;
+        //stream << sol->worthToString() << endl;
         stream << sol->policyToString() << endl;
         solNum++;
     }
     stream << endl;
     return stream.str();
 }
-std::string Solver::SolutionSetToString(unordered_set<shared_ptr<Solution>, SolutionHash, SolutionCompare>& solSet) {
+std::string Solver::SolutionSetToString(unordered_set<shared_ptr<Solution>, SolutionHash, SolutionEqual>& solSet) {
     stringstream stream;
     stream << solSet.size() << " solutions." << endl;
     int solNum = 0;

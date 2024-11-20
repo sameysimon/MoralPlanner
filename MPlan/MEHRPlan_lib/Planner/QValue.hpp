@@ -22,6 +22,7 @@ public:
             expectations[i] = other.expectations[i]->clone();
         }
     }
+
     bool greaterThan(QValue& qval);
     void addToExpectations(WorthBase* ev) {
         expectations.push_back(ev);
@@ -41,36 +42,35 @@ public:
         }
         return true;
     }
-};
+    bool operator==(const QValue& other) const {
+        if (expectations.size() != other.expectations.size()) {
+            return false;
+        }
+        for (int i = 0; i < expectations.size(); i++) {
+            if (not expectations[i]->isEquivalent(*other.expectations[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-class QValueHash {
-public:
     static void hash_combine(std::size_t& seed, const std::size_t& hash) {
         // CLion says hash_combine is unreachable??
         seed ^= hash + 0x9e3779b9 + (seed << 6) + (seed >> 2);  // A common hash combine technique. Check this out.
     }
-    std::size_t operator()(const QValue& qVal) const noexcept {
-        std::size_t seed = 0;
-        for (WorthBase* wb : qVal.expectations) {
-            std::size_t wbHashed = wb->hash();
-            hash_combine(seed, wbHashed);
-        }
-        return seed;
-    }
+
+};
+
+
+class QValueHash {
+public:
+    std::size_t operator()(const QValue& qVal) const noexcept;
 };
 
 class QValueEqual {
 public:
     bool operator()(const QValue& lhs, const QValue& rhs) const noexcept {
-        if (lhs.expectations.size() != rhs.expectations.size()) {
-            return false;
-        }
-        for (int i = 0; i < lhs.expectations.size(); i++) {
-            if (not lhs.expectations[i]->isEquivalent(*rhs.expectations[i])) {
-                return false;
-            }
-        }
-        return true;
+        return lhs == rhs;
     }
 };
 

@@ -18,10 +18,10 @@
 
 class ExpectedUtility : public WorthBase {
 public:
-    double long value=0;
+    double value=0;
     // Use simple numeric operators
     int compare(WorthBase& wb) const override {
-        ExpectedUtility* eu = static_cast<ExpectedUtility*>(&wb);
+        auto eu = static_cast<ExpectedUtility*>(&wb);
         if (value < eu->value)
             return -1;
         if (value > eu->value)
@@ -43,10 +43,10 @@ public:
         return new ExpectedUtility(*this);
     }
     ExpectedUtility() {value=0;}
-    ExpectedUtility(const ExpectedUtility& other) {
+    ExpectedUtility(const ExpectedUtility& other)  : WorthBase(other) {
         this->value = other.value;
     }
-    ~ExpectedUtility() = default;
+    ~ExpectedUtility() override = default;
     ExpectedUtility& operator=(WorthBase& w) override {
         if (const ExpectedUtility* eu = dynamic_cast<const ExpectedUtility*>(&w)) {
             this->value = eu->value;
@@ -54,7 +54,7 @@ public:
         return *this;
     }
     std::size_t hash() override {
-        return std::hash<double long>()(value);
+        return std::hash<double>()(value);
     }
 };
 
@@ -82,7 +82,7 @@ public:
         ExpectedUtility* ex;
         for (int i = 0; i < successors.size(); i++) {
             ExpectedUtility* j = judge(*successors[i]);
-            ex = static_cast<ExpectedUtility*>(baselines[i]);// May be better way to do this?
+            ex = static_cast<ExpectedUtility*>(baselines[i]);
             double newVal = j->value + ex->value;
             if (not ignoreProbability) {
                 newVal *= successors[i]->probability;

@@ -46,20 +46,13 @@ public:
     virtual int attack(QValue& qv1, QValue& qv2) = 0;
     Expecter* makeExpecter(int size, int horizon);
     Expecter* makeHeuristicExpecter(std::vector<State*>& states, int horizon);
-
-
-
-
 };
 
-static std::string doubleToString(double long v) {
+static std::string doubleToString(double v) {
     std::ostringstream oss;
-    oss << std::fixed << std::setprecision(15) << v; // Convert with maximum precision
+    oss << std::fixed << std::setprecision(4) << v;
     std::string str = oss.str();
-
-    // Strip trailing zeros
     str.erase(str.find_last_not_of('0') + 1, std::string::npos);
-    // If there's a decimal point left at the end, remove it
     if (str.back() == '.') {
         str.pop_back();
     }

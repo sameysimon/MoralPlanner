@@ -5,11 +5,28 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Module",
+      "name": "Windy Drone",
       "type": "python",
       "request": "launch",
       "module": "EnvironmentBuilder",
-      "justMyCode": true
+      "justMyCode": true,
+      "args": ["--domain", "WindyDrone", "--out", "./outputs/windyDrone.json", "--explore"]
+    },
+    {
+      "name": "Lost Insulin",
+      "type": "python",
+      "request": "launch",
+      "module": "EnvironmentBuilder",
+      "justMyCode": true,
+      "args": ["--domain", "LostInsulin", "--out", "./outputs/lostInsulin.json", "--explore", "--theoryTags", "1", "CarlaLife", "0", "Cost"]
+    },
+    {
+      "name": "Read Insulin",
+      "type": "python",
+      "request": "launch",
+      "module": "EnvironmentBuilder",
+      "justMyCode": true,
+      "args": ["--domain", "LostInsulin", "--out", "./outputs/waste.json", "--explore", "--policy", "/Users/user/Desktop/MyMoralPlanner/MoralPlanner/Data/MPlan-out/HalHigherCarla.json"]
     }
   ]
 }

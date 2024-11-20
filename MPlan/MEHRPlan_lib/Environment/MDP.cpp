@@ -9,7 +9,22 @@
 #include <iostream>
 #include <vector>
 #include "MDP.hpp"
+
+#include <vector>
+
 #include "Solution.hpp"
+
+void MDP::getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval) {
+    blankQValue(qval);
+    auto scrs = getActionSuccessors(state, stateActionIndex);
+    if (scrs->empty()) { return; }
+    std::vector<WorthBase*> nullBaselines = std::vector<WorthBase*>(scrs->size(), nullptr);
+    for (int i=0; i<theories.size(); ++i) {
+        std::fill(nullBaselines.begin(), nullBaselines.end(), theories[i]->newWorth());
+        qval.expectations.push_back(theories[i]->gather(*scrs, nullBaselines));
+        delete nullBaselines[0];
+    }
+}
 
 void MDP::addCertainSuccessorToQValue(QValue& qval, Successor* scr) {
     std::vector<Successor*> successors = {scr};
@@ -71,7 +86,7 @@ int MDP::compareQValues(QValue& qv1, QValue& qv2, bool useRanks) {
     if (!useRanks and this->non_moralTheoryIdx!=-1) {
         // Use cost theory.
         newResult = qv1.expectations[non_moralTheoryIdx]->compare(*qv2.expectations[non_moralTheoryIdx]);
-        if (result!=0 and newResult!=result) {
+        if (result!=0 and newResult!=result and newResult!=0) {
             return 0;
         }
         if (newResult != 0) {
@@ -81,6 +96,12 @@ int MDP::compareQValues(QValue& qv1, QValue& qv2, bool useRanks) {
     return result;
 }
 
+/**
+ * Finds attack direction and theories used in attacks. Sensitive to Weak Lexicographic Order!
+ * @param forwardTheories Fills with indices of theories in mdp.theories s.t. qv1 to attack qv2.
+ * @param reverseTheories Fills with indices of theories in mdp.theories s.t. qv2 to attack qv1.
+ * @return 1 if qv1 attacks qv2; -1 if qv2 attacks qv1; 0 if no attacks; 2 if both attack each other.
+ */
 int MDP::compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories) {
     // Find rank where there is a decision.
     int attackDirection = 0;// Initially 0, means undecided.
@@ -106,7 +127,6 @@ int MDP::compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forward
             attackDirection=rankResult;// If a direction has been established then use it.
         }
     }
-
     // Depending on the direction of attack.
     if (attackDirection==1) {
         reverseTheories.clear();
@@ -134,16 +154,27 @@ int MDP::countAttacks(QValue& qv1, QValue& qv2) {
     return attacks;
 }
 
-bool MDP::checkInBudget(QValue& qval) {
-    if (non_moralTheoryIdx==-1) { return true; }
-    ExpectedUtility* eu = static_cast<ExpectedUtility*>(qval.expectations[non_moralTheoryIdx]);
-    if (eu->value > budget*-1) {
-        return true;
+/**
+ * Sets a QValue expectations field with heuristic estimates for state.
+ * @param qval An initialised QValue to fill with heuristics
+ * @param state The state whose value must be estimated.
+ */
+void MDP::heuristicQValue(QValue& qval, State& state) {
+    for (int i=0; i<theories.size(); ++i) {
+        qval.expectations[i] = theories[i]->newHeuristic(state);
     }
-    return false;
 }
 
-
+/**
+ * If there is a non-moral cost theory, checks if qval is in budget.
+ * If there is no cost theory, all QValues are in budget, so returns true.
+ * @return true if in budget or no non-moral cost, false otherwise.
+ */
+bool MDP::isQValueInBudget(QValue& qval) const {
+    if (non_moralTheoryIdx==-1) { return true; }
+    auto cost = static_cast<ExpectedUtility*>(qval.expectations[non_moralTheoryIdx]);
+    return cost->value > -1 * budget;
+}
 
 
 MDP::~MDP()

@@ -184,9 +184,9 @@ struct SolutionHash {
         return hashValue;
     }
 };
-struct SolutionCompare {
+
+struct SolutionEqual {
     bool operator()(const std::shared_ptr<Solution> lhs, const std::shared_ptr<Solution> rhs) const {
-        std::cout << "HELLO" << std::endl;
         int horizon = lhs->expecters[0]->expectations.size();
         int num_states = lhs->expecters[0]->expectations[0].size();
         for (int t = 0; t < horizon-1; ++t) {

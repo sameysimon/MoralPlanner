@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # C extensions
 *.so
@@ -197,7 +198,12 @@ cython_debug/
 *.out
 *.app
 
+.DS_Store
 
+*.idea
+
+cmake-build-debug/
+cmake-build-release/
 
 MPlan/cmake-build-debug/
 MPlan/cmake-build-release/

@@ -26,13 +26,13 @@ class MDP {
     std::unordered_map<std::string, Action*> actionMap;
     std::vector<std::vector<Action*>> stateActions;
     // Groups of moral theory indices, first holds lowest ranked theories.
-    std::vector<std::vector<int>> groupedTheoryIndices;
     void buildFromJSON(nlohmann::json& data);
     int compareQValueByRank(QValue& qv1, QValue& qv2, int rank);
 public:
     std::vector<Action*> actions;
     std::vector<State*> states;
     std::vector<MoralTheory*> theories;// Should not change size after initial assignment.
+    std::vector<std::vector<int>> groupedTheoryIndices;
     int total_states=0;
     int horizon=3;
     float budget = -1;// initial budget is infinite
@@ -68,9 +68,13 @@ public:
     void addCertainSuccessorToQValue(QValue& qval, Successor* scr);
     int compareQValues(QValue& qv1, QValue& qv2, bool useRanks=false);
     int countAttacks(QValue& qv1, QValue& qv2);
-    void blankQValue(QValue& qval);
-    bool checkInBudget(QValue& qval);
     int compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories);
+
+    void blankQValue(QValue& qval);
+    void getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval);
+    void heuristicQValue(QValue& qval, State& state);
+    bool isQValueInBudget(QValue& qval) const;
+
 
 
 

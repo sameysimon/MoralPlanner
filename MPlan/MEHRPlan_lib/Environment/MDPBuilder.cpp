@@ -165,7 +165,7 @@ void MDP::buildFromJSON(nlohmann::json& data) {
 
             // Does not have a rank. Left out of rankings.
         } else if (type=="Threshold") {
-            double long th = t["Threshold"];
+            double th = t["Threshold"];
             Threshold* u = new Threshold(theoryId, th);
             u->label = t["Name"];
             u->rank = t["Rank"];
@@ -199,8 +199,13 @@ void MDP::buildFromJSON(nlohmann::json& data) {
         state = new State(i,number_of_actions);
         states[i] = state;
         stateActions[i] = vector<Action*>();
-
     }
+    if (data.count("state_tags")) {
+        for (int i=0; i <this->total_states; ++i) {
+            states[i]->tag = data["state_tags"][i];
+        }
+    }
+
     // GOALS
     // Set isGoal=true for goal states.
     for (int gIdx : data["goals"]) {
@@ -229,7 +234,7 @@ void MDP::buildFromJSON(nlohmann::json& data) {
             // Create successor and populate
             json successorObjects = actionSuccessors.value();
             for (auto& successorData : successorObjects) {
-                double long prob = successorData[0];
+                double prob = successorData[0];
                 int targetID = successorData[1];
                 successor = new Successor(sourceIdx, targetID, prob);
                 successorSet->push_back(successor);

@@ -18,9 +18,11 @@ class State {
 public:
     int id;
     bool isGoal;
+    std::string tag;
     std::vector<std::vector<Successor*>*> actionSuccessors;
 
-    State(int _index, int action_reserve) : id(_index) {
+    State(int _index, int action_reserve)  {
+        id = _index;
         actionSuccessors = std::vector<std::vector<Successor*>*>(action_reserve);
         this->isGoal = false;
     }
@@ -30,5 +32,6 @@ public:
         }
     }
 };
+
 
 #endif /* State_hpp */

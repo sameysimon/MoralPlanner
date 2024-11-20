@@ -1,0 +1,45 @@
+{
+  "horizon": 6,
+  "total_states": 11,
+  "actions": ["Recommend", "Ignore", "Next"],
+  "state_transitions": [
+    {
+      "Recommend": [[0.4, 3, 1, true], [0.6, 4, 1, true]],
+      "Ignore": [[0.3, 1, 1, false], [0.7, 2, -1, false]]
+    },
+    {},
+    {},
+    {
+      "Next": [[0.7, 5, 1, false], [0.3, 6, -1, false]]
+    },
+    {
+      "Next": [[0.3, 7, 1, false], [0.7, 7, -1, false]]
+    },
+    {"Next":  [[1,9,0,false]] },
+    {"Next":  [[1,9,0,false]] },
+    {"Next":  [[1,9,0,false]] },
+    {"Next":  [[1,9,0,false]] },
+    {
+      "Next": [[0.05, 10, -1, false], [0.95, 10, 0, false]]
+    },
+    {}
+  ],
+  "goals":[],
+  "theories": [
+    {
+      "Name": "Utilitarianism",
+      "Rank": 0,
+      "Type": "Utility",
+      "Heuristic":[0,0,0,0,0,0,0,0,0,0,0],
+      "default": 0
+    },
+    {
+      "Name": "No Leaks",
+      "Rank": 0,
+      "Type": "Absolutism",
+      "Heuristic":[false, false, false, false, false, false, false, false, false, false, false],
+      "default": false
+    }
+
+  ]
+}

@@ -24,7 +24,8 @@ string Solution::policyToString() {
                 continue;
             }
             int stateActionIdx = policy[t][s];
-            auto a = mdp->getActions(*mdp->states[s],0)->at(stateActionIdx);
+            auto actions = mdp->getActions(*mdp->states[s],0);
+            auto a = actions->at(stateActionIdx);
             stream << *(a->label) << " | ";
         }
         stream << endl;
@@ -43,7 +44,14 @@ string Solution::worthToString() {
     for (int s = 0; s < mdp->states.size(); s++) {
         stream << s << ": ";
         for (int t = 0; t < mdp->horizon; t++) {
-            stream << expecters[0]->expectations[t][s]->ToString() << ","  << expecters[1]->expectations[t][s]->ToString() << " | ";
+            for (int thIdx = 0; thIdx < expecters.size(); thIdx++) {
+                stream << expecters[thIdx]->expectations[t][s]->ToString();
+                if (t < expecters.size() - 1) {
+                    stream << ", ";
+                }
+            }
+            stream <<" | ";
+
         }
         stream << endl;
     }

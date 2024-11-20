@@ -35,7 +35,7 @@ protected:
     bool checkPolicyAtTime(shared_ptr<Solution> sol, int state, int time, int action) {
         return sol->policy[time][state]==action;
     }
-    bool checkContainsQValue(shared_ptr<vector<QValue>> outcomeWorths, shared_ptr<vector<double long>> outcomeProbs, int theoryOne, int theoryTwo, double long probability) {
+    bool checkContainsQValue(shared_ptr<vector<QValue>> outcomeWorths, shared_ptr<vector<double>> outcomeProbs, int theoryOne, int theoryTwo, double probability) {
         bool one = false;
         bool two = false;
         bool three;

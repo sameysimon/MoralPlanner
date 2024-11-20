@@ -35,15 +35,27 @@ set(SOURCE_FILES
         Environment/MDPBuilder.cpp
         Planner/MO_Solver.cpp
         Planner/MEHR.cpp
-        Planner/Attack.hpp
+        Planner/AttackType.hpp
         Planner/MO_ILAO_STAR.cpp
         ../Output.cpp
         Environment/MoralTheories/Absolutism.cpp
         Environment/MoralTheories/Absolutism.hpp
+        Planner/ExtractSolutions.hpp
+        Planner/Policy.hpp
+        Planner/PostOrderDFS.cpp
+        Planner/ExtractHistories.cpp
+        Planner/ExtractHistories.hpp
 )
 
 
 add_library(MEHRPlan_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
 
 find_package(nlohmann_json CONFIG REQUIRED)
-target_link_libraries(MEHRPlan_lib nlohmann_json::nlohmann_json)
+find_package(CURL REQUIRED)
+
+target_link_libraries(MEHRPlan_lib nlohmann_json::nlohmann_json CURL::libcurl)
+
+# Enable debug definitions if building in Debug mode
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DDEBUG)
+endif()
