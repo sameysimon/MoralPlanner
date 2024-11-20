@@ -127,15 +127,6 @@ cd build
 ctest
 ```
 
----
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request. Before submitting changes, ensure that:
-
-1. The code passes all unit tests.
-2. New features are documented.
-
 
 ---
 
