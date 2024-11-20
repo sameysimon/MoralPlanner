@@ -15,14 +15,27 @@ include_directories(MEHRPlan_lib/Planner)
 
 
 add_executable(MPlan main.cpp)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(CURL REQUIRED)
+
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/releases/download/v1.15.2/googletest-1.15.2.tar.gz
+)
+FetchContent_MakeAvailable(googletest)
+FetchContent_Declare(
+        nlohmann_json
+        URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 
 include_directories(MEHRPlan_lib)
 add_subdirectory(MEHRPlan_lib)
-add_subdirectory(Google_tests)
 
-target_link_libraries(MPlan PUBLIC MEHRPlan_lib PRIVATE nlohmann_json::nlohmann_json CURL::libcurl)
+target_link_libraries(MPlan PUBLIC MEHRPlan_lib PRIVATE nlohmann_json::nlohmann_json)
 
 target_compile_definitions(MPlan PRIVATE DATA_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data/MDPs/")
 target_compile_definitions(MPlan PRIVATE OUTPUT_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data/MPlan-Out/")
+
+enable_testing()
+add_subdirectory(Google_tests)

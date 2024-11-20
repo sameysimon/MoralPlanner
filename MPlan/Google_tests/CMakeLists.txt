@@ -1,9 +1,10 @@
 project(Google_tests)
-add_subdirectory(lib)
+#add_subdirectory(lib)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 # adding the Google_Tests_run target
-add_executable(Google_Tests_run JsonMDPTest.cpp
+add_executable(Google_Tests_run
+        JsonMDPTest.cpp
         CompareQValues.cpp
         MO_Test.cpp
         ExtractHistories.cpp
@@ -11,9 +12,10 @@ add_executable(Google_Tests_run JsonMDPTest.cpp
         TestBase.hpp)
 
 # linking Google_Tests_run with DateConverter_lib which will be tested
-target_link_libraries(Google_Tests_run MEHRPlan_lib)
+target_link_libraries(Google_Tests_run PRIVATE gtest gtest_main MEHRPlan_lib)
 
-target_link_libraries(Google_Tests_run gtest gtest_main)
+include(GoogleTest)
+gtest_discover_tests(Google_Tests_run)
 
 target_link_libraries(MPlan PUBLIC MEHRPlan_lib PRIVATE nlohmann_json::nlohmann_json)
 

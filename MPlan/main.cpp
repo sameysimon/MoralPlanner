@@ -20,30 +20,6 @@ using json = nlohmann::json;
 typedef chrono::milliseconds time_metric;
 #define TIME_METRIC_STR "milliseconds"
 
-int sendDataToServer() {
-    nlohmann::json data = nlohmann::json::object();
-    data["Hello"] = "World";
-    CURL* curl;
-    CURLcode res;
-    // Initialize CURL
-    curl = curl_easy_init();
-    if(curl) {
-        std::string jsonData = data.dump();
-        curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:5000/data");
-        struct curl_slist* headers = NULL;
-        headers = curl_slist_append(headers, "Content-Type: application/json");
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
-        res = curl_easy_perform(curl);
-        if(res != CURLE_OK)
-            std::cerr << "Error: " << curl_easy_strerror(res) << std::endl;
-        curl_easy_cleanup(curl);
-        curl_slist_free_all(headers);
-        return (res == CURLE_OK) ? 0 : 1;
-    }
-    return 1;
-}
-
 int main(int argc, const char * argv[]) {
     std::cout << "THE 2024 MACHINE ETHICS HYPOTHETICAL RETROSPECTION PLANNER (MEHR-PLAN)" << std::endl;
     std::string dataFolder = DATA_FOLDER_PATH;
