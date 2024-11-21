@@ -47,7 +47,7 @@ The Planner is implemented in C++ 17. A CMakeLists file is included and we only 
 #### Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/MoralPlanner.git
+git clone https://github.com/sameysimon/MoralPlanner.git
 cd MoralPlanner
 ```
 
