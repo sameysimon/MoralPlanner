@@ -36,10 +36,12 @@ int main(int argc, const char * argv[]) {
     if (argc == 3) {
         fileIn = argv[1];
         fileOut = argv[2];
+        std::cout << "Chosen '" << fileIn << "' input file." << std::endl;
+        std::cout << "Chosen '" << fileOut << "' as output file." << std::endl;
     } else {
         std::cout << "Please provide an environment input file and and output file." << std::endl;
     }
-
+//-DCMAKE_TOOLCHAIN_FILE=/Users/user/.vcpkg-clion/myPackages/scripts/buildsystems/vcpkg.cmake
     // Initialisation
     MDP* mdp = new MDP(fileIn);
     Solver solver = Solver(*mdp);
@@ -68,8 +70,6 @@ int main(int argc, const char * argv[]) {
     std::cout << "Total of " << policies->size() << " solutions." <<  std::endl;
 #endif
     durations.push_back(d);
-
-
     auto polExpectations = new vector<QValue>();
     auto eh = new ExtractHistories(*mdp);
     start = chrono::high_resolution_clock::now();
@@ -86,8 +86,8 @@ int main(int argc, const char * argv[]) {
     auto non_accept = mehr.findNonAccept(*polExpectations, histories);
     end = chrono::high_resolution_clock::now();
     d = chrono::duration_cast<time_metric>(end-start).count();
-    std::cout << mehr.ToString(*polExpectations, histories) << std:: endl;
 #ifdef DEBUG
+    std::cout << mehr.ToString(*polExpectations, histories) << std:: endl;
     std::cout << "Finished MEHR in " << d << " " << TIME_METRIC_STR << ". " <<  std::endl;
 #endif
     durations.push_back(d);

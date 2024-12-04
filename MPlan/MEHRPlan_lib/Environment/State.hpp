@@ -17,12 +17,14 @@
 class State {
 public:
     int id;
+    int time;
     bool isGoal;
     std::string tag;
     std::vector<std::vector<Successor*>*> actionSuccessors;
 
-    State(int _index, int action_reserve)  {
+    State(int _index, int action_reserve, int _time)  {
         id = _index;
+        time = _time;
         actionSuccessors = std::vector<std::vector<Successor*>*>(action_reserve);
         this->isGoal = false;
     }

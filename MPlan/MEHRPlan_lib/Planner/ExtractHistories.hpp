@@ -57,41 +57,46 @@ class ExtractHistories {
 public:
     explicit ExtractHistories(MDP& mdp) : mdp(mdp) { }
 
+    //
     // Entry Point/Main Call.
     //
-    vector<vector<History*>*>* extract(vector<Policy*>& policySet, vector<QValue>& solExpectations) {
+    vector<vector<History*>> extract(vector<Policy*>& policySet, vector<QValue>& solExpectations) {
         solExpectations.clear();
         solExpectations.reserve(policySet.size());
+        //
         // Extract information from solution set.
-        auto piToHSet = new vector<unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>*>();
+        //
+        // Stores policy index to set of histories.
+        vector<unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>> piToHSet;
+
         array<int,2> start = {0,0};
         for (Policy* pi : policySet) {
             // Add Policy expectation
             solExpectations.push_back(pi->worth[start]);
+
             // Add/Extract History outcomes
-
-            auto hSet = extractHistories(*pi);//TODO figure out memory leak.
-            piToHSet->push_back(hSet);
-        }
-        auto histories = new vector<vector<History*>*>();
-        for (unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>* hSet : *piToHSet) {
-            auto hvec = new vector<History*>();
-            for (History* existingH : *hSet) {
-                hvec->push_back(existingH);
-            }
-            histories->push_back(hvec);
+            auto hSet = extractHistories(*pi);
+            piToHSet.push_back(std::move(*hSet));
+            delete hSet;
         }
 
+        std::vector<std::vector<History*>> histories;
+
+        for (const auto& hSet : piToHSet) {
+            // Create a vector to store this policy's histories
+            std::vector hVec(hSet.begin(), hSet.end());
+            histories.push_back(std::move(hVec));
+        }
         return histories;
     }
 
-    string ToString(vector<Policy*>& policySet, vector<QValue>& solExpectations, vector<vector<History*>*>* histories) const {
+    static string ToString(vector<Policy*>& policySet, vector<QValue>& solExpectations, vector<vector<History*>>& histories) {
         stringstream ss;
         for (int solIdx=0; solIdx < policySet.size(); solIdx++) {
             double total = 0;
             ss << "Policy " << solIdx << " expects " << solExpectations[solIdx].toString() << std::endl;
             int histCounter=0;
-            for (History* hist : *(*histories)[solIdx]) {
+            for (History* hist : histories[solIdx]) {
                 ss << "      History #" << histCounter << " has " << hist->worth.toString() << " at Probability " <<  hist->probability << std::endl;
                 total += hist->probability;
                 histCounter++;
@@ -128,13 +133,13 @@ private:
             DFS_baseCase(h, hSet);
             return;
         }
-
+        // Stop if state/time is not in the policy
         auto stateActionIt = pi.policy.find({time, state.id});
         if (stateActionIt==pi.policy.end()) {
             DFS_baseCase(h, hSet);
             return;
         }
-
+        // Stop if no successors.
         auto successors = mdp.getActionSuccessors(state, stateActionIt->second);
         if (successors==nullptr) {
             DFS_baseCase(h, hSet);
@@ -149,6 +154,7 @@ private:
             h_->addToPath(successor);
             DFS_Histories(*mdp.states[successor->target], time+1, pi, h_, hSet);
         }
+        delete h; // Could this work??? Maybe not, must check!!!
     }
 };
 

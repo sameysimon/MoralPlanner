@@ -212,7 +212,7 @@ class LostInsulin(MDP):
                     mt = LifeAndDeath()
                 elif 'ToSteal'==tag:
                     mt = ToSteal()
-                elif 'ToStealWithComp'==tag:
+                elif 'StealWithComp'==tag:
                     mt = StealWithComp()
                 elif 'HalLife'==tag:
                     mt = HalLife()

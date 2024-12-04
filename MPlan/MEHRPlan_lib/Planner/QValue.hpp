@@ -27,14 +27,14 @@ public:
     void addToExpectations(WorthBase* ev) {
         expectations.push_back(ev);
     };
-    std::string toString() const {
+    [[nodiscard]] std::string toString() const {
         std::string result = "";
         for (WorthBase* ev : expectations) {
             result += ev->ToString() + "; ";
         }
         return result;
     }
-    bool isEquivalent(const QValue& other) const {
+    [[nodiscard]] bool isEquivalent(const QValue& other) const {
         for (int i = 0; i < other.expectations.size(); i++) {
             if (!expectations[i]->isEquivalent(*other.expectations[i])) {
                 return false;

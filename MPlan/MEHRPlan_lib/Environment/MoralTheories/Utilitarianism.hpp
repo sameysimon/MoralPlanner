@@ -43,6 +43,7 @@ public:
         return new ExpectedUtility(*this);
     }
     ExpectedUtility() {value=0;}
+    explicit ExpectedUtility(double v) {value=v;}
     ExpectedUtility(const ExpectedUtility& other)  : WorthBase(other) {
         this->value = other.value;
     }

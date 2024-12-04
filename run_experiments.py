@@ -25,8 +25,8 @@ configs = {
     "HalHigherCarla": ["0", "CarlaLife", "1", "HalLife"],
     "HalCarlaHigher": ["1", "CarlaLife", "0", "HalLife"],
     "HalCarlaNoSteal": ["0", "CarlaLife", "0", "HalLife", "0", "ToSteal"],
+    "HalCarlaNoStealComp": ["1", "CarlaLife", "0", "HalLife", "0", "StealWithComp"],
     "CostCarlaSteal": ["0", "CarlaLife", "0", "Cost", "0", "ToSteal"],
-    "HalCarlaNoStealComp": ["0", "CarlaLife", "0", "HalLife", "0", "ToSteal"],
     "CostCarla": ["0", "CarlaLife", "0", "Cost"]
 }
 

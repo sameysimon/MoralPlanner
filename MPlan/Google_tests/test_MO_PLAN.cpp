@@ -8,7 +8,7 @@
 #include "Solution.hpp"
 #include <Solver.hpp>
 
-class MO_Test : public ::testing::Test {
+class test_MO_PLAN : public ::testing::Test {
 protected:
     void SetUp() {
     }
@@ -96,7 +96,7 @@ protected:
     }
 };
 
-class MOVI_Test : public MO_Test {
+class MOVI_Test : public test_MO_PLAN {
 
 };
 /*

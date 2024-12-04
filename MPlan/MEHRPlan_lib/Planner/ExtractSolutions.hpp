@@ -36,23 +36,23 @@ public:
         // Post-Order Depth-First-Search (bottom-up) building policies
         for (const std::array<int, 2> time_state : Z) {
             int time = time_state.at(0), stateIdx = time_state.at(1);
-            if (time==0) {
-                std::cout << "At the start " << std::endl;
-            }
-            // Create entry in Policy table
+
             auto myPolicies = new unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>();
             (*policyTable)[{time, stateIdx}] = myPolicies;
-            //
-            // Step 1. Get sub-policies of successors
-            //
-            // If successors have no sub-policies, fetch them.
+
             auto actionsDone = vector<int>();
             for (const auto stateAction : Pi[time][stateIdx]) {
-                // Check if action is a duplicates.
+                // Skip duplicate actions
                 if (std::find(actionsDone.begin(), actionsDone.end(),stateAction)!=std::end(actionsDone)) { continue; }
                 actionsDone.push_back(stateAction);
-                // Get Successors
+
+                //
+                // Step 1. Get sub-policies of successors into tmpPolicies
+                //
+                // Get successors
                 auto successors = mdp.getActionSuccessors(*mdp.states[stateIdx], stateAction);
+
+                // If successor has no sub-policies, make them.
                 if (time+1 >= mdp.horizon) {
                     // Next successor will not have any sub policies.
                     // Create policy without sub policies.
@@ -74,8 +74,7 @@ public:
                     }
                     continue;
                 }
-
-                // Create successor's sub policies vector
+                // Fill tmpPolicies with sub-policies.
                 getSubPolicies(time, tmpPolicies, successors);
 
                 //
@@ -94,21 +93,19 @@ public:
                 auto currentcombo = vector<int>(successors->size());// Stores a current combo from above (for algo purposes).
                 generatePolicyCombos(policyCombos, tmpPolicyIndex, currentcombo, 0);
 
-
                 for (auto& combo : policyCombos) {
                     auto newPi = new Policy();
                     // Copy values for sub-policies of each successor.
                     for (int scr_i = 0; scr_i < successors->size(); scr_i++) {
                         newPi->importPolicy(*tmpPolicyIndex[scr_i]->at(combo[scr_i]));// Copy in successor's policy to this new one.
                     }
-                    // Aggreagate combo's successor qValues with action.
+                    // Aggregate combo's successor qValues with action.
                     newPi->setAction(time, stateIdx, stateAction);
                     QValue qval = gatherQValue(successors, *newPi, time);
                     newPi->setWorth(time, stateIdx, qval);
 
                     if (myPolicies->find(newPi)== myPolicies->end()) {
                         myPolicies->insert(newPi);
-                        //std::cout << "   Adding policy: "<< newPi->toString(mdp) << endl;
                     }
                 }
 
@@ -117,8 +114,10 @@ public:
                 //cout << "   There are " << myPolicies->size() << " policies after action " << stateAction << endl;
                 // Copy policy and set action/Value
             }
+#ifdef DEBUG
             cout << "   Actions= " << actionsDone.size() << " unique actions" << endl;
             cout << "   Policies " << myPolicies->size() << endl;
+#endif
         }
         //
         // Tidy up

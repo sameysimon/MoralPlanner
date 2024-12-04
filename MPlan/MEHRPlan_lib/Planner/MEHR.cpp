@@ -4,7 +4,7 @@
 #include "MEHR.hpp"
 #include <iostream>
 
-vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<History*>*>* histories) {
+vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<History*>>& histories) {
     non_accept = new vector<double>(policyWorths.size(), 0);
     int r = 0;
     vector<int*> expected_edges = vector<int*>(); // Stores [x,y,] if policy x defeats policy y in expectation.
@@ -48,13 +48,13 @@ vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<
 
 
 
-void MEHR::checkForAttack(int sourceSol, int targetSol, vector<vector<History*>*>* histories, vector<int>& theories) {
+void MEHR::checkForAttack(int sourceSol, int targetSol, vector<vector<History*>>& histories, vector<int>& theories) {
     bool ignore=false;
     if (sourceSol == 4) {
         ignore = false;
     }
-    for (int attIdx = 0; attIdx < histories->at(sourceSol)->size(); ++attIdx) {
-        for (int defIdx = 0; defIdx < histories->at(targetSol)->size(); ++defIdx) {
+    for (int attIdx = 0; attIdx < histories.at(sourceSol).size(); ++attIdx) {
+        for (int defIdx = 0; defIdx < histories.at(targetSol).size(); ++defIdx) {
             for (int tIdx : theories) {
                 if (tIdx==mdp.non_moralTheoryIdx) { continue;}
 
@@ -70,13 +70,13 @@ void MEHR::checkForAttack(int sourceSol, int targetSol, vector<vector<History*>*
                 // If target argument is already attacked, don't try and add to it.
                 if (ignore) {continue;}
 
-                int result = mdp.theories[tIdx]->attack(histories->at(sourceSol)->at(attIdx)->worth, histories->at(targetSol)->at(defIdx)->worth);
+                int result = mdp.theories[tIdx]->attack(histories.at(sourceSol).at(attIdx)->worth, histories.at(targetSol).at(defIdx)->worth);
                 if (result==1) {
                     // Store this attack.
                     Attack att = Attack(sourceSol, targetSol, tIdx, attIdx, defIdx);
                     potAttacks->push_back(att);
                     // Add to non-acceptability.
-                    (*non_accept)[targetSol] += histories->at(targetSol)->at(defIdx)->probability;
+                    (*non_accept)[targetSol] += histories.at(targetSol).at(defIdx)->probability;
                     //std::cout << "     Theory Id " << tIdx << ". Outcome with " << histories->at(targetSol)->at(defIdx)->worth.toString() << " attacks outcome with" << histories->at(targetSol)->at(defIdx)->worth.toString() << " for Prob +" << histories->at(targetSol)->at(defIdx)->probability << " = " << (*non_accept)[targetSol] << std::endl;
                 }
                 //TODO optimise to add attack if result==-1

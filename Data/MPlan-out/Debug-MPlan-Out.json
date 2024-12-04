@@ -4,16 +4,16 @@
     "Iterations": 22,
     "SolutionTotal": 3,
     "actions": [
-        "go_to_Carla",
+        "wait",
         "give_high",
         "steal",
-        "wait",
+        "go_to_Carla",
         "give_low",
         "leave"
     ],
-    "duration_MEHR": 6,
-    "duration_Plan": 217,
-    "duration_total": 224,
+    "duration_MEHR": 161296,
+    "duration_Plan": 218,
+    "duration_total": 161518,
     "goals": [],
     "horizon": 20,
     "solutions": [

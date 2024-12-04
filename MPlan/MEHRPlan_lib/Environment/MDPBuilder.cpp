@@ -196,7 +196,7 @@ void MDP::buildFromJSON(nlohmann::json& data) {
     auto s_t = data["state_transitions"];
     for (int i=0; i <this->total_states; ++i) {
         int number_of_actions = s_t[i].size();
-        state = new State(i,number_of_actions);
+        state = new State(i,number_of_actions, data["state_time"][i]);
         states[i] = state;
         stateActions[i] = vector<Action*>();
     }

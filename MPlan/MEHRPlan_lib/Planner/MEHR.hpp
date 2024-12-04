@@ -34,10 +34,10 @@ class MEHR {
         }
         delete attacksByTarget;
     };
-    vector<double>* findNonAccept(vector<QValue>& policyWorths, vector<vector<History*>*>* histories);
-    void checkForAttack(int sourceSol, int targetSol, vector<vector<History*>*>* histories, vector<int>& theories);
+    vector<double>* findNonAccept(vector<QValue>& policyWorths, vector<vector<History*>>& histories);
+    void checkForAttack(int sourceSol, int targetSol, vector<vector<History*>>& histories, vector<int>& theories);
 
-    string ToString(vector<QValue>& policyWorths, vector<vector<History*>*>* histories) {
+    string ToString(vector<QValue>& policyWorths, vector<vector<History*>>& histories) {
         stringstream ss;
         if (attacksByTarget==nullptr) {
             ss << "Uninitialised.";
@@ -46,8 +46,8 @@ class MEHR {
         for (int tarIdx=0; tarIdx<attacksByTarget->size(); tarIdx++) {
             ss << " Attacks on policy " << tarIdx << " with expected worth " << policyWorths[tarIdx].toString() << "." << endl;
             for (Attack& att : *(*attacksByTarget)[tarIdx]) {
-                History* targetHist = histories->at(att.targetPolicyIdx)->at(att.targetHistoryIdx);
-                History* sourceHist = histories->at(att.sourcePolicyIdx)->at(att.sourceHistoryIdx);
+                History* targetHist = histories.at(att.targetPolicyIdx).at(att.targetHistoryIdx);
+                History* sourceHist = histories.at(att.sourcePolicyIdx).at(att.sourceHistoryIdx);
                 ss << "     From Pi " << att.sourcePolicyIdx << ", history " << att.sourceHistoryIdx << "(" << sourceHist->worth.toString() <<") ---> " << att.targetHistoryIdx << " ("<< targetHist->worth.toString() << ") with P= +" << targetHist->probability << " by theory " << att.theoryIdx << endl;
             }
             ss << " Pi " << tarIdx << " non-Acceptability = " << non_accept->at(tarIdx) << endl << endl;;
