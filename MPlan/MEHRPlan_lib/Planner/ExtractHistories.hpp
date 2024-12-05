@@ -69,10 +69,10 @@ public:
         // Stores policy index to set of histories.
         vector<unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>> piToHSet;
 
-        array<int,2> start = {0,0};
+
         for (Policy* pi : policySet) {
             // Add Policy expectation
-            solExpectations.push_back(pi->worth[start]);
+            solExpectations.push_back(pi->worth[0]);
 
             // Add/Extract History outcomes
             auto hSet = extractHistories(*pi);
@@ -134,7 +134,7 @@ private:
             return;
         }
         // Stop if state/time is not in the policy
-        auto stateActionIt = pi.policy.find({time, state.id});
+        auto stateActionIt = pi.policy.find(state.id);
         if (stateActionIt==pi.policy.end()) {
             DFS_baseCase(h, hSet);
             return;

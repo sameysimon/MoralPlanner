@@ -9,32 +9,25 @@
 using namespace std;
 
 // Setup Data to store QValues
-void Solver::build_blank_data(vector<vector<vector<QValue>>>* d) {
-    for (int t=0; t<mdp.horizon+1; t++) {
-        auto stateVec = vector<vector<QValue>>();
-        for (int s = 0; s < mdp.states.size(); s++) {
-            auto us = vector<QValue>();
-            QValue qv = QValue();
-            for (int theoryIdx=0; theoryIdx < mdp.theories.size(); theoryIdx++) {
-                qv.expectations.push_back(mdp.theories[theoryIdx]->newHeuristic(*mdp.states[s]));
-            }
-            us.push_back(qv);
-            stateVec.push_back(us);
+void Solver::build_blank_data(vector<vector<QValue>>* d) {
+    for (int s = 0; s < mdp.states.size(); s++) {
+        auto us = vector<QValue>();
+        QValue qv = QValue();
+        for (int theoryIdx=0; theoryIdx < mdp.theories.size(); theoryIdx++) {
+            qv.expectations.push_back(mdp.theories[theoryIdx]->newHeuristic(*mdp.states[s]));
         }
-        d->push_back(stateVec);
+        us.push_back(qv);
+        d->push_back(us);
     }
 }
 
-void clone_data(vector<vector<vector<QValue>>>& data, vector<vector<vector<QValue>>>& data_clone) {
-    int horizon = data.size();
+void clone_data(vector<vector<QValue>>& data, vector<vector<QValue>>& data_clone) {
     int states = data[0].size();
-    for (int t = 0; t < horizon; ++t) {
-        for (int s = 0; s < states; ++s) {
-            data_clone.at(t)[s].clear();
-            for (auto qv : data.at(t)[s] ) {
-                QValue qv_clone = QValue(qv);
-                data_clone.at(t)[s].push_back(qv_clone);
-            }
+    for (int s = 0; s < states; ++s) {
+        data_clone[s].clear();
+        for (QValue& qv : data[s] ) {
+            QValue qv_clone = QValue(qv);
+            data_clone[s].push_back(qv_clone);
         }
     }
 }
@@ -45,55 +38,48 @@ void clone_data(vector<vector<vector<QValue>>>& data, vector<vector<vector<QValu
 
 void Solver::MOiLAO() {
     // Initialise Multi-Worth Function and a clone.
-    data = new vector<vector<vector<QValue>>>();
+    // Each state may have many QValues.
+    data = new vector<vector<QValue>>();
     build_blank_data(data);
-    auto data_clone = new vector<vector<vector<QValue>>>();
+    auto data_clone = new vector<vector<QValue>>();
     build_blank_data(data_clone);
 
-    // Initialise Pi. It maps time/state to available actions.
-    Pi = new vector<vector<vector<int>>>();
-    for (int t = 0; t < mdp.horizon; ++t) {
-        Pi->emplace_back(vector<vector<int>>());
-        for (int s = 0; s < mdp.states.size(); ++s) {
-            Pi->at(t).emplace_back(vector<int>());// TODO Maybe don't need this, try with/without?
-        }
+    // Initialise Pi. It maps state to vector of available actions.
+    Pi = new vector<vector<int>>();
+    for (int s = 0; s < mdp.states.size(); ++s) {
+        Pi->emplace_back(vector<int>());
     }
+
 
     backups = 0;
     iterations = 0;
 
-    foundStates = new unordered_set<array<int, 2>, ArrayHash>();// Explicitly encountered states
-    auto* expanded = new unordered_set<array<int, 2>,ArrayHash>();
-    Z = new set<array<int, 2>, ArrayCompare>(); // Best partial grpah.
+    foundStates = new unordered_set<int>();// Explicitly encountered states
+    auto* expanded = new unordered_set<int>();
+    Z = new vector<int>(); // Best partial graph.
 
     // Initialise foundStates and Best partial sub graph.
-    array<int, 2> start_state = {0,0};// Time 0, state 0
-    foundStates->insert(start_state);
-    Z->insert(start_state);
+    foundStates->insert(0);
+    Z->emplace_back(0);
 
     do {
         clone_data(*data, *data_clone);
 
-        for (const std::array<int, 2> time_state : *Z) {
-            int time = time_state.at(0);
-            int stateIdx = time_state.at(1);
+        for (const int stateIdx : *Z) {
+            int time = mdp.states[stateIdx]->time;
 #ifdef DEBUG
             cout<< "Backing-up Time " << time << " State " << stateIdx << endl;
 #endif
-            if ((time==0 && stateIdx==0) && iterations==20) {
-                time = time;
-            }
             backup(*mdp.states[stateIdx], time);
             backups++;
-            expanded->insert({time, stateIdx});
+            expanded->insert(stateIdx);
         }
-
         setPostOrderDFS(foundStates);
 #ifdef DEBUG
         cout << "Finished Backups at iteration #" << iterations << endl;
         cout << "Set Post Order DFS: " << endl;
         cout << "Found " << foundStates->size() << " states-times:"<<endl;
-        for (auto elem : *foundStates) { cout << "t=" << elem[0] << ",s=" << elem[1] << ";  "; }
+        for (auto elem : *foundStates) { cout << "t=" << mdp.states[elem]->time << ",s=" << elem << ";  "; }
         cout << endl << endl;;
         cout << "We are at " << backups << " backups and " << iterations << " iterations." << endl;
 #endif
@@ -110,27 +96,24 @@ void Solver::MOiLAO() {
 }
 
 // Termination Condition
-bool Solver::checkConverged(vector<vector<vector<QValue>>>& data, vector<vector<vector<QValue>>>& data_other) {
-    auto horizon = data.size();
+bool Solver::checkConverged(vector<vector<QValue>>& data, vector<vector<QValue>>& data_other) {
     auto states = data[0].size();
-    for (int t = 0; t < horizon; ++t) {
-        for (int s = 0; s < states; ++s) {
-            if (data[t][s].size() != data_other[t][s].size()) {
-                return false;
-            }
-            bool existsSimilar = false;
-            for (auto qv : data[t][s] ) {
-                for (auto qv2 : data_other[t][s] ) {
-                    if (qv.isEquivalent(qv2)) {
-                        existsSimilar = true;
-                        break;
-                    }
+    for (int s = 0; s < states; ++s) {
+        if (data[s].size() != data_other[s].size()) {
+            return false;
+        }
+        bool existsSimilar = false;
+        for (QValue &qv : data[s] ) {
+            for (QValue &qv2 : data_other[s] ) {
+                if (qv.isEquivalent(qv2)) {
+                    existsSimilar = true;
+                    break;
                 }
-                if (existsSimilar) { break; }
             }
-            if (!existsSimilar) {
-                return false;
-            }
+            if (existsSimilar) { break; }
+        }
+        if (!existsSimilar) {
+            return false;
         }
     }
     return true;
@@ -159,20 +142,20 @@ void Solver::backup(State& state, int time) {
 
     if (indicesOfUndominated.empty()) { return; }
     // Set to Data
-    data->at(time)[state.id].clear();
+    data->at(state.id).clear();
     for (auto elem : indicesOfUndominated) {
-        data->at(time)[state.id].push_back(candidates[elem]);
+        data->at(state.id).push_back(candidates[elem]);
     }
-    Pi->at(time)[state.id].clear();
+    Pi->at(state.id).clear();
     // Record what actions we're using.
     for (auto elem : indicesOfUndominated) {
-        Pi->at(time)[state.id].push_back(qValueIdxToAction[elem]);
+        Pi->at(state.id).push_back(qValueIdxToAction[elem]);
     }
 }
 
 void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction) {
     // Auxillary, non-requred vectors.
-    vector<Action*>* actions = mdp.getActions(state, time);
+    vector<Action*>* actions = mdp.getActions(state);
     if (actions->size()==0 or time>=mdp.horizon) {
         return;
     }
@@ -182,7 +165,7 @@ void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, v
         auto successorQValues = vector<vector<QValue>>();
         auto combos = vector<vector<QValue>>();
         for (int scrIdx=0; scrIdx < successors->size(); ++scrIdx) {
-            auto& q = data->at(time+1)[successors->at(scrIdx)->target];
+            auto& q = data->at(successors->at(scrIdx)->target);
             successorQValues.push_back(q);
         }
         // Generate all combinations of SuccessorQValue/theory
@@ -215,7 +198,6 @@ void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, v
     }
     cout << endl;
 #endif
-    int x = 5;
 }
 
 
@@ -263,13 +245,13 @@ void Solver::pprune_alt(std::vector<QValue>& inVector, std::vector<int>& outVect
 }
 
 
-bool Solver::checkForUnexpandedStates(unordered_set<array<int, 2>,ArrayHash>* expanded, set<array<int, 2>, ArrayCompare>* bpsg) {
+bool Solver::checkForUnexpandedStates(unordered_set<int>* expanded, vector<int>* bpsg) {
     if (expanded->size()==0 or bpsg->size()==0) {
         return true;
     }
     bool unexpanded = false;
     for (const auto& elem : *bpsg) {
-        if (mdp.non_moralTheoryIdx!= -1 && mdp.states[elem[1]]->isGoal) {
+        if (mdp.non_moralTheoryIdx!= -1 && mdp.states[elem]->isGoal) {
             continue;
         }
         if (expanded->find(elem) == expanded->end()) {

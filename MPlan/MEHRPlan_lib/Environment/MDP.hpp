@@ -51,7 +51,7 @@ public:
     std::vector<Successor*>* getActionSuccessors(const State& state, const Action& action) {
         // Finds state-action index of 'action' then returns its successors.
         int i = 0;
-        for (auto a : *getActions(state, 0)) {
+        for (auto a : *getActions(state)) {
             if (a->label == action.label) { //EW TODO Make whole thing better!!!!
                 return getActionSuccessors(state, i);
             }
@@ -59,10 +59,7 @@ public:
         }
         throw std::runtime_error("No suitable action found.");
     }
-    std::vector<Action*>* getActions(const State& state, int timeStamp) {
-        if (timeStamp > horizon) {
-            throw std::runtime_error("Requested actions for timestamp after end of horizon.");
-        }
+    std::vector<Action*>* getActions(const State& state) {
         return &(stateActions[state.id]);
     }
     void addCertainSuccessorToQValue(QValue& qval, Successor* scr);

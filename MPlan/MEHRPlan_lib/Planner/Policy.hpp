@@ -33,11 +33,11 @@ struct ArrayEqual {
 
 class Policy {
 public:
-    unordered_map<array<int, 2>, int, ArrayHash, ArrayEqual> policy;
-    unordered_map<array<int, 2>, QValue, ArrayHash, ArrayEqual> worth;
+    unordered_map<int, int> policy;
+    unordered_map<int, QValue> worth;
     Policy() {
-        policy = unordered_map<array<int, 2>, int, ArrayHash, ArrayEqual>();
-        worth = unordered_map<array<int, 2>, QValue, ArrayHash, ArrayEqual>();
+        policy = unordered_map<int, int>();
+        worth = unordered_map<int, QValue>();
     }
     Policy(Policy& pi) : Policy() {
         importPolicy(pi);
@@ -49,31 +49,30 @@ public:
         worth.insert(pi.worth.begin(), pi.worth.end());
     }
     void setAction(int time, int state, int stateTimeAction) {
-        policy[{time, state}] = stateTimeAction;
+        policy[state] = stateTimeAction;
     }
     void setWorth(int time, int state, QValue& qval) {
-        worth[{time,state}] = qval;
+        worth[state] = qval;
     }
     WorthBase* getWorthAtTheory(int time, int stateIdx, int theoryIdx) {
-        if (worth.find({time, stateIdx}) != worth.end()) {
-            return worth[{time, stateIdx}].expectations[theoryIdx];
+        if (worth.find(stateIdx) != worth.end()) {
+            return worth[stateIdx].expectations[theoryIdx];
         }
         throw runtime_error("ME ERROR--Policy does not exist at time " + to_string(time) + " , state " + to_string(stateIdx));
     }
     [[nodiscard]] string toString(MDP& mdp) const {
         std::stringstream ss;
         ss << "Policy { ";
-        vector<array<int,2>> epochOrder = vector<array<int,2>>();
+        vector<int> epochOrder = vector<int>();
         for (auto it : policy) {
             epochOrder.push_back(it.first);
         }
-        sort(epochOrder.begin(), epochOrder.end(), ArrayCompare());
+        sort(epochOrder.begin(), epochOrder.end());//TODO will this work.
         reverse(epochOrder.begin(), epochOrder.end());
-        for (auto epoch : epochOrder) {
-            int time = epoch[0];
-            int sIdx = epoch[1];
-            int stateAction = policy.at({time, sIdx});
-            ss << "(" << time << ","<< sIdx << ") ->" << *(*mdp.getActions(*mdp.states[sIdx],time))[stateAction]->label << "{" << worth.at(epoch).toString() << "}"<< ";  ";
+        for (auto sIdx : epochOrder) {
+            int time = mdp.states[sIdx]->time;
+            int stateAction = policy.at(sIdx);
+            ss << "(" << time << ","<< sIdx << ") ->" << *(*mdp.getActions(*mdp.states[sIdx]))[stateAction]->label << "{" << worth.at(sIdx).toString() << "}"<< ";  ";
         }
         ss << "}";
         return ss.str();
@@ -91,15 +90,15 @@ struct PolicyPtrHash {
         size_t hash = 0;
         // Combine hash for policy
         for (const auto& item : pi->policy) {
-            size_t keyHash = ArrayHash{}(item.first); // hash of the key array<int, 2>
-            size_t valHash = std::hash<int>{}(item.second); // hash of the int action
+            size_t keyHash = std::hash<int>{}(item.first);
+            size_t valHash = std::hash<int>{}(item.second);
             hash ^= keyHash ^ valHash;
         }
 
         // Combine hash for worth
         for (const auto& item : pi->worth) {
-            size_t keyHash = ArrayHash{}(item.first); // hash of the key array<int, 2>
-            size_t valHash = qvalHasher(item.second); // hash of the QValue object
+            size_t keyHash = std::hash<int>{}(item.first);
+            size_t valHash = qvalHasher(item.second);
             hash ^= keyHash ^ valHash;
         }
 

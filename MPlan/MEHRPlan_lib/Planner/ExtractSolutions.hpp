@@ -19,29 +19,29 @@ public:
 
     explicit SolutionExtracter(MDP& _mdp) : mdp(_mdp) {
         // Actions to search on each state.
-        searchedOptions = new unordered_map<array<int,2>, int, ArrayHash, ArrayEqual>();
+        searchedOptions = new unordered_map<int, int>();
     }
     ~SolutionExtracter() {
         delete searchedOptions;
     }
-    vector<Policy*>* extractPolicies(vector<vector<vector<int>>>& Pi, set<array<int, 2>, ArrayCompare>& Z) {
+    vector<Policy*>* extractPolicies(vector<vector<int>>& Pi, const vector<int>& Z) {
         // TODO Maybe don't keep whole policy table, delete far back, only keep time+1
         // Maps time-state to set of policies from that epoch.
-        policyTable = new unordered_map<array<int, 2>, unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*, ArrayHash>();
+        policyTable = new unordered_map<int, unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*>();
 
         // Stores of successor-to-sub policies.
         vector<unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*> tmpPolicies;
         auto tmpPolicyIndex = vector<vector<Policy*>*>();
 
         // Post-Order Depth-First-Search (bottom-up) building policies
-        for (const std::array<int, 2> time_state : Z) {
-            int time = time_state.at(0), stateIdx = time_state.at(1);
+        for (const int stateIdx : Z) {
+            int time = mdp.states[stateIdx]->time;
 
             auto myPolicies = new unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>();
-            (*policyTable)[{time, stateIdx}] = myPolicies;
+            (*policyTable)[stateIdx] = myPolicies;
 
             auto actionsDone = vector<int>();
-            for (const auto stateAction : Pi[time][stateIdx]) {
+            for (const auto stateAction : Pi[stateIdx]) {
                 // Skip duplicate actions
                 if (std::find(actionsDone.begin(), actionsDone.end(),stateAction)!=std::end(actionsDone)) { continue; }
                 actionsDone.push_back(stateAction);
@@ -123,11 +123,11 @@ public:
         // Tidy up
         //
         // Save the polcies we need (which are the ones at state-time 0).
-        unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>* solns = policyTable->at({0,0});
+        unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>* solns = policyTable->at(0);
 
         // Tidy up memorized policies.
         for (auto elem : *policyTable ) {
-            if (elem.first[0]==0) { continue; }
+            if (elem.first==0) { continue; }
             for (auto pi : *elem.second) {
                 delete pi;
             }
@@ -137,13 +137,13 @@ public:
         // Convert set to vector (that is in budget)
         auto result = new vector<Policy*>();
         bool existsPolicyInBudget = std::any_of(solns->begin(), solns->end(), [this](Policy* pi) {
-            return this->mdp.isQValueInBudget(pi->worth[{0,0}]);
+            return this->mdp.isQValueInBudget(pi->worth[0]);
         });
 
         if (existsPolicyInBudget) {
             // Only copy those in budget, if any are in budget.
             std::copy_if(solns->begin(), solns->end(), std::back_inserter(*result), [this](Policy* pi) {
-                return this->mdp.isQValueInBudget(pi->worth[{0,0}]);
+                return this->mdp.isQValueInBudget(pi->worth[0]);
             });
         } else {
             // If none are in budget, copy all solutions.
@@ -167,7 +167,7 @@ public:
         // Successor Idx to unique sub policies for this action.
         for (auto* scr : *successors) {
             // Get successor's unique policies
-            unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>* subPolicies = (*policyTable)[{time+1, scr->target}];
+            unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>* subPolicies = (*policyTable)[scr->target];
             // If no policies, make new empty-valued for action.
             if (subPolicies->empty()) {
                 auto newPi = new Policy();
@@ -186,8 +186,8 @@ public:
 
 private:
     MDP& mdp;
-    unordered_map<array<int,2>, int, ArrayHash, ArrayEqual>* searchedOptions;
-    unordered_map<array<int, 2>, unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*, ArrayHash>* policyTable;
+    unordered_map<int, int>* searchedOptions;
+    unordered_map<int, unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*>* policyTable;
 
     QValue gatherQValue(vector<Successor*>* successors, Policy& pi, int currentTime) {
         QValue new_qv = QValue();

@@ -14,16 +14,17 @@ using namespace std;
 
 class Solver {
     MDP& mdp;
-    vector<vector<vector<QValue>>>* data;
-    vector<vector<vector<int>>>* Pi;
-    set<array<int, 2>, ArrayCompare>* Z;
-    unordered_set<array<int, 2>, ArrayHash>* foundStates;// Explicitly encountered states
+    vector<vector<QValue>>* data;
+    vector<vector<int>>* Pi;
+    vector<int>* Z;
+    unordered_set<int>* foundStates;// Explicitly encountered states
 
-    void build_blank_data(vector<vector<vector<QValue>>>* d);
 
-    bool checkForUnexpandedStates(unordered_set<array<int, 2>,ArrayHash>* expanded, set<array<int, 2>, ArrayCompare>* bpsg);
-    void setPostOrderDFS(unordered_set<std::array<int, 2>, ArrayHash>* foundStates);
-    bool PostOrderDFSCall(int stateIdx, int time, unordered_set<std::array<int, 2>, ArrayHash>& visited, unordered_set<std::array<int, 2>, ArrayHash>* foundStates);
+    void build_blank_data(vector<vector<QValue>>* d);
+
+    bool checkForUnexpandedStates(unordered_set<int>* expanded, vector<int>* bpsg);
+    void setPostOrderDFS(unordered_set<int>* foundStates);
+    bool PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unordered_set<int>* foundStates);
     bool extractSolutionAtState(int stateIdx, int time, shared_ptr<Solution>& currSol, std::unordered_set<std::shared_ptr<Solution>,SolutionHash, SolutionEqual>& solSet);
 
 public:
@@ -48,7 +49,7 @@ public:
     void backup(State& state, int time);
     void pprune_alt(std::vector<QValue>& inVector, std::vector<int>& outVector);
     void getCandidates(State& state, int time, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction);
-    static bool checkConverged(vector<vector<vector<QValue>>>& data, vector<vector<vector<QValue>>>& data_other);
+    bool checkConverged(vector<vector<QValue>>& data, vector<vector<QValue>>& data_other);
     vector<Policy*>* getSolutions();
 
     string SolutionSetToString(vector<shared_ptr<Solution>>& solSet);

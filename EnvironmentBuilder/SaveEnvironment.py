@@ -6,12 +6,15 @@ def SaveEnvToJSON(mdp: MDP, fileName:str):
     actionList = [a for a in mdp.actions]
 
     # The JSON output structure
-    output = {'total_states': len(mdp.states), 'actions': actionList, 'horizon': mdp.horizon, 'goals': [], 'state_tags': []}
+    output = {'total_states': len(mdp.states), 'actions': actionList, 'horizon': mdp.horizon, 'goals': [], 'state_tags': [], 'state_time': []}
 
     # State transitions
     state_transitions = []
     for s_idx in range(len(mdp.states)):
         s = mdp.states[s_idx]
+
+        # Add time stamp
+        output['state_time'].append(s.props['time'])
         # Add if a goal
         if (mdp.isGoal(s)):
             output['goals'].append(s_idx)
@@ -29,8 +32,9 @@ def SaveEnvToJSON(mdp: MDP, fileName:str):
             actionTransitionsMap[a] = transitionList
         state_transitions.append(actionTransitionsMap)
     # I know, I know...
-
     output['state_transitions'] = state_transitions
+
+    
 
     # Add Theories
     theories = []

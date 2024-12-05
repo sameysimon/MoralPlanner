@@ -41,7 +41,7 @@ Solution Solver::valueIteration() {
 }
 
 void Solver::getBestAction(Solution& sol, State& state, int time) {
-    vector<Action*>* actions = mdp.getActions(state, time);
+    vector<Action*>* actions = mdp.getActions(state);
     if (actions->size()==0) {
         return;
     }

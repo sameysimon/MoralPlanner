@@ -41,7 +41,6 @@ int main(int argc, const char * argv[]) {
     } else {
         std::cout << "Please provide an environment input file and and output file." << std::endl;
     }
-//-DCMAKE_TOOLCHAIN_FILE=/Users/user/.vcpkg-clion/myPackages/scripts/buildsystems/vcpkg.cmake
     // Initialisation
     MDP* mdp = new MDP(fileIn);
     Solver solver = Solver(*mdp);
@@ -60,6 +59,8 @@ int main(int argc, const char * argv[]) {
     std::cout << "Finished Planning in " << d << " " << TIME_METRIC_STR << ". " << std::endl;
 #endif
     durations.push_back(d);
+
+
 
     start = chrono::high_resolution_clock::now();
     auto policies = solver.getSolutions();

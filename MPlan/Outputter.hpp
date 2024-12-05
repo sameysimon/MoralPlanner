@@ -30,7 +30,7 @@ public:
     }
 
 
-    void static outputResults(MDP* mdp, vector<double>* non_accept, vector<long long> &durations, vector<Policy*>& policies, std::string fileOut, std::string fileIn, Solver& solver) {
+    void static outputResults(MDP* mdp, vector<double>* non_accept, vector<long long> &durations, vector<Policy*>& policies, const std::string& fileOut, const std::string& fileIn, Solver& solver) {
         json results;// Overall file
 
 
@@ -59,24 +59,23 @@ public:
             json action_map = json::object();
 
             for (auto state_time_action : policies[i]->policy) {
-                int time = state_time_action.first[0];
-                int stateID = state_time_action.first[1];
+                int stateID = state_time_action.first;
                 int actionID = state_time_action.second;
-
+                int time = mdp->states[stateID]->time;
                 stringstream ss;
                 ss << time << "," << stateID;
-                action_map[ss.str()] = *mdp->getActions(*mdp->states[stateID], time)->at(actionID)->label;
+                action_map[ss.str()] = *mdp->getActions(*mdp->states[stateID])->at(actionID)->label;
             }
             solution_json["Action_Map"] = action_map;
 
             if (mdp->non_moralTheoryIdx != -1) {
-                ExpectedUtility* cost = dynamic_cast<ExpectedUtility*>(policies[i]->worth[{0,0}].expectations[mdp->non_moralTheoryIdx]);
+                ExpectedUtility* cost = dynamic_cast<ExpectedUtility*>(policies[i]->worth[0].expectations[mdp->non_moralTheoryIdx]);
                 solution_json["Expected_Cost"] = cost->value;
             }
 
             solution_json["Expectation"] = json::object();
             for (int thIdx=0; thIdx < mdp->theories.size(); thIdx++) {
-                solution_json["Expectation"][mdp->theories[thIdx]->label] = policies[i]->worth[{0,0}].expectations[thIdx]->ToString();
+                solution_json["Expectation"][mdp->theories[thIdx]->label] = policies[i]->worth[0].expectations[thIdx]->ToString();
             }
 
             solutions.push_back(solution_json);
