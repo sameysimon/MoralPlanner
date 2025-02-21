@@ -27,7 +27,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--policy', type=str, help='File location for the policy')
 
-args = parser.add_argument("--domain", type=str, default='WindyDrone', help='Select the environment to use')
+args = parser.add_argument("--domain", required=True, type=str, default='WindyDrone', help='Select the environment to use. Options: `LostInsulin`')
 
 args = parser.add_argument("--out", type=str, default=os.path.dirname(os.path.abspath(__file__)) + '/outputs/out.json', help='Output `.json` file. Defaults to outputs/out.json')
 
@@ -69,7 +69,8 @@ if theoryTags is None:
 theoryTags = MDPFactory.changeTagFormat(theoryTags)
 
 # Make the MDP explicitly (Build all states+transitions of the MDP)
-mdp = MDPFactory.makeMDP(theoryTags)
+print(theoryTags)
+mdp = MDPFactory.makeMDP(args.domain, theoryTags)
 if (mdp==None):
     exit(1)
 

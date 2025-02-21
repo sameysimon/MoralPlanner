@@ -27,7 +27,7 @@
         {
             "Name": "Utilitarianism", // Arbitrary moral theory name.
             "Rank": 1, // Lexicographic Theory Ranking
-            "Type": "Utility", // Type of moral theoyr
+            "Type": "Utility", // Type of moral theory
             "Heuristic":[0,0],// heuristic value for each state by index  
             "default": 0, // Default value of judgement, if not specified in transition.
             "label": "My Utilitarian theory"

@@ -1,0 +1,331 @@
+{
+    "Backups": 9,
+    "Expanded": 5,
+    "Iterations": 3,
+    "SolutionTotal": 1,
+    "actions": [
+        "a_1",
+        "a_0"
+    ],
+    "average_histories": 4.0,
+    "duration_MEHR": 0,
+    "duration_Outs": 2,
+    "duration_Plan": 47,
+    "duration_Sols": 5,
+    "duration_total": 54,
+    "goals": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+    ],
+    "horizon": 2,
+    "max_histories": 4.0,
+    "min_histories": 0.0,
+    "solutions": [
+        {
+            "Action_Map": {
+                "0,0": "a_0",
+                "1,1": "a_0",
+                "1,2": "a_1"
+            },
+            "Expectation": {
+                "HalLife": "191.9689",
+                "ToSteal": "T"
+            },
+            "Non-Acceptability": 0.0
+        }
+    ],
+    "state_tags": [
+        "{'time': 0, 'utility': 0, 'law': False, 'isGoal': False, 'horizon': 2}",
+        "{'time': 1, 'utility': 9.329070713842775, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 1, 'utility': 8.219519248982483, 'law': True, 'isGoal': True, 'horizon': 2}",
+        "{'time': 1, 'utility': 3.4312696297597007, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 1, 'utility': -5.263804492737645, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -3.078220688057538, 'law': True, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -7.028907225834249, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -9.707624390261817, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -8.708754380456279, 'law': True, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': 2.029268991221029, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -4.608289923611036, 'law': True, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -0.3792725726696311, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': 8.670309960846932, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -9.614008673805664, 'law': True, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -7.124631448088092, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -8.916496027077143, 'law': True, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': 1.146604748829363, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': 5.419599430395499, 'law': True, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': -3.892145834246028, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': 6.1302501023120755, 'law': False, 'isGoal': True, 'horizon': 2}",
+        "{'time': 2, 'utility': 9.094373114047897, 'law': False, 'isGoal': True, 'horizon': 2}"
+    ],
+    "state_time": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+    ],
+    "state_transitions": [
+        {
+            "a_0": [
+                [
+                    0.17929504475505986,
+                    1,
+                    9.329070713842775,
+                    false
+                ],
+                [
+                    0.8207049552449402,
+                    2,
+                    8.219519248982483,
+                    true
+                ]
+            ],
+            "a_1": [
+                [
+                    0.27228846771002074,
+                    3,
+                    3.4312696297597007,
+                    false
+                ],
+                [
+                    0.7277115322899793,
+                    4,
+                    -5.263804492737645,
+                    false
+                ]
+            ]
+        },
+        {
+            "a_0": [
+                [
+                    0.8262997596071233,
+                    5,
+                    -3.078220688057538,
+                    true
+                ],
+                [
+                    0.17370024039287668,
+                    6,
+                    -7.028907225834249,
+                    false
+                ]
+            ],
+            "a_1": [
+                [
+                    0.16659663088610585,
+                    7,
+                    -9.707624390261817,
+                    false
+                ],
+                [
+                    0.8334033691138942,
+                    8,
+                    -8.708754380456279,
+                    true
+                ]
+            ]
+        },
+        {
+            "a_0": [
+                [
+                    0.6032707570566362,
+                    9,
+                    2.029268991221029,
+                    false
+                ],
+                [
+                    0.39672924294336387,
+                    10,
+                    -4.608289923611036,
+                    true
+                ]
+            ],
+            "a_1": [
+                [
+                    0.3891686326797661,
+                    11,
+                    -0.3792725726696311,
+                    false
+                ],
+                [
+                    0.6108313673202339,
+                    12,
+                    8.670309960846932,
+                    false
+                ]
+            ]
+        },
+        {
+            "a_0": [
+                [
+                    0.4797876123087565,
+                    13,
+                    -9.614008673805664,
+                    true
+                ],
+                [
+                    0.5202123876912436,
+                    14,
+                    -7.124631448088092,
+                    false
+                ]
+            ],
+            "a_1": [
+                [
+                    0.35955249745504814,
+                    15,
+                    -8.916496027077143,
+                    true
+                ],
+                [
+                    0.6404475025449518,
+                    16,
+                    1.146604748829363,
+                    false
+                ]
+            ]
+        },
+        {
+            "a_0": [
+                [
+                    0.9805606033951354,
+                    17,
+                    5.419599430395499,
+                    true
+                ],
+                [
+                    0.01943939660486456,
+                    18,
+                    -3.892145834246028,
+                    false
+                ]
+            ],
+            "a_1": [
+                [
+                    0.40888862023824724,
+                    19,
+                    6.1302501023120755,
+                    false
+                ],
+                [
+                    0.5911113797617528,
+                    20,
+                    9.094373114047897,
+                    false
+                ]
+            ]
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
+    "theories": [
+        {
+            "Default": 0,
+            "Heuristic": [
+                200,
+                190,
+                190,
+                190,
+                190,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180,
+                180
+            ],
+            "Name": "HalLife",
+            "Rank": 0,
+            "Type": "Utility"
+        },
+        {
+            "Default": false,
+            "Heuristic": [
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            ],
+            "Name": "ToSteal",
+            "Rank": 0,
+            "Type": "Absolutism"
+        }
+    ],
+    "total_states": 21,
+    "undommed_policies": 1
+}

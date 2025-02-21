@@ -17,33 +17,35 @@
 #include <numeric>
 using json = nlohmann::json;
 // DO NOT FORGET TO CHANGE BOTH OF BELOW
-typedef chrono::milliseconds time_metric;
-#define TIME_METRIC_STR "milliseconds"
+typedef chrono::microseconds time_metric;
+#define TIME_METRIC_STR "microseconds"
 
 int main(int argc, const char * argv[]) {
     std::cout << "THE 2024 MACHINE ETHICS HYPOTHETICAL RETROSPECTION PLANNER (MEHR-PLAN)" << std::endl;
     std::string dataFolder = DATA_FOLDER_PATH;
     std::string outputFolder = OUTPUT_FOLDER_PATH;
-
+    int debugLevel = 1;
     std::string fileIn;
     std::string fileOut = outputFolder + "MPlan-Out.json";
-    #ifdef DEBUG
-    fileIn = dataFolder + "lostInsulin.json";
-    fileIn = dataFolder + "CostCarlaSteal.json";
-    fileOut = outputFolder + "Debug-MPlan-Out.json";
-    #endif
-    // Release
-    if (argc == 3) {
+
+    if (argc >= 3) {
         fileIn = argv[1];
         fileOut = argv[2];
         std::cout << "Chosen '" << fileIn << "' input file." << std::endl;
         std::cout << "Chosen '" << fileOut << "' as output file." << std::endl;
+        if (argc==4) {
+            // Sets debug level.
+            debugLevel = atoi(argv[3]);
+        }
     } else {
-        std::cout << "Please provide an environment input file and and output file." << std::endl;
+        std::cout << "Please provide an environment input file and an output file." << std::endl;
     }
+
     // Initialisation
     MDP* mdp = new MDP(fileIn);
+
     Solver solver = Solver(*mdp);
+
     MEHR mehr = MEHR(*mdp);
     auto durations = vector<long long>();
     chrono::time_point<chrono::steady_clock> start;
@@ -55,22 +57,26 @@ int main(int argc, const char * argv[]) {
     solver.MOiLAO();
     end = chrono::high_resolution_clock::now();
     d = chrono::duration_cast<time_metric>(end-start).count();
-#ifdef DEBUG
-    std::cout << "Finished Planning in " << d << " " << TIME_METRIC_STR << ". " << std::endl;
-#endif
+    if (debugLevel>=1) {
+        std::cout << "Finished Planning in " << d << " " << TIME_METRIC_STR << ". " << std::endl;
+    }
     durations.push_back(d);
 
-
-
+    //
+    // Extract solutions
+    //
     start = chrono::high_resolution_clock::now();
     auto policies = solver.getSolutions();
     end = chrono::high_resolution_clock::now();
     d = chrono::duration_cast<time_metric>(end-start).count();
-#ifdef DEBUG
-    std::cout << "Finished Extracting solutions in " << d << " " << TIME_METRIC_STR << ". " <<  std::endl;
-    std::cout << "Total of " << policies->size() << " solutions." <<  std::endl;
-#endif
+    if (debugLevel>=1) {
+        std::cout << "Finished Extracting solutions in " << d << " " << TIME_METRIC_STR << ". " <<  std::endl;
+    }
     durations.push_back(d);
+
+    //
+    // Extract histories
+    //
     auto polExpectations = new vector<QValue>();
     auto eh = new ExtractHistories(*mdp);
     start = chrono::high_resolution_clock::now();
@@ -79,8 +85,20 @@ int main(int argc, const char * argv[]) {
     d = chrono::duration_cast<time_metric>(end-start).count();
 #ifdef DEBUG
     std::cout << eh->ToString(*policies, *polExpectations, histories) << endl;
-    std::cout << "Finished Extracting Histories in " << d << " " << TIME_METRIC_STR << ". " <<  std::endl;
 #endif
+
+    // Gets stats on number of histories.
+    std::array<float, 3> histStats = {0, 0, 0};
+    for (const auto& hist : histories) {
+        histStats[0]+=hist.size();
+        histStats[1] = std::max(histStats[1], (float)hist.size());
+        histStats[2] = std::min(histStats[2], (float)hist.size());
+    }
+    histStats[0] /= histories.size();
+
+    if (debugLevel>=1) {
+        std::cout << "Finished Extracting Histories in " << d << " " << TIME_METRIC_STR << ". " <<  std::endl;
+    }
     durations.push_back(d);
 
     start = chrono::high_resolution_clock::now();
@@ -89,20 +107,16 @@ int main(int argc, const char * argv[]) {
     d = chrono::duration_cast<time_metric>(end-start).count();
 #ifdef DEBUG
     std::cout << mehr.ToString(*polExpectations, histories) << std:: endl;
-    std::cout << "Finished MEHR in " << d << " " << TIME_METRIC_STR << ". " <<  std::endl;
 #endif
+    if (debugLevel>=1) {
+        std::cout << "Finished MEHR in " << d << " " << TIME_METRIC_STR << ". " <<  std::endl;
+    }
     durations.push_back(d);
+    if (debugLevel>=1) {
+        std::cout << "Final Time: " << std::accumulate(durations.begin(), durations.end(), (long long)(0)) << " " << TIME_METRIC_STR << ". " <<  std::endl;
+    }
 
-#ifdef DEBUG
-    std::cout << "Final Time: " << std::accumulate(durations.begin(), durations.end(), (long long)(0)) << " " << TIME_METRIC_STR << ". " <<  std::endl;
-    std::cout << "Finished Planning in " << durations[0] << " " << TIME_METRIC_STR << ". " <<  std::endl;
-    std::cout << "Finished Extracting solutions in " << durations[1] << " " << TIME_METRIC_STR << ". " <<  std::endl;
-    std::cout << "Finished Extracting Outcomes in " << durations[2] << " " << TIME_METRIC_STR << ". " <<  std::endl;
-    std::cout << "Finished MEHR in " << durations[3] << " " << TIME_METRIC_STR << ". " <<  std::endl;
-#endif
-    Outputter::outputResults(mdp, non_accept, durations, *policies, fileOut, fileIn, solver);
-
-
+    Outputter::outputResults(mdp, non_accept, durations, *policies, histStats, policies->size(), fileOut, fileIn, solver);
 
     delete polExpectations;
     delete policies;

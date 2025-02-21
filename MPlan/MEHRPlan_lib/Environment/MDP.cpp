@@ -75,13 +75,13 @@ int MDP::compareQValues(QValue& qv1, QValue& qv2, bool useRanks) {
     int newResult = 0;
     for (int rank=0; rank<groupedTheoryIndices.size(); rank++) {
         newResult = compareQValueByRank(qv1, qv2, rank);
-        if (!useRanks and result != 0 and newResult != result) {
+        if (!useRanks and result != 0 and newResult != result and newResult != 0) {
             return 0; // Disagreement between theories.
         }
         if (useRanks and newResult != 0) {
             return newResult;
         }
-        result = newResult;
+        if (newResult != 0) {result = newResult;}
     }
     if (!useRanks and this->non_moralTheoryIdx!=-1) {
         // Use cost theory.

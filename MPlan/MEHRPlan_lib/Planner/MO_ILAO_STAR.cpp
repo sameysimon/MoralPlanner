@@ -22,7 +22,7 @@ void Solver::build_blank_data(vector<vector<QValue>>* d) {
 }
 
 void clone_data(vector<vector<QValue>>& data, vector<vector<QValue>>& data_clone) {
-    int states = data[0].size();
+    int states = data.size();
     for (int s = 0; s < states; ++s) {
         data_clone[s].clear();
         for (QValue& qv : data[s] ) {
@@ -97,7 +97,7 @@ void Solver::MOiLAO() {
 
 // Termination Condition
 bool Solver::checkConverged(vector<vector<QValue>>& data, vector<vector<QValue>>& data_other) {
-    auto states = data[0].size();
+    auto states = data.size();
     for (int s = 0; s < states; ++s) {
         if (data[s].size() != data_other[s].size()) {
             return false;

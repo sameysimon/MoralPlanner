@@ -54,6 +54,28 @@ public:
 
     string SolutionSetToString(vector<shared_ptr<Solution>>& solSet);
     string SolutionSetToString(unordered_set<shared_ptr<Solution>, SolutionHash, SolutionEqual>& solSet);
+
+    bool operator==(const Solver& other) const {
+        if (data->size() != other.data->size()) {
+            return false;
+        }
+        if (Z->size() != other.Z->size()) {
+            return false;
+        }
+        for (int i = 0; i < data->size(); ++i) {
+            if (data->at(i).size() != other.data->at(i).size()) {
+                return false;
+            }
+            for (int j = 0; j < data->at(i).size(); ++j) {
+                if (false==(data->at(i)[j] == other.data->at(i)[j])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+
+
+    }
 };
 
 #endif // SOLVER_HPP

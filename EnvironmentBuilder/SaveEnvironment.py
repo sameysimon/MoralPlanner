@@ -58,11 +58,10 @@ def SaveEnvToJSON(mdp: MDP, fileName:str):
 
     directory = os.path.dirname(fileName)
     t = os.path.dirname(os.path.abspath(__file__))
-    print(os.getcwd())
 
     json_string = myJSON.custom_json_format(output)
-    with open(fileName, 'w') as file:  # 'output.json' is the name of your file
+    with open(fileName, 'w') as file:
         file.write(json_string)
         #json.dump(output, file, indent=2, cls=cJE)
-    
+    print('Written to `' + fileName + '`')
     return actionList # return action list because it's handy to have lol

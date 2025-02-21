@@ -58,6 +58,7 @@ class MDP(ABC):
         Returns:
             bool: Whether it was successful. Fails if infinite flag is True.
         """
+
         self.actions = set()
         if self.infinite:
             return False
@@ -87,6 +88,7 @@ class MDP(ABC):
             return []
         # Create successors since they are not in the dict.
         s = self.__buildSuccessors(state, action)
+
         return s
 
     def __buildSuccessors(self, state: State, action:str):

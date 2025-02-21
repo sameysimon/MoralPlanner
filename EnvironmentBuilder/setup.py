@@ -5,8 +5,7 @@ setup(
     version='0.1.0',
     author='Simon Kolker',
     packages=find_packages(),
-    #description='A description of your package',
-    #author_email='your.email@example.com',
-    #url='https://github.com/yourusername/your_package',
+    #description='Builds Multi-Moral Markov Decision Processes.',
+    #author_email='simon.kolker@manchester.ac.uk'
     install_requires=[]
 )

@@ -1,0 +1,8 @@
+theories,min_non_accept,Cost,ToSteal,StealWithComp,HalLife,CarlaLife
+"['0', 'CarlaLife', '0', 'HalLife']",0.10878788668198414,N/A,N/A,N/A,-8.9312,-1.1007
+"['0', 'CarlaLife', '1', 'HalLife']",0.0,N/A,N/A,N/A,-10.2112,0
+"['1', 'CarlaLife', '0', 'HalLife']",0.0,N/A,N/A,N/A,-8.9312,-1.1007
+"['0', 'CarlaLife', '0', 'HalLife', '0', 'ToSteal']",0.23678788668198417,N/A,T,N/A,-8.9312,-1.1007
+"['1', 'CarlaLife', '0', 'HalLife', '0', 'StealWithComp']",0.14718788668198415,N/A,N/A,T,-8.9312,-1.1007
+"['0', 'CarlaLife', '0', 'Cost']",0.0,-18.3872,N/A,N/A,N/A,-0.7705
+"['0', 'CarlaLife', '0', 'Cost', '0', 'ToSteal']",0.0,-18.3872,T,N/A,N/A,-0.7705

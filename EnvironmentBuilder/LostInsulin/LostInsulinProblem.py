@@ -6,7 +6,7 @@ import random
 
 class LostInsulin(MDP):
 
-    def __init__(self, initialProps=None, horizon=20, budget=6, theoryClasses=[['time']]):
+    def __init__(self, initialProps=None, horizon=20, budget=18, theoryClasses=[['time']], **kwargs):
         super().__init__()
         if initialProps==None:
             initialProps=LostInsulin.defaultProps
@@ -58,8 +58,8 @@ class LostInsulin(MDP):
         
         return ['wait']
 
-    def isGoal(self, state):
-        return False
+    #def isGoal(self, state):
+    #    return False
 
     # Second choices: compensate low, high, nothing, or leave.
     def ToGive(self, props, prob, action):

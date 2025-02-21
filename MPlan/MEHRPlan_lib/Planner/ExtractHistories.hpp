@@ -90,6 +90,15 @@ public:
         return histories;
     }
 
+    vector<vector<History*>> monteCarloExtract(vector<Policy*>& policySet, vector<QValue>& solExpectations, int num_of_samples) {
+        std::vector<std::vector<History*>> histories;
+        for (Policy* pi : policySet) {
+            solExpectations.push_back(pi->worth[0]);
+            // Sample num_of_samples random histories.
+        }
+        return histories;
+    }
+
     static string ToString(vector<Policy*>& policySet, vector<QValue>& solExpectations, vector<vector<History*>>& histories) {
         stringstream ss;
         for (int solIdx=0; solIdx < policySet.size(); solIdx++) {

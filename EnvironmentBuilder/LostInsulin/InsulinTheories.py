@@ -4,7 +4,7 @@ class Time(MoralTheory):
     def __init__(self):
         self.type='Cost'
         self.rank=1
-        self.tag='time'
+        self.tag='Cost'
         self.default = 0
 
     def judge(self, successor: MDP.Successor):
@@ -35,7 +35,7 @@ class StealWithComp(MoralTheory):
     def __init__(self):
         self.type='Absolutism'
         self.rank=3
-        self.tag='ToSteal'
+        self.tag='StealWithComp'
         self.default = False
 
     def judge(self, successor: MDP.Successor):

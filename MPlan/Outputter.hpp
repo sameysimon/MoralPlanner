@@ -30,7 +30,7 @@ public:
     }
 
 
-    void static outputResults(MDP* mdp, vector<double>* non_accept, vector<long long> &durations, vector<Policy*>& policies, const std::string& fileOut, const std::string& fileIn, Solver& solver) {
+    void static outputResults(MDP* mdp, vector<double>* non_accept, vector<long long> &durations, vector<Policy*>& policies, array<float,3> histStats, const size_t pol_num, const std::string& fileOut, const std::string& fileIn, Solver& solver) {
         json results;// Overall file
 
 
@@ -45,8 +45,16 @@ public:
             }
         }*/
 
+        results["average_histories"] = histStats[0];
+        results["max_histories"] = histStats[1];
+        results["min_histories"] = histStats[2];
+
+        results["undommed_policies"] = pol_num;
+
         results["duration_Plan"] = durations[0];
-        results["duration_MEHR"] = durations[1];
+        results["duration_Sols"] = durations[1];
+        results["duration_Outs"] = durations[2];
+        results["duration_MEHR"] = durations[3];
         long long x = std::accumulate(durations.begin(), durations.end(), (long long)(0)) ;
         results["duration_total"] = x;
 

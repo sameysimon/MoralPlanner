@@ -20,6 +20,8 @@ os.makedirs(outputFolder, exist_ok=True)
 planner = os.getcwd() + "/MoralPlanner/MPlan/cmake-build-release/MPlan"
 domain = "LostInsulin"
 REPETITIONS = 5
+horizon = 20
+budget = 18
 configs = {
     "HalCarlaEqual": ["0", "CarlaLife", "0", "HalLife"],
     "HalHigherCarla": ["0", "CarlaLife", "1", "HalLife"],
@@ -33,7 +35,7 @@ configs = {
 
 # Call Env-Builder and build all environments.
 for name, theories in configs.items():
-    MDPFactory.buildEnvToFile(domain, theories, mdpFolder + name + ".json")
+    MDPFactory.buildEMDPnvToFile(domain, theories, mdpFolder + name + ".json", horizon, budget)
     print("Built: " + name)
 
 print("Built all Environments")
@@ -67,8 +69,9 @@ for name, theories in configs.items():
     # get info for all 5 repetitions of the experiment.
     for rep in range(REPETITIONS):
         allRecords.append({})
-        with open(outputFolder + name + "_" + str(rep) + ".json", 'r') as file:
+        with open(outputFolder + "raw/" + name + "_" + str(rep) + ".json", 'r') as file:
             json_data = json.load(file)
+            allRecords[recNum]["config."] = str(name)
             allRecords[recNum]["avg. total time"] = json_data["duration_total"]
             allRecords[recNum]["avg. plan time"] = json_data["duration_Plan"]
             allRecords[recNum]["avg. MEHR time"] = json_data["duration_MEHR"]
@@ -79,7 +82,6 @@ for name, theories in configs.items():
             non_accepts = [json_data["solutions"][sol_idx]["Non-Acceptability"] for sol_idx in range(len(json_data["solutions"])) ]
             filtered_non_accepts = filter(lambda non_accept : non_accept==allRecords[recNum]["Min. non-acceptability"], non_accepts)
             allRecords[recNum]["Num of Cands w/ Min non-acceptability"] = len(list(filtered_non_accepts))
-            allRecords[recNum]["config."] = str(name)
             for k in theoryKeys:
                 if k in json_data["solutions"][0]["Expectation"].keys():
                     allRecords[recNum][k] = json_data["solutions"][0]["Expectation"][k]
@@ -87,7 +89,7 @@ for name, theories in configs.items():
                    allRecords[recNum][k] = "N/A"
             recNum+=1
 
-    # 2.
+"""     # 2.
     # Reduce to averages
     # PROBS GET RID OF THIS??
     record = {}
@@ -103,7 +105,7 @@ for name, theories in configs.items():
         addDictWithDefault(record, "Num of Candidates", (float(allRecords[rep]["Num of Candidates"]) * (1/5)), 0)
         addDictWithDefault(record, "Min. non-acceptability", (float(allRecords[rep]["Min. non-acceptability"]) * (1/5)), 0)
 
-        record["config."] = str(theories)
+        record["config."] = str(theories) """
 
         
 df = pd.DataFrame(allRecords)

@@ -6,18 +6,23 @@ import random
 
 class GridWorldProblem(MDP):
 
-    def __init__(self, initialProps=None, horizon=4, budget=8, theoryClasses=[['time']]) -> None:
+    def __init__(self,**kwargs) -> None:
+        kwargs.setdefault('horizon', 4)
+        kwargs.setdefault('budget', 8)
+        kwargs.setdefault('theoryClasses', [['time']])
+        kwargs.setdefault('initialProps', None)
+
         super().__init__()
-        if initialProps==None:
+        if kwargs['initialProps']==None:
             initialProps=GridWorldProblem.defaultProps
-        self.horizon=horizon
-        self.budget=budget
+        self.horizon=kwargs['horizon']
+        self.budget=kwargs['budget']
 
         self.stateFactory(initialProps) # Create at least one initial state
         self.rules = [GridWorldProblem.Move, GridWorldProblem.terminateRule] 
         self.CostTheory = Time()
         self.Theories = []
-        self.theorySetup(theoryClasses)
+        self.theorySetup(kwargs['theoryClasses'])
         
 
     #moveMap = {'up': [0,1], 'down':[0,-1], 'left': [-1,0], 'right':[1,0]}
