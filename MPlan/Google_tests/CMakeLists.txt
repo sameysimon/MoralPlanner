@@ -19,4 +19,5 @@ gtest_discover_tests(Google_Tests_run)
 
 target_link_libraries(MPlan PUBLIC MEHRPlan_lib PRIVATE nlohmann_json::nlohmann_json)
 
-target_compile_definitions(Google_Tests_run PRIVATE DATA_FOLDER_PATH="${CMAKE_SOURCE_DIR}/Data")
+target_compile_definitions(Google_Tests_run PRIVATE DATA_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data/MDPs/")
+target_compile_definitions(Google_Tests_run PRIVATE OUTPUT_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data/MPlan-Out/")

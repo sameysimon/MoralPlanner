@@ -17,8 +17,7 @@ protected:
     }
     MDP* MakeMDP(const std::string& fileName) {
         std::string dataFolder = DATA_FOLDER_PATH;
-        std::string slash = "/";
-        std::string fn = dataFolder + slash + fileName;
+        std::string fn = dataFolder + fileName;
         return new MDP(fn);
     }
     void checkExpectedUtility(QValue& solValue, int theoryIndex, double utility, bool& found) {

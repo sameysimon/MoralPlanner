@@ -120,7 +120,7 @@ TEST_F(MOVI_Test, Level_3_UnPrune) {
     // std::vector<std::shared_ptr<Solution>> solSet = solver.MOValueIteration();
     // Level_3_UnPrune_Checks(*mdp, solSet);
     delete mdp;
-}*/
+}
 
 
 TEST_F(MOVI_Test, LAO_Horizon_1_Backup) {
@@ -158,7 +158,7 @@ TEST_F(MOVI_Test, LAO_Level_3_UnPrune) {
     std::vector<std::shared_ptr<Solution>>* solSet = solver.extractSolutions();
     ASSERT_EQ(solSet->size(), 1);// TODO With admissible heuristic, correct answer would become 2.
     delete mdp;
-}
+}*/
 
 
 

@@ -29,8 +29,14 @@ MDP::MDP(const string& fileName) {
         throw std::runtime_error("File does not exist: '" + fileName + "'");
     }
     std::cout << fileName << " opened successfully." << std::endl;
-    json data  = json::parse(file);
-    file.close();
+    json data;
+    try {
+        data  = json::parse(file);
+        file.close();
+    }
+    catch (json::parse_error& ex) {
+        std::cerr << ex.what() << "at byte " << ex.byte << std::endl;
+    }
     this->buildFromJSON(data);
 }
 

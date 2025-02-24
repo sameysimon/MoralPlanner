@@ -19,7 +19,7 @@ public:
             path = new vector(hist.path->begin(), hist.path->end());
         };
     }
-    History(QValue& _worth, double _probability=1, bool usePath=false) : worth(_worth), probability(_probability), path(nullptr) {
+    explicit History(QValue& _worth, double _probability=1, bool usePath=false) : worth(_worth), probability(_probability), path(nullptr) {
         if (usePath) {
             path = new vector<Successor*>();
         }
@@ -60,20 +60,14 @@ public:
     //
     // Entry Point/Main Call.
     //
-    vector<vector<History*>> extract(vector<Policy*>& policySet, vector<QValue>& solExpectations) {
-        solExpectations.clear();
-        solExpectations.reserve(policySet.size());
+    vector<vector<History*>> extract(vector<Policy*>& policySet) {
         //
         // Extract information from solution set.
         //
-        // Stores policy index to set of histories.
+        // Stores set of histories against policy's index.
         vector<unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>> piToHSet;
 
-
         for (Policy* pi : policySet) {
-            // Add Policy expectation
-            solExpectations.push_back(pi->worth[0]);
-
             // Add/Extract History outcomes
             auto hSet = extractHistories(*pi);
             piToHSet.push_back(std::move(*hSet));
@@ -81,20 +75,10 @@ public:
         }
 
         std::vector<std::vector<History*>> histories;
-
         for (const auto& hSet : piToHSet) {
             // Create a vector to store this policy's histories
             std::vector hVec(hSet.begin(), hSet.end());
             histories.push_back(std::move(hVec));
-        }
-        return histories;
-    }
-
-    vector<vector<History*>> monteCarloExtract(vector<Policy*>& policySet, vector<QValue>& solExpectations, int num_of_samples) {
-        std::vector<std::vector<History*>> histories;
-        for (Policy* pi : policySet) {
-            solExpectations.push_back(pi->worth[0]);
-            // Sample num_of_samples random histories.
         }
         return histories;
     }

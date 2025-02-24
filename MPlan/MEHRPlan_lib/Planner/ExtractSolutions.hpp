@@ -53,6 +53,7 @@ public:
                 auto successors = mdp.getActionSuccessors(*mdp.states[stateIdx], stateAction);
 
                 // If successor has no sub-policies, make them.
+                // TODO Make compatible with stationary policies. Check number of unexplored policies or something like that...
                 if (time+1 >= mdp.horizon) {
                     // Next successor will not have any sub policies.
                     // Create policy without sub policies.

@@ -77,10 +77,9 @@ int main(int argc, const char * argv[]) {
     //
     // Extract histories
     //
-    auto polExpectations = new vector<QValue>();
     auto eh = new ExtractHistories(*mdp);
     start = chrono::high_resolution_clock::now();
-    auto histories = eh->extract(*policies, *polExpectations);
+    auto histories = eh->extract(*policies);
     end = chrono::high_resolution_clock::now();
     d = chrono::duration_cast<time_metric>(end-start).count();
 #ifdef DEBUG
@@ -100,6 +99,16 @@ int main(int argc, const char * argv[]) {
         std::cout << "Finished Extracting Histories in " << d << " " << TIME_METRIC_STR << ". " <<  std::endl;
     }
     durations.push_back(d);
+
+    // Pull only the policy's expectations.
+    auto polExpectations = new vector<QValue>();
+    polExpectations->reserve(policies->size());
+    for (auto *pi : policies) {
+        auto it = pi->worth.find(0);
+        if (it == pi->worth.end()) {
+            polExpectations->push_back(pi->worth.at(0));
+        }
+    }
 
     start = chrono::high_resolution_clock::now();
     auto non_accept = mehr.findNonAccept(*polExpectations, histories);
