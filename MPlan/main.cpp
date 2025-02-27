@@ -82,9 +82,6 @@ int main(int argc, const char * argv[]) {
     auto histories = eh->extract(*policies);
     end = chrono::high_resolution_clock::now();
     d = chrono::duration_cast<time_metric>(end-start).count();
-#ifdef DEBUG
-    std::cout << eh->ToString(*policies, *polExpectations, histories) << endl;
-#endif
 
     // Gets stats on number of histories.
     std::array<float, 3> histStats = {0, 0, 0};
@@ -103,12 +100,15 @@ int main(int argc, const char * argv[]) {
     // Pull only the policy's expectations.
     auto polExpectations = new vector<QValue>();
     polExpectations->reserve(policies->size());
-    for (auto *pi : policies) {
+    for (auto *pi : *policies) {
         auto it = pi->worth.find(0);
         if (it == pi->worth.end()) {
             polExpectations->push_back(pi->worth.at(0));
         }
     }
+#ifdef DEBUG
+    std::cout << eh->ToString(*policies, *polExpectations, histories) << endl;
+#endif
 
     start = chrono::high_resolution_clock::now();
     auto non_accept = mehr.findNonAccept(*polExpectations, histories);
