@@ -50,7 +50,7 @@ set(SOURCE_FILES
 
 add_library(MEHRPlan_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
 
-set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/_deps/nlohmann_json-src" ${CMAKE_PREFIX_PATH})
+set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/_deps/nlohmann_json-build" ${CMAKE_PREFIX_PATH})
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(CURL REQUIRED)
 
