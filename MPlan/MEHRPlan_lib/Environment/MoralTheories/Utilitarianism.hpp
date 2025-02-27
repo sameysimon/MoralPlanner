@@ -37,7 +37,7 @@ public:
             throw std::invalid_argument("Expected WorthBase to be of type ExpectedUtility");
             return false;
         }
-        return (abs(value - eu->value) < 1e-3);
+        return (std::abs(value - eu->value) < 1e-3);
     }
     WorthBase* clone() const override {
         return new ExpectedUtility(*this);

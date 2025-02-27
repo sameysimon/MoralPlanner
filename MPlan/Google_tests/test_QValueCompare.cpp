@@ -38,7 +38,7 @@ protected:
     }
 };
 
-TEST_F(QValueTestFixture, lol) {
+TEST_F(QValueTestFixture, UtilityCompare) {
     MDP *mdp = MakeMDP("my_test.json");
 
     // Equal Ranks

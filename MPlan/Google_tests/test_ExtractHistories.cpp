@@ -60,10 +60,8 @@ protected:
 };
 
 TEST_F(ExtractHistoriesTest, SimpleTest) {
-    std::cout << "Test 1." << std::endl;
     loadHistoriesFrom("my_test.json");
-    std::cout << "Test 2." << std::endl;
-
+    FAIL() << "Cleared 0";
     std::vector<int> unfoundPolicies(histories.size());
     std::iota(unfoundPolicies.begin(), unfoundPolicies.end(), 0);
 
@@ -79,7 +77,7 @@ TEST_F(ExtractHistoriesTest, SimpleTest) {
     for (auto h : expectedHistories) { delete h; }
     expectedHistories.clear();
     expectedWorths.clear();
-    std::cout << "Test 3." << std::endl;
+    FAIL() << "Cleared 1";
 
     //
     // Check History for Policy 2
@@ -90,7 +88,7 @@ TEST_F(ExtractHistoriesTest, SimpleTest) {
     for (auto wb : expectedWorths) { delete wb; }
     for (auto h : expectedHistories) { delete h; }
     std::cout << "Test 4." << std::endl;
-
+    FAIL() << "Cleared 2";
 
     //
     // Cleanup actual histories.
@@ -100,6 +98,8 @@ TEST_F(ExtractHistoriesTest, SimpleTest) {
             delete h;
         }
     }
+    FAIL() << "Cleared 3";
+
 }
 
 TEST_F(ExtractHistoriesTest, Level2Prune) {
