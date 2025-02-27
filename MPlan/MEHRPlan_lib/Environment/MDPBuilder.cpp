@@ -24,6 +24,7 @@ MDP::MDP(nlohmann::json& data) {
 }
 
 MDP::MDP(const string& fileName) {
+    std::cout << "Test make MDP 1." << std::endl;
     std::ifstream file(fileName); // Don't know how/if to put on heap?
     if (!file.is_open()) {
         throw std::runtime_error("File does not exist: '" + fileName + "'");
