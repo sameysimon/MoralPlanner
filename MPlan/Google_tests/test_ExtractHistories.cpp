@@ -60,8 +60,9 @@ protected:
 };
 
 TEST_F(ExtractHistoriesTest, SimpleTest) {
-    loadHistoriesFrom("my_test.json");
     FAIL() << "Cleared 0";
+
+    loadHistoriesFrom("my_test.json");
     std::vector<int> unfoundPolicies(histories.size());
     std::iota(unfoundPolicies.begin(), unfoundPolicies.end(), 0);
 
