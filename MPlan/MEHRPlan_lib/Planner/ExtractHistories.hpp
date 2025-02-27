@@ -108,7 +108,6 @@ private:
     MDP& mdp;
     int counter = 0;
     unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>* extractHistories(Policy& pi) {
-        std::cout << "ExtractHistories" << " call number " << counter << std::endl;
         QValue qval = QValue();
         mdp.blankQValue(qval);
         auto firstHistory = new History(qval, 1, false);
@@ -128,33 +127,44 @@ private:
     }
 
     void DFS_Histories(State& state, int time, Policy& pi, History* h, unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>* hSet) {
+        std::cout << "DFS_HISTORIES" << " call number " << counter << std::endl;
         // Base Case. Stop when reaching the horizon.
         if (time >= mdp.horizon) {
             DFS_baseCase(h, hSet);
             return;
         }
+        std::cout << "a" << std::endl;
         // Stop if state/time is not in the policy
         auto stateActionIt = pi.policy.find(state.id);
         if (stateActionIt==pi.policy.end()) {
             DFS_baseCase(h, hSet);
             return;
         }
+        std::cout << "b" << std::endl;
+
         // Stop if no successors.
         auto successors = mdp.getActionSuccessors(state, stateActionIt->second);
         if (successors==nullptr) {
             DFS_baseCase(h, hSet);
             return;
         }
+        std::cout << "c" << std::endl;
 
         // Recursive Case.
         for (Successor* successor : *successors) {
             History* h_ = new History(*h);
+            std::cout << "d" << std::endl;
+
             mdp.addCertainSuccessorToQValue(h_->worth, successor);
             h_->probability *= successor->probability;
             h_->addToPath(successor);
+            std::cout << "e" << std::endl;
+
             DFS_Histories(*mdp.states[successor->target], time+1, pi, h_, hSet);
         }
-        delete h; // Could this work??? Maybe not, must check!!!
+        std::cout << "f" << std::endl;
+
+        //delete h; // Could this work??? Maybe not, must check!!!
     }
 };
 
