@@ -11,17 +11,23 @@ protected:
     vector<vector<History*>> histories;
     void loadHistoriesFrom(const std::string& fileName) {
         MDP* mdp = MakeMDP(fileName);
+
         // Solve MDP
         Solver solver = Solver(*mdp);
         solver.MOiLAO();
+        FAIL() << "Fail 1";
         // Extract Policies.
         auto policies = solver.getSolutions();
+        FAIL() << "Fail 2";
         // Extract Histories
         auto eh = new ExtractHistories(*mdp);
+        FAIL() << "Fail 3";
         histories = eh->extract(*policies);
+        FAIL() << "Fail 4";
         delete eh;
         delete policies;
         delete mdp;
+        FAIL() << "Fail 5";
     }
 
     static History* createHistory(vector<WorthBase*>& worth, double prob) {
@@ -60,8 +66,6 @@ protected:
 };
 
 TEST_F(ExtractHistoriesTest, SimpleTest) {
-    FAIL() << "Cleared 0";
-
     loadHistoriesFrom("my_test.json");
     std::vector<int> unfoundPolicies(histories.size());
     std::iota(unfoundPolicies.begin(), unfoundPolicies.end(), 0);
@@ -78,7 +82,6 @@ TEST_F(ExtractHistoriesTest, SimpleTest) {
     for (auto h : expectedHistories) { delete h; }
     expectedHistories.clear();
     expectedWorths.clear();
-    FAIL() << "Cleared 1";
 
     //
     // Check History for Policy 2
@@ -89,7 +92,6 @@ TEST_F(ExtractHistoriesTest, SimpleTest) {
     for (auto wb : expectedWorths) { delete wb; }
     for (auto h : expectedHistories) { delete h; }
     std::cout << "Test 4." << std::endl;
-    FAIL() << "Cleared 2";
 
     //
     // Cleanup actual histories.
@@ -99,8 +101,6 @@ TEST_F(ExtractHistoriesTest, SimpleTest) {
             delete h;
         }
     }
-    FAIL() << "Cleared 3";
-
 }
 
 TEST_F(ExtractHistoriesTest, Level2Prune) {
