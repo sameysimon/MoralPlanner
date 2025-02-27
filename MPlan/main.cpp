@@ -47,14 +47,13 @@ int main(int argc, const char * argv[]) {
 
     MEHR mehr = MEHR(*mdp);
     auto durations = vector<long long>();
-    chrono::time_point<chrono::steady_clock> start;
-    chrono::time_point<chrono::steady_clock> end;
+    
     long long d = 0;
 
 
-    start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     solver.MOiLAO();
-    end = chrono::high_resolution_clock::now();
+    auto end = chrono::high_resolution_clock::now();
     d = chrono::duration_cast<time_metric>(end-start).count();
     if (debugLevel>=1) {
         std::cout << "Finished Planning in " << d << " " << TIME_METRIC_STR << ". " << std::endl;
