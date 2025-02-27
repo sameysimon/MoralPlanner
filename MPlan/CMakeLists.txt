@@ -29,7 +29,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nlohmann_json)
 
 
-include_directories(MEHRPlan_lib
+include_directories(MEHRPlan_lib)
 add_subdirectory(MEHRPlan_lib)
 
 
