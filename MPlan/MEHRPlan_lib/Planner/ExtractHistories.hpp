@@ -61,11 +61,13 @@ public:
     // Entry Point/Main Call.
     //
     vector<vector<History*>> extract(vector<Policy*>& policySet) {
+        std::cout << "extract" << std::endl;
         //
         // Extract information from solution set.
         //
         // Stores set of histories against policy's index.
         vector<unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>> piToHSet;
+        std::cout << "1" << std::endl;
 
         for (Policy* pi : policySet) {
             // Add/Extract History outcomes
@@ -73,6 +75,7 @@ public:
             piToHSet.push_back(std::move(*hSet));
             delete hSet;
         }
+        std::cout << "2..." << std::endl;
 
         std::vector<std::vector<History*>> histories;
         for (const auto& hSet : piToHSet) {
@@ -80,6 +83,8 @@ public:
             std::vector hVec(hSet.begin(), hSet.end());
             histories.push_back(std::move(hVec));
         }
+        std::cout << "3" << std::endl;
+
         return histories;
     }
 
@@ -101,7 +106,9 @@ public:
     }
 private:
     MDP& mdp;
+    int counter = 0;
     unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>* extractHistories(Policy& pi) {
+        std::cout << "ExtractHistories" << " call number " << counter << std::endl;
         QValue qval = QValue();
         mdp.blankQValue(qval);
         auto firstHistory = new History(qval, 1, false);
