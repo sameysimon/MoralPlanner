@@ -13,7 +13,6 @@
 #include <fstream>
 #include "Outputter.hpp"
 #include "ExtractHistories.hpp"
-#include <curl/curl.h>
 #include <numeric>
 using json = nlohmann::json;
 // DO NOT FORGET TO CHANGE BOTH OF BELOW
