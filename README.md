@@ -9,7 +9,7 @@ MMMDP environments are given to the planner in a JSON format. To create JSON MDP
 It will (re-)generate environment files for each configuration and call the planner 5 times. Results are stored in the `Data/Experiments/LostInsulin` directory. Results are summarised in `experiments_out.csv`, `theoryResults.csv` and `theoryTimes.csv` in the same folder. You will need the [`Pandas`](https://pandas.pydata.org/) and [`NumPy`](https://numpy.org/) Python packages for this to work.
 
 
-The Planner is implemented in C++ 17. A `CMakeLists.txt` file is included and we use the [`nlohmann_json`](https://github.com/nlohmann/json) library for importing JSON environments. For testing, we also use the [`Google Tests`](https://github.com/google/googletest). library which is included in this repo.
+The Planner is implemented in C++ 17. A `CMakeLists.txt` file is included and we use the [`nlohmann_json`](https://github.com/nlohmann/json) library for importing JSON environments. For testing, we also use the [`Google Tests`](https://github.com/google/googletest) library.
 
 ---
 
