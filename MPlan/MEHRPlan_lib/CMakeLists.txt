@@ -52,9 +52,8 @@ add_library(MEHRPlan_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
 
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/_deps/nlohmann_json-build" ${CMAKE_PREFIX_PATH})
 find_package(nlohmann_json CONFIG REQUIRED)
-find_package(CURL REQUIRED)
 
-target_link_libraries(MEHRPlan_lib nlohmann_json::nlohmann_json CURL::libcurl)
+target_link_libraries(MEHRPlan_lib nlohmann_json::nlohmann_json)
 
 # Enable debug definitions if building in Debug mode
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
