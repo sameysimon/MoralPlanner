@@ -12,15 +12,18 @@ class History {
 public:
     QValue worth;
     mutable double probability;
-    History(History& hist) {
+    bool hasPath;
+    History(const History& hist) {
         worth = hist.worth;
         probability = hist.probability;
-        if (hist.path != nullptr) {
-            path = new vector(hist.path->begin(), hist.path->end());
-        };
+        hasPath = hist.hasPath;
+        if (hist.hasPath) {
+            path = hist.path;
+        }
     }
-    explicit History(QValue& _worth, double _probability=1, bool usePath=false) : worth(_worth), probability(_probability), path(nullptr) {
-        if (usePath) {
+
+    explicit History(QValue& _worth, double _probability=1, bool usePath=false) : worth(_worth), probability(_probability), hasPath(usePath) {
+        if (hasPath) {
             path = new vector<Successor*>();
         }
     }
@@ -31,14 +34,14 @@ public:
         return worth == other.worth;
     }
     void addToPath(Successor* successor) {
-        if (path == nullptr) {
+        if (!hasPath) {
             std::cout<<"it really is a nullptr" << std::endl;
             return;
         }
         path->push_back(successor);
     }
 private:
-    vector<Successor*>* path;
+    vector<Successor*>* path = nullptr;
 };
 
 class HistoryPtrHash {
@@ -167,7 +170,7 @@ private:
         }
         std::cout << "g" << std::endl;
 
-        //delete h; // Could this work??? Maybe not, must check!!!
+        delete h; // Could this work??? Maybe not, must check!!!
     }
 };
 
