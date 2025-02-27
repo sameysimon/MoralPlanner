@@ -31,7 +31,10 @@ public:
         return worth == other.worth;
     }
     void addToPath(Successor* successor) {
-        if (path==nullptr) { return; };
+        if (path == nullptr) {
+            std::cout<<"it really is a nullptr" << std::endl;
+            return;
+        }
         path->push_back(successor);
     }
 private:
@@ -153,16 +156,16 @@ private:
         // Recursive Case.
         for (Successor* successor : *successors) {
             History* h_ = new History(*h);
+            std::cout << successor->ToString() << std::endl;
             std::cout << "d" << std::endl;
-
             mdp.addCertainSuccessorToQValue(h_->worth, successor);
             h_->probability *= successor->probability;
-            h_->addToPath(successor);
             std::cout << "e" << std::endl;
-
+            h_->addToPath(successor);
+            std::cout << "f" << std::endl;
             DFS_Histories(*mdp.states[successor->target], time+1, pi, h_, hSet);
         }
-        std::cout << "f" << std::endl;
+        std::cout << "g" << std::endl;
 
         //delete h; // Could this work??? Maybe not, must check!!!
     }

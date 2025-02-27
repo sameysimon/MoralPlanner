@@ -8,6 +8,7 @@
 #ifndef Successor_hpp
 #define Successor_hpp
 
+#include <sstream>
 #include <stdio.h>
 
 class Successor {
@@ -16,6 +17,11 @@ public:
     int target;
     double probability;
     Successor(int _sourceIdx, int _targetIdx, double _prob) : source(_sourceIdx), target(_targetIdx), probability(_prob){}
+    std::string ToString() {
+        std::stringstream stream;
+        stream << "Source State " << source << " Target State " << target << " Probability " << probability;
+        return stream.str();
+    }
 };
 
 
