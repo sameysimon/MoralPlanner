@@ -80,7 +80,12 @@ void verifyJSON(nlohmann::json& data) {
         if (theory.contains("Type") == false) {
             throwStageOne(theoryName + " Type not found.");
         }
+        if (theory.contains("Heuristic") == false) {
+            throwStageOne(theoryName + " Heuristic not found.");
+        }
     }
+
+
     int theories = data["theories"].size();
     int stateID = 0;
     for (auto stateTransitions : data["state_transitions"]) {
@@ -102,7 +107,7 @@ void verifyJSON(nlohmann::json& data) {
                 if (successor[0] > 1) {
                     throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "probability greater than 1.");
                 }
-                if (successor[1] > data["total_states"] or successor[1] < 0) {
+                if (successor[1] >= data["total_states"] or successor[1] < 0) {
                     throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "successor index not in state range.");
                 }
                 successor_count++;
@@ -112,7 +117,10 @@ void verifyJSON(nlohmann::json& data) {
         }
         stateID++;
     }
-
+    if (stateID != data["total_states"]) {
+        int totStates = data["total_states"];
+        throw std::runtime_error("MDP::buildFromJSON: There were " + std::to_string(stateID) + " state transition maps, but total_states is " + std::to_string(totStates));
+    }
 
 
 }

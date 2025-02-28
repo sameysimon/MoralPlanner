@@ -20,7 +20,7 @@
     {
       "A": [[0.5, 8, 0,5], [0.5, 9, 5,0]]
     },
-    {},{},{}, {"A": [[1,11, 0,1]]}, {}
+    {},{},{}, {"A": [[1,11, 0,1]]}, {}, {}
   ],
   "state_time":  [0,1,1,1,2,2,3,3,3,3,2,3],
   "goals":[],
@@ -29,14 +29,14 @@
       "Name": "Utilitarianism",
       "Rank": 6,
       "Type": "Utility",
-      "Heuristic":[0,0,0],
+      "Heuristic":[0,0,0,0,0,0,0,0,0,0,0,0],
       "default": 0
     },
     {
       "Name": "Other Utility",
       "Rank": 6,
       "Type": "Utility",
-      "Heuristic":[0,0,0],
+      "Heuristic":[0,0,0,0,0,0,0,0,0,0,0,0],
       "default": 0
     }
 

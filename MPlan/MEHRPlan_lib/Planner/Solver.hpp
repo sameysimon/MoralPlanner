@@ -17,14 +17,14 @@ class Solver {
     vector<vector<QValue>>* data;
     vector<vector<int>>* Pi;
     vector<int>* Z;
-    unordered_set<int>* foundStates;// Explicitly encountered states
+    unique_ptr<unordered_set<int>> foundStates;// Explicitly encountered states
 
 
     void build_blank_data(vector<vector<QValue>>* d);
 
     bool checkForUnexpandedStates(unordered_set<int>* expanded, vector<int>* bpsg);
-    void setPostOrderDFS(unordered_set<int>* foundStates);
-    bool PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unordered_set<int>* foundStates);
+    void setPostOrderDFS(unique_ptr<unordered_set<int>>& foundStates);
+    bool PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unique_ptr<unordered_set<int>>& foundStates);
     bool extractSolutionAtState(int stateIdx, int time, shared_ptr<Solution>& currSol, std::unordered_set<std::shared_ptr<Solution>,SolutionHash, SolutionEqual>& solSet);
 
 public:
@@ -36,7 +36,6 @@ public:
 
     Solver(MDP& _mdp) : mdp(_mdp) {}
     ~Solver() {
-        delete foundStates;
         delete data;
         delete Z;
     }

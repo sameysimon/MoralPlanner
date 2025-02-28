@@ -15,19 +15,14 @@ protected:
         // Solve MDP
         Solver solver = Solver(*mdp);
         solver.MOiLAO();
-        std::cout << "1" << std::endl;
         // Extract Policies.
         auto policies = solver.getSolutions();
-        std::cout << "2" << std::endl;
         // Extract Histories
         auto eh = new ExtractHistories(*mdp);
-        std::cout << "3" << std::endl;
         histories = eh->extract(*policies);
-        std::cout << "4" << std::endl;
         delete eh;
         delete policies;
         delete mdp;
-        std::cout << "5" << std::endl;
     }
 
     static History* createHistory(vector<WorthBase*>& worth, double prob) {

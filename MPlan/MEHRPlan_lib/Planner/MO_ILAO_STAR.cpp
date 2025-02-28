@@ -54,7 +54,7 @@ void Solver::MOiLAO() {
     backups = 0;
     iterations = 0;
 
-    foundStates = new unordered_set<int>();// Explicitly encountered states
+    foundStates = make_unique<unordered_set<int>>();// Explicitly encountered states
     auto* expanded = new unordered_set<int>();
     Z = new vector<int>(); // Best partial graph.
 
@@ -183,6 +183,7 @@ void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, v
                 }
                 // Gather QValue Information.
                 new_qv.expectations[theoryIdx] = mdp.theories[theoryIdx]->gather(*successors, comboExpects);
+                //cout <<  "{" << candidates[0].toString() << "}; " << endl;
             }
             // Store Candidate QValue and push back.
             candidates.push_back(new_qv);

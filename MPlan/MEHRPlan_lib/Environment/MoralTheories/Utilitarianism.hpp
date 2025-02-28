@@ -14,6 +14,7 @@
 #include <cmath>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 
 class ExpectedUtility : public WorthBase {
@@ -29,6 +30,7 @@ public:
         return 0;
     }
     std::string ToString() const override {
+
         return doubleToString(value);
     }
     bool isEquivalent(WorthBase& w) const override {
@@ -97,6 +99,9 @@ public:
     };
     WorthBase* newHeuristic(State& s) override {
         ExpectedUtility* eu = new ExpectedUtility();
+        if (s.id > heuristicList.size()) {
+            throw std::runtime_error("Heuristic list is too small");
+        }
         eu->value = heuristicList[s.id];
         return eu;
     };
@@ -115,6 +120,7 @@ public:
     }
     void processHeuristics(nlohmann::json& heuristicData) override {
         for (auto it = heuristicData.begin(); it != heuristicData.end(); it++) {
+            std::cout << it.value() << std::endl;
             this->heuristicList.push_back(it.value());
         }
     }

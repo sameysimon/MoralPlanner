@@ -5,7 +5,7 @@
 using namespace std;
 
 // Uses Depth-First-Search on states in internal SolSet to build bpsg (Z)
-bool Solver::PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unordered_set<int>* foundStates) {
+bool Solver::PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unique_ptr<unordered_set<int>>& foundStates) {
     if (visited.find(stateIdx) != visited.end()) {
         return false; // If already visited, don't search.
     }
@@ -35,7 +35,7 @@ bool Solver::PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visite
 }
 
 
-void Solver::setPostOrderDFS(unordered_set<int>* foundStates) {
+void Solver::setPostOrderDFS(unique_ptr<unordered_set<int>>& foundStates) {
     Z->clear();
     unordered_set<int> visited = unordered_set<int>();
 
