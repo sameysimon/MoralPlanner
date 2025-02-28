@@ -24,12 +24,12 @@ struct Attack {
 
 class MEHR {
 #ifdef DEBUG                
-    double search_time = 0;
-    double attack_time = 0;
-    double total_comp_policy_exps = 0;
-    double hist_exps = 0;
-    double clear_time = 0;
-    double total_CFA = 0;
+    long long search_time = 0;
+    long long attack_time = 0;
+    long long total_comp_policy_exps = 0;
+    long long hist_exps = 0;
+    long long clear_time = 0;
+    long long total_CFA = 0;
 #endif
 
     MDP& mdp;

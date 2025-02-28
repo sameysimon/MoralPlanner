@@ -7,10 +7,7 @@
 
 vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<History*>>& histories) {
 #ifdef DEBUG
-    int counter = 0;
-    chrono::time_point<chrono::steady_clock> total_start;
-    chrono::time_point<chrono::steady_clock> total_end;
-    total_start = chrono::high_resolution_clock::now();
+    auto total_start = chrono::high_resolution_clock::now();
 #endif // DEBUG
     non_accept = new vector<double>(policyWorths.size(), 0);// Stores non-acceptability of each policy.
     int r = 0;// Stores result
@@ -32,7 +29,7 @@ vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<
         QValue& oneExp = policyWorths[oneIdx];
         for (int twoIdx=oneIdx+1; twoIdx<policyWorths.size(); ++twoIdx) {
 #ifdef DEBUG
-            chrono::time_point<chrono::steady_clock> start1 = chrono::high_resolution_clock::now();
+            auto start1 = chrono::high_resolution_clock::now();
 #endif
             // Values that will be used.
             attackingTheories.clear();
@@ -42,13 +39,13 @@ vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<
             // Store which way different theories may attack:
             r = mdp.compareExpectations(oneExp, twoExp, attackingTheories, reverseTheories);
 #ifdef DEBUG
-            chrono::time_point<chrono::steady_clock> end1 = chrono::high_resolution_clock::now();
+            auto end1 = chrono::high_resolution_clock::now();
             total_comp_policy_exps += chrono::duration_cast<chrono::microseconds>(end1 - start1).count();
 #endif // DEBUG
             // No greater expectations -> no attacks can be formed.
             if (r == 0) { continue; }
 #ifdef DEBUG
-            chrono::time_point<chrono::steady_clock> start2 = chrono::high_resolution_clock::now();
+            auto start2 = chrono::high_resolution_clock::now();
 #endif
             // Check for attacks from policy one to policy two by attackingTheories
             if (r==1 or r==2) {
@@ -61,15 +58,15 @@ vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<
                 checkForAttack(twoIdx, oneIdx, histories, reverseTheories);
             }
 #ifdef DEBUG
-            chrono::time_point<chrono::steady_clock> end2 = chrono::high_resolution_clock::now();
+            auto end2 = chrono::high_resolution_clock::now();
             hist_exps += chrono::duration_cast<chrono::microseconds>(end2 - start2).count();
 #endif
 
         }
     }
 #ifdef DEBUG
-    total_end = chrono::high_resolution_clock::now();
-    double total = chrono::duration_cast<chrono::microseconds>(total_end-total_start).count();
+    auto total_end = chrono::high_resolution_clock::now();
+    long long total = chrono::duration_cast<chrono::microseconds>(total_end-total_start).count();
     cout << "Total time: " << total << endl;
     cout << "Search time: " << search_time << " -- " << (search_time / total)*100 << "%" << endl;
     cout << "Attack time: " << attack_time << " -- " << (attack_time / total)*100 << "%" << endl;
