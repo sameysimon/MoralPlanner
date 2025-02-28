@@ -229,16 +229,16 @@ void MDP::buildFromJSON(nlohmann::json& data) {
         for (auto& actionSuccessors : t[sourceIdx].items())
         {
             // get the action
-            std::string actionLabel = actionSuccessors.key();
+            const std::string& actionLabel = actionSuccessors.key();
             Action* action = this->actionMap[actionLabel];
             // Add action to list for this state.
             stateActions[currState->id].push_back(action);
 
             // create holder for action successors
-            std::vector<Successor*>* successorSet = new std::vector<Successor*>();
-            currState->actionSuccessors[stateActionIndex] = successorSet;
+            auto* successorSet = currState->addAction(actionLabel);
             // Create successor and populate
             json successorObjects = actionSuccessors.value();
+            state->hasSuccessors = (successorObjects.empty()) ? false : true;
             for (auto& successorData : successorObjects) {
                 double prob = successorData[0];
                 int targetID = successorData[1];

@@ -19,6 +19,7 @@ public:
     int id;
     int time;
     bool isGoal;
+    bool hasSuccessors = false;
     std::string tag;
     std::vector<std::vector<Successor*>*> actionSuccessors;
 
@@ -30,9 +31,20 @@ public:
     }
     ~State() {
         for (std::vector<Successor*>* successorCollection : actionSuccessors) {
+            for (Successor* successor : *successorCollection) {
+                delete successor;
+            }
             delete successorCollection;
         }
     }
+    std::vector<Successor*>* addAction(const std::string& actionLabel) {
+        auto* scrSet = new std::vector<Successor*>();
+        actionSuccessors[actionCount] = scrSet;
+        actionCount++;
+        return scrSet;
+    }
+private:
+    int actionCount = 0;
 };
 
 

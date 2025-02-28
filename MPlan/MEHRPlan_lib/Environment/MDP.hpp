@@ -17,6 +17,7 @@
 #include "State.hpp"
 #include "Successor.hpp"
 #include "MoralTheory.hpp"
+#include <format>
 #include "QValue.hpp"
 
 class QValue;
@@ -44,7 +45,7 @@ public:
 
     std::vector<Successor*>* getActionSuccessors(const State& state, const int stateActionIndex) {
         if (state.actionSuccessors.size()==0) {
-            return nullptr;
+            throw std::runtime_error(std::format("getActionSuccessors called with state {} and state-action Index {} has no successors.", state.id, stateActionIndex));
         }
          return state.actionSuccessors[stateActionIndex];
     }

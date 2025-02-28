@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 project(MPlan)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Enable debug definitions if building in Debug mode

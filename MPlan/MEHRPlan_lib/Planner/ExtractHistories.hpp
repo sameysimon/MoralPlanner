@@ -67,21 +67,17 @@ public:
     // Entry Point/Main Call.
     //
     vector<vector<History*>> extract(vector<Policy*>& policySet) {
-        std::cout << "extract" << std::endl;
         //
         // Extract information from solution set.
         //
         // Stores set of histories against policy's index.
         vector<unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>> piToHSet;
-        std::cout << "1" << std::endl;
-
         for (Policy* pi : policySet) {
             // Add/Extract History outcomes
             auto hSet = extractHistories(*pi);
             piToHSet.push_back(std::move(*hSet));
             delete hSet;
         }
-        std::cout << "2..." << std::endl;
 
         std::vector<std::vector<History*>> histories;
         for (const auto& hSet : piToHSet) {
@@ -89,7 +85,6 @@ public:
             std::vector hVec(hSet.begin(), hSet.end());
             histories.push_back(std::move(hVec));
         }
-        std::cout << "3" << std::endl;
 
         return histories;
     }
@@ -133,42 +128,38 @@ private:
     }
 
     void DFS_Histories(State& state, int time, Policy& pi, History* h, unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>* hSet) {
-        std::cout << "DFS_HISTORIES" << " call number " << counter << std::endl;
         // Base Case. Stop when reaching the horizon.
+        cout << "DFS_Histories. State" << state.id << " time:" << time  << endl;
         if (time >= mdp.horizon) {
+            cout << "Base Case: Time over horizon" << endl;
             DFS_baseCase(h, hSet);
             return;
         }
-        std::cout << "a" << std::endl;
         // Stop if state/time is not in the policy
         auto stateActionIt = pi.policy.find(state.id);
         if (stateActionIt==pi.policy.end()) {
+            cout << "Base Case: End of policy." << endl;
             DFS_baseCase(h, hSet);
             return;
         }
-        std::cout << "b" << std::endl;
 
         // Stop if no successors.
-        auto successors = mdp.getActionSuccessors(state, stateActionIt->second);
-        if (successors==nullptr) {
+        /*
+        if (!state.hasSuccessors) {
             DFS_baseCase(h, hSet);
             return;
         }
-        std::cout << "c" << std::endl;
-
+        */
+        auto successors = mdp.getActionSuccessors(state, stateActionIt->second);
         // Recursive Case.
         for (Successor* successor : *successors) {
             History* h_ = new History(*h);
             std::cout << successor->ToString() << std::endl;
-            std::cout << "d" << std::endl;
             mdp.addCertainSuccessorToQValue(h_->worth, successor);
             h_->probability *= successor->probability;
-            std::cout << "e" << std::endl;
             h_->addToPath(successor);
-            std::cout << "f" << std::endl;
             DFS_Histories(*mdp.states[successor->target], time+1, pi, h_, hSet);
         }
-        std::cout << "g" << std::endl;
 
         delete h; // Could this work??? Maybe not, must check!!!
     }
