@@ -61,9 +61,10 @@ cd MoralPlanner
 Navigate to the `EnvironmentBuilder` directory and install Python dependencies:
 
 ```bash
-cd ../EnvironmentBuilder
+cd EnvironmentBuilder
 pip install -r requirements.txt
 ```
+You may need to make a virtual environment: `python3 -m venv myVEnvName` then `source myVenvName/bin/activate`.
 
 ---
 
@@ -144,7 +145,7 @@ cd build
 ### Running Experiments from the paper
 Use the Python script to re-run the experiments from our paper.
 ```bash
-python3 MoralPlanner/run_experiments.py
+python3 MoralPlanner/RunInsulinExperiments.py
 ```
 Results will be generated in directory `MoralPlanner/Data/Experiments/<YYYY-MM-DD HH:MM:SS>`. Inside there will be all the raw output as JSON files as well as `experiments_out.csv` collecting results and `grouped_experiments_out.csv`. 
 
@@ -163,6 +164,6 @@ ctest
 
 ## Code Authors
 
-- **Simon Kolker** – (https://sameysimon.github.io)
+- **Simon Kolker** – (https://simonkolker.com)
 
 For questions or suggestions, feel free to reach out via [simon.kolker@manchester.ac.uk](mailto:simon.kolker@manchester.ac.uk).
