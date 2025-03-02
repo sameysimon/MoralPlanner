@@ -35,7 +35,6 @@ public:
     }
     void addToPath(Successor* successor) {
         if (!hasPath) {
-            std::cout<<"it really is a nullptr" << std::endl;
             return;
         }
         path->push_back(successor);
@@ -129,16 +128,13 @@ private:
 
     void DFS_Histories(State& state, int time, Policy& pi, History* h, unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>* hSet) {
         // Base Case. Stop when reaching the horizon.
-        cout << "DFS_Histories. State" << state.id << " time:" << time  << endl;
         if (time >= mdp.horizon) {
-            cout << "Base Case: Time over horizon" << endl;
             DFS_baseCase(h, hSet);
             return;
         }
         // Stop if state/time is not in the policy
         auto stateActionIt = pi.policy.find(state.id);
         if (stateActionIt==pi.policy.end()) {
-            cout << "Base Case: End of policy." << endl;
             DFS_baseCase(h, hSet);
             return;
         }
@@ -154,7 +150,6 @@ private:
         // Recursive Case.
         for (Successor* successor : *successors) {
             History* h_ = new History(*h);
-            std::cout << successor->ToString() << std::endl;
             mdp.addCertainSuccessorToQValue(h_->worth, successor);
             h_->probability *= successor->probability;
             h_->addToPath(successor);
