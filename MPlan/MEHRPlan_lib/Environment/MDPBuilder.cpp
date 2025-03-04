@@ -156,48 +156,24 @@ void MDP::buildFromJSON(nlohmann::json& data) {
     int theoryId = 0;
     for (json t : data["theories"] ) {
         std::string type = t["Type"];
+        MoralTheory *m;
         if (type == "Utility") {
+             m = new Utilitarianism(t, theoryId);
+        } else if (type=="Cost") {
             // Make Utiltarian theory
-            Utilitarianism* u = new Utilitarianism(theoryId);
-            u->label = t["Name"];
-            u->rank = t["Rank"];
-            u->processHeuristics(t["Heuristic"]);
-            int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
-            groupedTheoryIndices[index].push_back(theories.size());
-            this->theories.push_back(u);
-        } else if (type=="Cost" and budget>-1) {
-            throw runtime_error("MDP::buildFromJSON: Cannot have two amoral theories.");
-        }
-        else if (type=="Cost") {
-            // Make Utiltarian theory
-            Utilitarianism* u = new Utilitarianism(theoryId);
-            u->label = t["Name"];
+            m = new Utilitarianism(t, theoryId);
             budget = t["Budget"];
-            u->processHeuristics(t["Heuristic"]);
             non_moralTheoryIdx = this->theories.size();
-            this->theories.push_back(u);
-
-            // Does not have a rank. Left out of rankings.
         } else if (type=="Threshold") {
-            double th = t["Threshold"];
-            Threshold* u = new Threshold(theoryId, th);
-            u->label = t["Name"];
-            u->rank = t["Rank"];
-            u->processHeuristics(t["Heuristic"]);
-            int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
-            groupedTheoryIndices[index].push_back(theories.size());
-            this->theories.push_back(u);
+            m = new Threshold(t, theoryId);
         } else if (type=="Absolutism") {
-            Absolutism* a = new Absolutism(theoryId);
-            a->label = t["Name"];
-            a->rank = t["Rank"];
-            a->processHeuristics(t["Heuristic"]);
-            int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
-            groupedTheoryIndices[index].push_back(theories.size());
-            this->theories.push_back(a);
+            m = new Absolutism(t, theoryId);
         } else {
             throw runtime_error("MDP::buildFromJSON: unrecognized theory type.");
         }
+        int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
+        groupedTheoryIndices[index].push_back(theories.size());
+        this->theories.push_back(m);
         theoryId++;
         // TODO Other theories...
     }

@@ -62,8 +62,15 @@ class Absolutism : public MoralTheory {
         return static_cast<AbsoluteValue&>(w);
     }
 public:
-    Absolutism(int id_) : MoralTheory(id_) {
+    explicit Absolutism(int id_) : MoralTheory(id_) {
         judgementMap = std::unordered_map<Successor*, AbsoluteValue*>();
+    }
+    Absolutism(json &t, int id_) : MoralTheory(id_) {
+        label = t["Name"];
+        rank = t["Rank"];
+        for (auto it = t["Heuristic"].begin(); it != t["Heuristic"].end(); it++) {
+            this->heuristicList.push_back(it.value());
+        }
     }
     //
     // Getters
@@ -103,11 +110,6 @@ public:
         auto ab = new AbsoluteValue();
         ab->value = val;
         this->judgementMap.insert(std::make_pair(successor, ab));
-    }
-    void processHeuristics(nlohmann::json& heuristicData) override {
-        for (auto it = heuristicData.begin(); it != heuristicData.end(); it++) {
-            this->heuristicList.push_back(it.value());
-        }
     }
     int attack(QValue& qv1, QValue& qv2) override;
 };

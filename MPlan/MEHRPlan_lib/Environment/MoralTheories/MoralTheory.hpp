@@ -13,6 +13,8 @@
 #include <nlohmann/json.hpp>
 #include "Successor.hpp"
 
+using json = nlohmann::json;
+
 class Expecter;
 class QValue;
 class State;
@@ -42,7 +44,6 @@ public:
     virtual WorthBase* newWorth() = 0;
     virtual WorthBase* newHeuristic(State& s) = 0;
     virtual void processSuccessor(Successor* successor, nlohmann::json successorData) = 0;
-    virtual void processHeuristics(nlohmann::json& heuristicData) = 0;
     virtual int attack(QValue& qv1, QValue& qv2) = 0;
     Expecter* makeExpecter(int size, int horizon);
     Expecter* makeHeuristicExpecter(std::vector<State*>& states, int horizon);

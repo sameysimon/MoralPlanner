@@ -10,7 +10,8 @@
 #include "Successor.hpp"
 #include <cmath>
 #include <sstream>
-#include <iomanip>
+
+#include "Utilitarianism.hpp"
 
 // The Morally Relevant Information
 class ExpectedValue : public WorthBase {
@@ -63,13 +64,23 @@ class Threshold : public MoralTheory {
     std::unordered_map<Successor*, ExpectedValue*> judgementMap;
     std::vector<double> heuristicList;
 
-    ExpectedValue& quickCast(WorthBase& w) {
+    static ExpectedValue& quickCast(WorthBase& w) {
         return static_cast<ExpectedValue&>(w);
     }
     double threshold = 0;
 public:
-    Threshold(int id_, double threshold_) : MoralTheory(id_ ), threshold(threshold_) {
+    Threshold(int id) : MoralTheory(id) {
         judgementMap = std::unordered_map<Successor*, ExpectedValue*>();
+    }
+    Threshold(json& t, int id) : MoralTheory(id) {
+        label = t["Name"];
+        rank = t["Rank"];
+        threshold = t["Threshold"];
+        judgementMap = std::unordered_map<Successor*, ExpectedValue*>();
+        for (auto it = t["Heuristic"].begin(); it != t["Heuristic"].end(); it++) {
+            this->heuristicList.push_back(it.value());
+        }
+
     }
     //
     // Getters
@@ -110,11 +121,6 @@ public:
         auto u = new ExpectedValue();
         u->value = val;
         this->judgementMap.insert(std::make_pair(successor, u));
-    }
-    void processHeuristics(nlohmann::json& heuristicData) override {
-        for (auto it = heuristicData.begin(); it != heuristicData.end(); it++) {
-            this->heuristicList.push_back(it.value());
-        }
     }
     int attack(QValue& qv1, QValue& qv2) override;
 };
