@@ -209,7 +209,9 @@ void MDP::buildFromJSON(nlohmann::json& data) {
     State* state;
     auto s_t = data["state_transitions"];
     for (int i=0; i <this->total_states; ++i) {
-        int number_of_actions = s_t[i].size();
+        int number_of_actions = 0;
+        if (s_t.is_array()) { number_of_actions = s_t[i].size(); }
+        if (s_t.is_object()) { number_of_actions = s_t[to_string(i)].size(); }
         state = new State(i,number_of_actions, data["state_time"][i]);
         states[i] = state;
         stateActions[i] = vector<Action*>();
@@ -232,9 +234,14 @@ void MDP::buildFromJSON(nlohmann::json& data) {
     auto t = data["state_transitions"];
     Successor* successor;
     for (int sourceIdx=0; sourceIdx <total_states; ++sourceIdx) {
+        json transitionDict;
         State* currState = states[sourceIdx];
-        int stateActionIndex = 0;
-        for (auto& actionSuccessors : t[sourceIdx].items())
+        if (t.is_array()) {
+            transitionDict = t[sourceIdx];
+        } else if (t.is_object()) {
+            transitionDict = t[std::to_string(sourceIdx)];
+        }
+        for (auto& actionSuccessors : transitionDict.items())
         {
             // get the action
             const std::string& actionLabel = actionSuccessors.key();
@@ -257,7 +264,6 @@ void MDP::buildFromJSON(nlohmann::json& data) {
                     this->theories[i]->processSuccessor(successor, successorData[i+2]);
                 }
             }
-            stateActionIndex++;
         }
     }
 }

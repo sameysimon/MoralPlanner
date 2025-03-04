@@ -42,9 +42,7 @@ int main(int argc, const char * argv[]) {
 
     // Initialisation
     MDP* mdp = new MDP(fileIn);
-
     Solver solver = Solver(*mdp);
-
     MEHR mehr = MEHR(*mdp);
     auto durations = vector<long long>();
     
@@ -99,10 +97,7 @@ int main(int argc, const char * argv[]) {
     auto polExpectations = new vector<QValue>();
     polExpectations->reserve(policies->size());
     for (auto *pi : *policies) {
-        auto it = pi->worth.find(0);
-        if (it == pi->worth.end()) {
-            polExpectations->push_back(pi->worth.at(0));
-        }
+        polExpectations->push_back(pi->worth.at(0));
     }
 #ifdef DEBUG
     std::cout << eh->ToString(*policies, *polExpectations, histories) << endl;
