@@ -24,7 +24,7 @@ public:
     ~SolutionExtracter() {
         delete searchedOptions;
     }
-    vector<Policy*>* extractPolicies(vector<Policy*>& result, vector<vector<int>>& Pi, const vector<int>& Z) {
+    void extractPolicies(vector<Policy*>& result, vector<vector<int>>& Pi, const vector<int>& Z) {
         // TODO Maybe don't keep whole policy table, delete far back, only keep time+1
         // Maps state to set of policies from that epoch.
         policyTable = new unordered_map<int, unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*>();
@@ -129,7 +129,7 @@ public:
         bool existsPolicyInBudget = std::any_of(solns->begin(), solns->end(), [this](Policy* pi) {
             return this->mdp.isQValueInBudget(pi->worth[0]);
         });
-
+        
         if (existsPolicyInBudget) {
             // Only copy those in budget, if any are in budget.
             std::copy_if(solns->begin(), solns->end(), std::back_inserter(result), [this](Policy* pi) {
