@@ -6,7 +6,7 @@ def SaveEnvToJSON(mdp: MDP, fileName:str):
     actionList = [a for a in mdp.actions]
 
     # The JSON output structure
-    output = {'total_states': len(mdp.states), 'actions': actionList, 'horizon': mdp.horizon, 'goals': [], 'state_tags': [], 'state_time': []}
+    output = {'total_states': len(mdp.states), 'actions': actionList, 'horizon': mdp.horizon+1, 'goals': [], 'state_tags': [], 'state_time': []}
 
     # State transitions
     state_transitions = []

@@ -19,7 +19,6 @@ public:
     int id;
     int time;
     bool isGoal;
-    bool hasSuccessors = false;
     std::string tag;
     std::vector<std::vector<Successor*>*> actionSuccessors;
 

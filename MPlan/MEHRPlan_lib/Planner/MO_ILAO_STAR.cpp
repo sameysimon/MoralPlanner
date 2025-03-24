@@ -155,12 +155,12 @@ void Solver::backup(State& state, int time) {
 
 void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction) {
     // Auxillary, non-requred vectors.
-    vector<Action*>* actions = mdp.getActions(state);
+    vector<shared_ptr<Action>>* actions = mdp.getActions(state);
     if (actions->size()==0 or time>=mdp.horizon) {
         return;
     }
     for (int aIdx = 0; aIdx < actions->size(); ++aIdx) {
-        vector<Successor*>* successors = mdp.getActionSuccessors(state, aIdx);
+        vector<Successor*>* successors = MDP::getActionSuccessors(state, aIdx);
         // Get successor QValues and initialise combinations space.
         auto successorQValues = vector<vector<QValue>>();
         auto combos = vector<vector<QValue>>();
@@ -195,7 +195,7 @@ void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, v
     std::cout << "Actions Undominated = ";
     for (auto elem : indicesOfUndominated) {
         auto a = actions->at(qValueIdxToAction[elem]);
-        cout <<  *(a->label) << " @ {" << candidates[elem].toString() << "}; ";
+        cout <<  (a->label) << " @ {" << candidates[elem].toString() << "}; ";
     }
     cout << endl;
 #endif
@@ -262,7 +262,7 @@ bool Solver::checkForUnexpandedStates(unordered_set<int>* expanded, vector<int>*
     return unexpanded;
 }
 
-vector<Policy*>* Solver::getSolutions(){
+void Solver::getSolutions(vector<Policy*> &policies){
     auto se = SolutionExtracter(mdp);
-    return se.extractPolicies(*Pi, *Z);
+    se.extractPolicies(policies, *Pi, *Z);
 }

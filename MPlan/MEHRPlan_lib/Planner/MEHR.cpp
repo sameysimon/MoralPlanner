@@ -4,33 +4,61 @@
 #include "MEHR.hpp"
 #include <iostream>
 #include <chrono>
+#include <ranges>
 
-vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<History*>>& histories) {
-#ifdef DEBUG
-    auto total_start = chrono::high_resolution_clock::now();
-#endif // DEBUG
-    non_accept = new vector<double>(policyWorths.size(), 0);// Stores non-acceptability of each policy.
-    int r = 0;// Stores result
-    std::cout << "There are " << policyWorths.size() << " policies" << std::endl;
-    vector<int*> expected_edges = vector<int*>(); // Stores [x,y,] if policy x defeats policy y in expectation.
-    // Stores policy to list of attacks on policy.
-    attacksByTarget = new vector<vector<Attack>>();
-    for (int i = 0; i < policyWorths.size(); i++) {
-        vector<Attack> attacksOnPolicy = vector<Attack>();
-        attacksByTarget->push_back(attacksOnPolicy);
+
+// Builds hRT (histories' Ranked by Theories)
+// For each theory, each policy, all histories in descending order. Most preferable to least preferable.
+// Sort costs HlogH (for H histories). Thus, T*PI*H*logH.
+// hRT[theoryIdx][piIdx] = [histIdx1, histIdx2, ...]
+void MEHR::sortHistories(vector<vector<History*>>& histories, vector<vector<vector<int>>>& hRT) const {
+    size_t numOfPolicies = histories.size();
+    hRT.clear();
+    hRT.reserve(mdp.theories.size());
+    for (int tIdx = 0; tIdx < mdp.theories.size(); tIdx++) {
+        vector policySortedHistories(numOfPolicies, vector<int>());
+        hRT.push_back(policySortedHistories);
+
+        for (int pIdx = 0; pIdx < numOfPolicies; pIdx++) {
+            // Set to number of histories
+            hRT[tIdx][pIdx].resize(histories[pIdx].size());
+            // Fill with indices from 0
+            iota(hRT[tIdx][pIdx].begin(), hRT[tIdx][pIdx].end(), 0);
+            // Sort by history comparisons
+            sort(hRT[tIdx][pIdx].begin(), hRT[tIdx][pIdx].end(),
+                [histories, pIdx, tIdx](const int& lhs, const int& rhs) {
+                    int r = histories[pIdx][lhs]->worth.expectations[tIdx]->compare(*histories[pIdx][rhs]->worth.expectations[tIdx]);
+                    return r==+1;// descending order. r=-1 means rhs beats lhs. Means rhs goes before.
+            });
+        }
     }
+}
 
-    // Sort histories for each history
-    //sortHistories(histories);
+//
+// MAIN START POINT
+//
+void MEHR::findNonAccept(vector<double> &non_accept) {
+    // Initialise Non-acceptability vec.
+    const ushort totalPolicies = policyWorths.size();
+    non_accept.resize(totalPolicies);
+    std::fill(non_accept.begin(), non_accept.end(), 0);
 
-    vector<int> attackingTheories = vector<int>();// Theories where pi_one attacks pi_two
-    vector<int> reverseTheories = vector<int>();// Theories where pi_two attacks pi_one
-    for (int oneIdx=0; oneIdx<policyWorths.size(); ++oneIdx) {
+    // Sort histories for each policy, for each theory.
+    auto hRT = vector<vector<vector<int>>>();
+    sortHistories(histories, hRT);
+
+    // Init theories where pi_one attacks pi_two
+    vector<int> attackingTheories = vector<int>();
+    // Init theories where pi_two attacks pi_one
+    vector<int> reverseTheories = vector<int>();
+    // Stores result of each attack
+    int r = 0;
+
+    // Compares all policies' expectations. If any 2 policies unequal, checks for attack.
+    for (int oneIdx=0; oneIdx<totalPolicies; ++oneIdx) {
+        // The expected worth of pi_one
         QValue& oneExp = policyWorths[oneIdx];
         for (int twoIdx=oneIdx+1; twoIdx<policyWorths.size(); ++twoIdx) {
-#ifdef DEBUG
-            auto start1 = chrono::high_resolution_clock::now();
-#endif
             // Values that will be used.
             attackingTheories.clear();
             reverseTheories.clear();
@@ -38,103 +66,81 @@ vector<double>* MEHR::findNonAccept(vector<QValue>& policyWorths, vector<vector<
             // Compare expectations of policy Idx 1 to policy Idx 2
             // Store which way different theories may attack:
             r = mdp.compareExpectations(oneExp, twoExp, attackingTheories, reverseTheories);
-#ifdef DEBUG
-            auto end1 = chrono::high_resolution_clock::now();
-            total_comp_policy_exps += chrono::duration_cast<chrono::microseconds>(end1 - start1).count();
-#endif // DEBUG
             // No greater expectations -> no attacks can be formed.
             if (r == 0) { continue; }
-#ifdef DEBUG
-            auto start2 = chrono::high_resolution_clock::now();
-#endif
             // Check for attacks from policy one to policy two by attackingTheories
             if (r==1 or r==2) {
-                //std::cout << "Solution: " << oneIdx << " E("<< expectedWorths[oneIdx].toString() << ") attacks Solution: " << twoIdx << " E("<< expectedWorths[twoIdx].toString() << ")" << std::endl;
-                checkForAttack(oneIdx, twoIdx, histories, attackingTheories);
+                non_accept[twoIdx] += checkForAttack(oneIdx, twoIdx, attackingTheories, hRT);
             }
             // Check for attacks from policy two to policy one by reverseTheories
             if (r==-1 or r==2) {
-                //std::cout << "Solution: " << twoIdx << " E("<< expectedWorths[twoIdx].toString() << ") attacks Solution: " << oneIdx << " E("<< expectedWorths[oneIdx].toString() << ")" << std::endl;
-                checkForAttack(twoIdx, oneIdx, histories, reverseTheories);
+                non_accept[oneIdx] += checkForAttack(twoIdx, oneIdx, reverseTheories, hRT);
             }
-#ifdef DEBUG
-            auto end2 = chrono::high_resolution_clock::now();
-            hist_exps += chrono::duration_cast<chrono::microseconds>(end2 - start2).count();
-#endif
 
         }
     }
-#ifdef DEBUG
-    auto total_end = chrono::high_resolution_clock::now();
-    long long total = chrono::duration_cast<chrono::microseconds>(total_end-total_start).count();
-    cout << "Total time: " << total << endl;
-    cout << "Search time: " << search_time << " -- " << (search_time / total)*100 << "%" << endl;
-    cout << "Attack time: " << attack_time << " -- " << (attack_time / total)*100 << "%" << endl;
-    cout << "Total CFA time: " << total_CFA << " -- " << (total_CFA / total)*100 << "%" << endl << endl;
-
-    cout << "Check actions time: " << total_comp_policy_exps << " -- " << (total_comp_policy_exps / total)*100 << "%" << endl;
-    cout << "Big Check for attack time: " << hist_exps << " -- " << (hist_exps / total)*100 << "%" << endl;
-    cout << "Clear time: " << clear_time << " -- " << (clear_time / total)*100 << "%" << endl;
-    cout << "Remaining in big loop:" << ((total - clear_time - hist_exps - total_comp_policy_exps) / total)*100 << " %" << endl;
-#endif
-    return non_accept;
 }
 
-
-
-void MEHR::checkForAttack(int sourceSol, int targetSol, vector<vector<History*>>& histories, vector<int>& theories) {
-#ifdef DEBUG    
-    auto totalCFAStart = chrono::high_resolution_clock::now();
-#endif
-    bool ignore=false;
+// Generates attacks from source pi to target pi, using theories. Updates non_accept accordingly.
+// Compares all sourceSol histories against all targetSol histories, for each theory.
+// Once target history attacked by argument, it is skipped on future.
+// Check using hash set if this.useAttackHash=true
+double MEHR::checkForAttack(int sourceSol, int targetSol, vector<int>& theories) {
+    double targetNacc=0;
     for (int attIdx = 0; attIdx < histories.at(sourceSol).size(); ++attIdx) {
         for (int defIdx = 0; defIdx < histories.at(targetSol).size(); ++defIdx) {
             for (int tIdx : theories) {
-                ignore = false;
-#ifdef DEBUG                
-                auto start = chrono::high_resolution_clock::now();
-#endif
+                std::cout << histories[sourceSol][attIdx]->worth.toString() << std::endl;
                 if (tIdx==mdp.non_moralTheoryIdx) { continue;}
-                // Check if target Argument has already been attacked...
-                auto& potAttacks = (*attacksByTarget)[targetSol];
-                for (Attack& att : potAttacks) {
-                    // Looping through all attacks to make this check is naive, though only 0.18% of MEHR computation time currently.
-                    if (att.targetHistoryIdx==defIdx && att.theoryIdx==tIdx) {
-                        ignore = true;
-                        break;
-                    }
+                if (checkAttackExists(targetSol, defIdx, tIdx)) {
+                    // If target argument is already attacked, don't try to add to it.
+                    continue;
                 }
-#ifdef DEBUG                
-                auto end = chrono::high_resolution_clock::now();
-                search_time += chrono::duration_cast<chrono::microseconds>(end-start).count();
-#endif
-
-                // If target argument is already attacked, don't try and add to it.
-                if (ignore) {continue;}
-#ifdef DEBUG                
-                start = chrono::high_resolution_clock::now();
-#endif
                 int result = mdp.theories[tIdx]->attack(histories.at(sourceSol).at(attIdx)->worth, histories.at(targetSol).at(defIdx)->worth);
                 if (result==1) {
                     // Store this attack.
-                    Attack att = Attack(sourceSol, targetSol, tIdx, attIdx, defIdx);
-                    potAttacks.push_back(att);
+                    addAttack(sourceSol, targetSol, tIdx, attIdx, defIdx);
                     // Add to non-acceptability.
-                    (*non_accept)[targetSol] += histories.at(targetSol).at(defIdx)->probability;
-                    //std::cout << "     Theory Id " << tIdx << ". Outcome with " << histories->at(targetSol)->at(defIdx)->worth.toString() << " attacks outcome with" << histories->at(targetSol)->at(defIdx)->worth.toString() << " for Prob +" << histories->at(targetSol)->at(defIdx)->probability << " = " << (*non_accept)[targetSol] << std::endl;
+                    targetNacc += histories.at(targetSol).at(defIdx)->probability;
                 }
-#ifdef DEBUG                
-                end = chrono::high_resolution_clock::now();
-                attack_time += chrono::duration_cast<chrono::microseconds>(end-start).count();
-#endif
-                //TODO optimise to add attack if result==-1
             }
         }
     }
-#ifdef DEBUG                
-    auto totalCFAEnd = chrono::high_resolution_clock::now();
-    total_CFA += chrono::duration_cast<chrono::microseconds>(totalCFAEnd-totalCFAStart).count();
-#endif
+    return targetNacc;
+}
 
+// Generates attacks from source pi to target pi, using theories. Updates non_accept accordingly.
+// Compares worst history from source to best from target.
+// Increments source history to its best, then resets and decrements best.
+// If attack, makes attack from all source's better histories to all target's worse histories.
+// Once target history attacked by argument, it is skipped on future.
+// Check using hash set if this.useAttackHash=true
+double MEHR::checkForAttack(int sourceSol, int targetSol, vector<int>& theories, vector<vector<vector<int>>> &hRT) {
+    Log::writeLog(std::format("Source Pi {} attacks Target Pi {}", sourceSol, targetSol), LogLevel::Trace);
+    double targetNacc=0;
+    for (auto tIdx : theories) {
+        bool findAttack = false;
+        auto& attHistories = hRT[tIdx][sourceSol];
+        auto& defHistories = hRT[tIdx][targetSol];
+
+        for (size_t def_place = 0; def_place < defHistories.size(); ++def_place) {
+            int defIdx = defHistories[def_place];
+            for (auto attIt = attHistories.rbegin(); attIt != attHistories.rend(); ++attIt) {
+                // Use the best defender history and worst attacker history.
+                int result = mdp.theories[tIdx]->attack(histories.at(sourceSol).at(*attIt)->worth, histories.at(targetSol).at(defIdx)->worth);
+                if (result==1) {
+                    findAttack=true;
+                    for (auto i = def_place; i < defHistories.size(); ++i) {
+                        targetNacc += histories.at(targetSol).at(defHistories[i])->probability;
+                        Log::writeLog(std::format("   History {} beats {} w/ probability {}, theory {}", *attIt, defHistories[i], histories.at(targetSol).at(i)->probability, tIdx), LogLevel::Trace);
+                    }
+                    defHistories.resize(def_place);
+                    break;
+                }
+            }
+            if (findAttack) { break; }
+        }
+    }
+    return targetNacc;
 }
 

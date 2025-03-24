@@ -9,19 +9,19 @@
 #include <iostream>
 #include <vector>
 #include "MDP.hpp"
+#include "Utilitarianism.hpp"
 
 #include <vector>
 
-#include "Solution.hpp"
 
 void MDP::getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval) {
     blankQValue(qval);
     auto scrs = getActionSuccessors(state, stateActionIndex);
     if (scrs->empty()) { return; }
     std::vector<WorthBase*> nullBaselines = std::vector<WorthBase*>(scrs->size(), nullptr);
-    for (int i=0; i<theories.size(); ++i) {
-        std::fill(nullBaselines.begin(), nullBaselines.end(), theories[i]->newWorth());
-        qval.expectations.push_back(theories[i]->gather(*scrs, nullBaselines));
+    for (auto & t : theories) {
+        std::fill(nullBaselines.begin(), nullBaselines.end(), t->newWorth());
+        qval.expectations.push_back(t->gather(*scrs, nullBaselines));
         delete nullBaselines[0];
     }
 }
@@ -35,8 +35,8 @@ void MDP::addCertainSuccessorToQValue(QValue& qval, Successor* scr) {
     }
 }
 void MDP::blankQValue(QValue& qval) {
-    for (int i=0; i<theories.size(); ++i) {
-        qval.expectations.push_back(theories[i]->newWorth());
+    for (auto & t : theories) {
+        qval.expectations.push_back(t->newWorth());
     }
 }
 
@@ -52,12 +52,15 @@ int MDP::compareQValueByRank(QValue& qv1, QValue& qv2, int rank) {
             atLeastOneLesser = true;
         }
     }
+    // Reverse attack
     if (atLeastOneGreater and not atLeastOneLesser) {
         return -1;
     }
+    // Forward Attack
     if (not atLeastOneGreater and atLeastOneLesser) {
         return 1;
     }
+    // Dilemma
     if (atLeastOneGreater and atLeastOneLesser) {
         return 2;
     }

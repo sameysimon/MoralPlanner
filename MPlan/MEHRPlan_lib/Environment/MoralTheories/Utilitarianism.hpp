@@ -8,9 +8,9 @@
 #ifndef Utilitarianism_hpp
 #define Utilitarianism_hpp
 
-#include "Expecter.hpp"
 #include "MoralTheory.hpp"
 #include "Successor.hpp"
+#include "State.hpp"
 #include <cmath>
 #include <iostream>
 

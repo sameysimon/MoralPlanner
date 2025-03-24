@@ -5,9 +5,9 @@
 #ifndef ABSOLUTISM_HPP
 #define ABSOLUTISM_HPP
 
-#include "Expecter.hpp"
 #include "MoralTheory.hpp"
 #include "Successor.hpp"
+#include "State.hpp"
 #include <cmath>
 #include <sstream>
 
@@ -94,7 +94,7 @@ public:
         return ab;
     };
     WorthBase* newHeuristic(State& s) override {
-        AbsoluteValue* eu = new AbsoluteValue();
+        auto* eu = new AbsoluteValue();
         eu->value = heuristicList[s.id];
         return eu;
     };

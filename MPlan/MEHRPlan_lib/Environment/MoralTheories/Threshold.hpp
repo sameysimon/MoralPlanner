@@ -5,9 +5,9 @@
 #ifndef THRESHOLD_HPP
 #define THRESHOLD_HPP
 
-#include "Expecter.hpp"
 #include "MoralTheory.hpp"
 #include "Successor.hpp"
+#include "State.hpp"
 #include <cmath>
 #include <sstream>
 

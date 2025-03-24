@@ -3,105 +3,103 @@
 //
 #include "TestBase.hpp"
 #include "Solver.hpp"
+#include "../Runner.hpp"
 
 class MEHR_Tests : public TestBase {
 protected:
-    MEHR* mehr = nullptr;
-    MDP* mdp = nullptr;
-    vector<Policy*>* policies = nullptr;
     double tolerance = 1e-9;
-    vector<double>* findNon_Accept(string fn) {
-        mdp = MakeMDP(fn);
-        Solver solver = Solver(*mdp);
-        solver.MOiLAO();
-        policies = solver.getSolutions();
-        auto eh = new ExtractHistories(*mdp);
-        auto histories = eh->extract(*policies);
-        auto polExpectations = new vector<QValue>();
-        polExpectations->reserve(policies->size());
-        for (auto *pi : *policies) {
-            polExpectations->push_back(pi->worth.at(0));
-        }
-        std::cout << eh->ToString(*policies, *polExpectations, histories) << std::endl;
-        mehr = new MEHR(*mdp);
-        auto non_accept = mehr->findNonAccept(*polExpectations, histories);
-        std::cout << mehr->ToString(*polExpectations,histories) << std::endl;
 
-        delete eh;
-        delete polExpectations;
 
-        return non_accept;
-    }
-
-    vector<size_t> getPolicyIdsByStateAction(int state_idx, vector<string> &actions) {
-        auto stateActions = mdp->getActions(*mdp->states[state_idx]);
+    vector<size_t> getPolicyIdsByStateAction(Runner& r, int state_idx, vector<string> &actions) {
+        auto stateActions = r.mdp->getActions(*r.mdp->states[state_idx]);
         // Map action string to Action Idx.
         vector<size_t> actionToIdx(actions.size(), -1);
         for (int i = 0; i < stateActions->size(); ++i) {
             for (size_t aIdx=0; aIdx<actions.size(); ++aIdx) {
-                if (*stateActions->at(i)->label == actions[aIdx]) {
+                if (stateActions->at(i)->label == actions[aIdx]) {
                     actionToIdx[aIdx] = i;
                 }
             }
         }
         vector<size_t> actionToPolicyIdx(actions.size(), -1);
-        for (int i=0; i < policies->size(); ++i) {
+        for (int i=0; i < r.policies.size(); ++i) {
             for (size_t aIdx=0; aIdx<actionToIdx.size(); ++aIdx) {
-                if (policies->at(i)->policy[state_idx] == actionToIdx[aIdx]) {
+                if (r.policies.at(i)->policy[state_idx] == actionToIdx[aIdx]) {
                     actionToPolicyIdx[aIdx] = i;
                 }
             }
         }
         return actionToPolicyIdx;
     }
-
-    void cleanup() {
-        delete policies;
-        delete mehr;
-        delete mdp;
-    }
-
 };
 
 TEST_F(MEHR_Tests, SimpleTest) {
-    auto nonAccept = findNon_Accept("my_test.json");
+    Runner runner = Runner("my_test.json");
+    runner.solve();
+
     // Each policy should have 1 non-acceptability--attacks from both theories
-    ASSERT_EQ((*nonAccept)[0], 1);
-    ASSERT_EQ((*nonAccept)[1], 1);
-    cleanup();
+    ASSERT_EQ(runner.non_accept[0], 1);
+    ASSERT_EQ(runner.non_accept[1], 1);
 }
 
 
 TEST_F(MEHR_Tests, LibraryTest_EqualRanks) {
-    auto nonAccept = findNon_Accept("Library/EqualRanks.json");
+    Runner runner = Runner("Library/EqualRanks.json");
+    runner.solve();
 
     vector<string> actions = {"Recommend", "Ignore"};
-    auto piIdx = getPolicyIdsByStateAction(0, actions);
+    auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR((*nonAccept)[piIdx[0]], 1, tolerance);
-    ASSERT_NEAR((*nonAccept)[piIdx[1]], 0.7, tolerance);
+    ASSERT_NEAR(runner.non_accept[piIdx[0]], 1, tolerance);
+    ASSERT_NEAR(runner.non_accept[piIdx[1]], 0.7, tolerance);
 
-    cleanup();
 }
 TEST_F(MEHR_Tests, LibraryTest_No_Leaks_Priority) {
-    auto nonAccept = findNon_Accept("Library/NoLeaksPriority.json");
+    Runner runner = Runner("Library/NoLeaksPriority.json");
+    runner.solve();
 
     vector<string> actions = {"Recommend", "Ignore"};
-    auto piIdx = getPolicyIdsByStateAction(0, actions);
+    auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR((*nonAccept)[piIdx[0]], 1, tolerance);
-    ASSERT_NEAR((*nonAccept)[piIdx[1]], 0, tolerance);
+    ASSERT_NEAR(runner.non_accept[piIdx[0]], 1, tolerance);
+    ASSERT_NEAR(runner.non_accept[piIdx[1]], 0, tolerance);
 
-    cleanup();
 }
 TEST_F(MEHR_Tests, LibraryTest_Utility_Priority) {
-    auto nonAccept = findNon_Accept("Library/UtilityPriority.json");
-
+    Runner runner = Runner("Library/UtilityPriority.json");
+    runner.solve();
     vector<string> actions = {"Recommend", "Ignore"};
-    auto piIdx = getPolicyIdsByStateAction(0, actions);
+    auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR((*nonAccept)[piIdx[0]], 0, tolerance);
-    ASSERT_NEAR((*nonAccept)[piIdx[1]], 0.7, tolerance);
+    ASSERT_NEAR(runner.non_accept[piIdx[0]], 0, tolerance);
+    ASSERT_NEAR(runner.non_accept[piIdx[1]], 0.7, tolerance);
 
-    cleanup();
+}
+
+TEST_F(MEHR_Tests, CheckForAttack) {
+    auto run = Runner("check_for_attack.json");
+    run.timePlan();
+    run.timeExtractSols();
+    run.timeExtractHists();
+
+    vector<string> actions = {"A", "B"};
+    auto piIdx = getPolicyIdsByStateAction(run, 0, actions);
+    vector<int> theories = {0};
+
+    MEHR mehr = MEHR(*run.mdp, run.histories, run.polExpectations, true);
+    auto hRT = vector<vector<vector<int>>>();
+    mehr.sortHistories(run.histories, hRT);
+
+    // Actual test
+    double r = mehr.checkForAttack((int)piIdx[0], (int)piIdx[1], theories, hRT);
+    // Check right non-acceptability
+    ASSERT_NEAR(r, 0.75, tolerance);
+    // Check only 1 history remaining.
+    ASSERT_EQ(hRT[0][piIdx[1]].size(), 1);
+    // Check remaining history is the correct one
+    auto last_hist = run.histories[piIdx[1]][hRT[0][piIdx[1]][0]];
+    ASSERT_EQ(dynamic_cast<ExpectedUtility*>(last_hist->worth.expectations[0])->value, 4);
+    ASSERT_EQ(dynamic_cast<ExpectedUtility*>(last_hist->worth.expectations[1])->value, 0);
+
+
 }

@@ -10,7 +10,7 @@
 #include <sstream>
 using namespace std;
 
-
+/*
 // Single Objective Style Value Iteration.
 Solution Solver::valueIteration() {
     Solution sol = Solution(mdp);
@@ -67,11 +67,6 @@ void Solver::getBestAction(Solution& sol, State& state, int time) {
 
 }
 
-
-
-
-
-/*
 
 bool Solver::consistencyCheck(std::vector<Solution> &solSet) {
     for (Solution sol : solSet) {
@@ -164,4 +159,3 @@ void backup(State* state, MDP& mdp, std::vector<Solution> &solSet) {
     
 }
 */
-

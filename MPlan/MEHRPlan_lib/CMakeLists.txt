@@ -7,17 +7,16 @@ set(HEADER_FILES
         Environment/Action.hpp
         Environment/State.hpp
         Environment/MoralTheories/MoralTheory.hpp
-        Planner/Expecter.hpp
         Environment/MDP.hpp
         Planner/Solver.hpp
         Planner/QValue.hpp
         Environment/MoralTheories/Utilitarianism.hpp
         Environment/MoralTheories/Threshold.hpp
-        Planner/Solution.hpp
         Planner/MEHR.hpp
-        ../Outputter.hpp
+        ../Output.hpp
         Environment/MoralTheories/Absolutism.cpp
         Environment/MoralTheories/Absolutism.hpp
+        ../Logger.hpp
 )
 
 set(SOURCE_FILES
@@ -27,9 +26,7 @@ set(SOURCE_FILES
         Environment/MDP.cpp
         Environment/State.cpp
         Environment/Successor.cpp
-        Planner/Expecter.cpp
         Planner/QValue.cpp
-        Planner/Solution.cpp
         Planner/Solver.cpp
         Environment/MoralTheories/MoralTheory.cpp
         Environment/MDPBuilder.cpp
@@ -49,6 +46,8 @@ set(SOURCE_FILES
 
 
 add_library(MEHRPlan_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
+
+target_compile_definitions(MEHRPlan_lib PRIVATE TIME_METRIC_STR=milliseconds)
 
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/_deps/nlohmann_json-build" ${CMAKE_PREFIX_PATH})
 find_package(nlohmann_json CONFIG REQUIRED)

@@ -1,11 +1,13 @@
 //
 // Created by Simon Kolker on 18/09/2024.
 //
-
-#include "MoralTheory.hpp"
-
 #ifndef QVALUE_HPP
 #define QVALUE_HPP
+
+#include <utility>
+#include "MoralTheory.hpp"
+
+
 
 // Object for pointing to worth values in a solution/elsewhere (WorthBase*)
 // Instantiated by calling vectorGather on a Solution. Holds
@@ -15,6 +17,9 @@ public:
     std::vector<WorthBase*> expectations;
     QValue() {
         expectations = std::vector<WorthBase*>();
+    }
+    QValue(std::vector<WorthBase*> expectations_) {
+        expectations = std::move(expectations_);
     }
     QValue(const QValue& other) {
         expectations = std::vector<WorthBase*>(other.expectations.size());

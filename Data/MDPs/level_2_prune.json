@@ -1,5 +1,5 @@
 {
-  "horizon": 2,
+  "horizon": 3,
   "total_states": 5,
   "actions": ["A", "B","N"],
   "state_transitions": [

@@ -23,27 +23,40 @@
 class QValue;
 
 class MDP {
-    int test;
-    std::unordered_map<std::string, Action*> actionMap;
-    std::vector<std::vector<Action*>> stateActions;
-    // Groups of moral theory indices, first holds lowest ranked theories.
+    // Maps action labels to action object
+    std::unordered_map<std::string, std::shared_ptr<Action>> actionMap;
+    // Vector of actions available for each state
+    std::vector<std::vector<std::shared_ptr<Action>>> stateActions;
     void buildFromJSON(nlohmann::json& data);
+    void actionsFromJSON(nlohmann::json& data);
+    void theoriesFromJSON(nlohmann::json& data);
+    void statesFromJSON(nlohmann::json& data);
+    void successorsFromJSON(nlohmann::json& data);
+
     int compareQValueByRank(QValue& qv1, QValue& qv2, int rank);
 public:
     std::vector<Action*> actions;
     std::vector<State*> states;
-    std::vector<MoralTheory*> theories;// Should not change size after initial assignment.
+    std::vector<MoralTheory*> theories;
+    // Groups of moral theory indices, first holds lowest ranked theories.
     std::vector<std::vector<int>> groupedTheoryIndices;
+
+    //
+    // Fields
+    //
     int total_states=0;
     int horizon=3;
     float budget = -1;// initial budget is infinite
     int non_moralTheoryIdx=-1;
 
+    //
+    // Constructors.
+    //
     explicit MDP(const std::string& fileName);
     explicit MDP(nlohmann::json& data);
     ~MDP();
 
-    std::vector<Successor*>* getActionSuccessors(const State& state, const int stateActionIndex) {
+    static std::vector<Successor*>* getActionSuccessors(const State &state, const int stateActionIndex) {
         if (state.actionSuccessors.size()==0) {
             throw std::runtime_error(std::format("getActionSuccessors called with state {} and state-action Index {} has no successors.", state.id, stateActionIndex));
         }
@@ -60,7 +73,7 @@ public:
         }
         throw std::runtime_error("No suitable action found.");
     }
-    std::vector<Action*>* getActions(const State& state) {
+    std::vector<std::shared_ptr<Action>>* getActions(const State& state) {
         return &(stateActions[state.id]);
     }
     void addCertainSuccessorToQValue(QValue& qval, Successor* scr);

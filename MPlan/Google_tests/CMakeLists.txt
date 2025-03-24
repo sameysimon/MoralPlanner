@@ -6,7 +6,6 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 add_executable(Google_Tests_run
         test_JsonToMDP.cpp
         test_QValueCompare.cpp
-        test_MO_PLAN.cpp
         test_ExtractHistories.cpp
         test_MEHR.cpp
         TestBase.hpp)

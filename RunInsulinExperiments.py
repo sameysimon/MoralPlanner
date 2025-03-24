@@ -7,7 +7,7 @@ import numpy as np
 import os
 
 
-defaultConfig = {"name": "HalCarlaEqual", "theories":["0", "utility", "0", "law"], "budget": 18.5, "horizon": 20}
+defaultConfig = {"name": "HalCarlaEqual", "theories":["0", "utility", "0", "law"], "budget": 18.5, "horizon": 4}
 configs = {
     "HalCarlaEqual": ["0", "CarlaLife", "0", "HalLife"],
     "HalHigherCarla": ["0", "CarlaLife", "1", "HalLife"],
@@ -17,6 +17,8 @@ configs = {
     "CostCarla": ["0", "CarlaLife", "0", "Cost"],
     "CostCarlaSteal": ["0", "CarlaLife", "0", "Cost", "0", "ToSteal"]
 }
+configs = {"HalCarlaEqual": ["0", "CarlaLife", "0", "HalLife"]}
+
 
 finalConfigs = []
 for name, theories in configs.items():

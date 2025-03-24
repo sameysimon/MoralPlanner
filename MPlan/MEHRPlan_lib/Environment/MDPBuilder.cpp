@@ -13,7 +13,6 @@
 #include "Utilitarianism.hpp"
 #include "Threshold.hpp"
 #include "MoralTheory.hpp"
-#include "Solution.hpp"
 
 
 using json = nlohmann::json;
@@ -41,15 +40,12 @@ MDP::MDP(const string& fileName) {
 }
 
 bool isJSONNumeric(nlohmann::json& data) {
+
     return data.type() == nlohmann::detail::value_t::number_integer || data.type() == nlohmann::detail::value_t::number_unsigned || data.type() == nlohmann::detail::value_t::number_float;
 }
-
 void throwStageOne(string msg) {
     throw std::runtime_error("MDP::buildFromJSON: " + msg);
 }
-
-
-
 void verifyJSON(nlohmann::json& data) {
     if (data.contains("horizon") == false) {
         throwStageOne("horizon not found.");
@@ -125,26 +121,32 @@ void verifyJSON(nlohmann::json& data) {
 
 }
 
+
+
 void MDP::buildFromJSON(nlohmann::json& data) {
     verifyJSON(data);
     // HORIZON
     horizon = data["horizon"];
-    // ACTIONS
+    actionsFromJSON(data);
+
+    theoriesFromJSON(data);
+
+    statesFromJSON(data);
+
+    successorsFromJSON(data);
+}
+
+
+
+void MDP::actionsFromJSON(nlohmann::json& data) {
     int actionId = 0;
-    actions = vector<Action*>(data["actions"].size());
-    Action* a;
     for (std::string act : data["actions"]) {
-        string* actLabel = new string(act);
-        a = new Action(actionId, actLabel);
-        actions[actionId] = a;
-        actionMap[act] = a;
+        actionMap[act] = make_unique<Action>(actionId, act);
         actionId++;
     }
+}
 
-
-    // THEORIES
-    // Create moral theories for first solution
-    // Terrible stuff below. Find and order ranks, make
+void MDP::theoriesFromJSON(nlohmann::json &data) {
     std::vector<int> ranks = std::vector<int>();
     for (json t : data["theories"] )
         ranks.push_back(t["Rank"]);
@@ -158,7 +160,7 @@ void MDP::buildFromJSON(nlohmann::json& data) {
         std::string type = t["Type"];
         MoralTheory *m;
         if (type == "Utility") {
-             m = new Utilitarianism(t, theoryId);
+            m = new Utilitarianism(t, theoryId);
         } else if (type=="Cost") {
             // Make Utiltarian theory
             m = new Utilitarianism(t, theoryId);
@@ -172,16 +174,16 @@ void MDP::buildFromJSON(nlohmann::json& data) {
             throw runtime_error("MDP::buildFromJSON: unrecognized theory type.");
         }
         int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
-        groupedTheoryIndices[index].push_back(theories.size());
+        groupedTheoryIndices[index].push_back(static_cast<int>(theories.size()));
         this->theories.push_back(m);
         theoryId++;
         // TODO Other theories...
     }
-
-    // STATES
+}
+void MDP::statesFromJSON(nlohmann::json &data) {
     total_states = data["total_states"];
     states = std::vector<State*>(total_states);
-    stateActions = std::vector<std::vector<Action*>>(total_states);
+    stateActions = std::vector<std::vector<shared_ptr<Action>>>(total_states);
     State* state;
     auto s_t = data["state_transitions"];
     for (int i=0; i <this->total_states; ++i) {
@@ -190,23 +192,18 @@ void MDP::buildFromJSON(nlohmann::json& data) {
         if (s_t.is_object()) { number_of_actions = s_t[to_string(i)].size(); }
         state = new State(i,number_of_actions, data["state_time"][i]);
         states[i] = state;
-        stateActions[i] = vector<Action*>();
+        stateActions[i] = vector<shared_ptr<Action>>();
     }
     if (data.count("state_tags")) {
         for (int i=0; i <this->total_states; ++i) {
             states[i]->tag = data["state_tags"][i];
         }
     }
-
-    // GOALS
-    // Set isGoal=true for goal states.
     for (int gIdx : data["goals"]) {
         this->states[gIdx]->isGoal = true;
     }
-
-
-    // SUCCESSORS
-    // Add successors to each state object
+}
+void MDP::successorsFromJSON(nlohmann::json &data) {
     auto t = data["state_transitions"];
     Successor* successor;
     for (int sourceIdx=0; sourceIdx <total_states; ++sourceIdx) {
@@ -221,24 +218,26 @@ void MDP::buildFromJSON(nlohmann::json& data) {
         {
             // get the action
             const std::string& actionLabel = actionSuccessors.key();
-            Action* action = this->actionMap[actionLabel];
+            auto action = this->actionMap[actionLabel];
             // Add action to list for this state.
             stateActions[currState->id].push_back(action);
 
             // create holder for action successors
             auto* successorSet = currState->addAction(actionLabel);
-            // Create successor and populate
             json successorObjects = actionSuccessors.value();
-            state->hasSuccessors = (successorObjects.empty()) ? false : true;
+
             for (auto& successorData : successorObjects) {
+                // Create successor
                 double prob = successorData[0];
                 int targetID = successorData[1];
                 successor = new Successor(sourceIdx, targetID, prob);
                 successorSet->push_back(successor);
 
+                // Pass successor judgement to moral theory
                 for (int i = 0; i < this->theories.size(); ++i) {
                     this->theories[i]->processSuccessor(successor, successorData[i+2]);
                 }
+
             }
         }
     }

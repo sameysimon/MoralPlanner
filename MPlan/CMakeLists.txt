@@ -14,7 +14,10 @@ include_directories(MEHRPlan_lib/Environment/MoralTheories)
 include_directories(MEHRPlan_lib/Planner)
 
 
-add_executable(MPlan main.cpp)
+add_executable(MPlan main.cpp
+        time_config.hpp
+        Runner.hpp)
+
 
 include(FetchContent)
 FetchContent_Declare(

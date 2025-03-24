@@ -5,6 +5,7 @@
 #ifndef POLICY_HPP
 #define POLICY_HPP
 #include "MoralTheory.hpp"
+#include "MDP.hpp"
 #include <functional>
 #include <unordered_set>
 
@@ -48,10 +49,10 @@ public:
         }
         worth.insert(pi.worth.begin(), pi.worth.end());
     }
-    void setAction(int time, int state, int stateTimeAction) {
+    void setAction(int state, int stateTimeAction) {
         policy[state] = stateTimeAction;
     }
-    void setWorth(int time, int state, QValue& qval) {
+    void setWorth(int state, QValue& qval) {
         worth[state] = qval;
     }
     WorthBase* getWorthAtTheory(int time, int stateIdx, int theoryIdx) {
@@ -72,7 +73,7 @@ public:
         for (auto sIdx : epochOrder) {
             int time = mdp.states[sIdx]->time;
             int stateAction = policy.at(sIdx);
-            ss << "(" << time << ","<< sIdx << ") ->" << *(*mdp.getActions(*mdp.states[sIdx]))[stateAction]->label << "{" << worth.at(sIdx).toString() << "}"<< ";  ";
+            ss << "(" << time << ","<< sIdx << ") ->" << (*mdp.getActions(*mdp.states[sIdx]))[stateAction]->label << "{" << worth.at(sIdx).toString() << "}"<< ";  ";
         }
         ss << "}";
         return ss.str();

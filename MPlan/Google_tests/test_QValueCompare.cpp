@@ -4,7 +4,6 @@
 #include "TestBase.hpp"
 #include "MDP.hpp"
 #include "Utilitarianism.hpp"
-#include "Solution.hpp"
 
 class QValueTestFixture : public TestBase {
 protected:
@@ -39,7 +38,7 @@ protected:
 };
 
 TEST_F(QValueTestFixture, UtilityCompare) {
-    MDP *mdp = MakeMDP("my_test.json");
+    MDP *mdp = getMDP("my_test.json");
 
     // Equal Ranks
     duoUtilityQValueCompare(0, 0, 0, 0, 0, mdp);

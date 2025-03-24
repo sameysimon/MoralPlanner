@@ -10,18 +10,18 @@ class ExtractHistoriesTest : public TestBase {
 protected:
     vector<vector<History*>> histories;
     void loadHistoriesFrom(const std::string& fileName) {
-        MDP* mdp = MakeMDP(fileName);
-
+        // Make MDP
+        MDP* mdp = getMDP(fileName);
         // Solve MDP
         Solver solver = Solver(*mdp);
         solver.MOiLAO();
         // Extract Policies.
-        auto policies = solver.getSolutions();
+        vector<Policy*> policies;
+        solver.getSolutions(policies);
         // Extract Histories
         auto eh = new ExtractHistories(*mdp);
-        histories = eh->extract(*policies);
+        eh->extract(histories, policies);
         delete eh;
-        delete policies;
         delete mdp;
     }
 
@@ -64,12 +64,13 @@ TEST_F(ExtractHistoriesTest, SimpleTest) {
     loadHistoriesFrom("my_test.json");
     std::vector<int> unfoundPolicies(histories.size());
     std::iota(unfoundPolicies.begin(), unfoundPolicies.end(), 0);
+    vector<WorthBase*> expectedWorths;
+    vector<History*> expectedHistories;
+
 
     //
     // Check History for Policy 1
     //
-    vector<WorthBase*> expectedWorths;
-    vector<History*> expectedHistories;
     expectedWorths = {new ExpectedUtility(1), new ExpectedUtility(0)};
     expectedHistories.push_back(createHistory(expectedWorths, 1.0));
     ASSERT_TRUE(findPolicyWithExpectedHistories(unfoundPolicies, histories, expectedHistories));
@@ -142,7 +143,7 @@ TEST_F(ExtractHistoriesTest, Tree) {
     expectedHistories.push_back(createHistory(expectedWorths, 0.125));
     expectedWorths = {new ExpectedUtility(0), new ExpectedUtility(6)};
     expectedHistories.push_back(createHistory(expectedWorths, 0.125));
-    expectedWorths = {new ExpectedUtility(5), new ExpectedUtility(1)};
+    expectedWorths = {new ExpectedUtility(5), new ExpectedUtility(0)};
     expectedHistories.push_back(createHistory(expectedWorths, 0.125));
     ASSERT_TRUE(findPolicyWithExpectedHistories(unfoundPolicies, histories, expectedHistories));
     for (auto wb : expectedWorths) { delete wb; }

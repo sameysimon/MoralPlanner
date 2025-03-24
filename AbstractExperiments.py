@@ -32,6 +32,8 @@ class ExperimentRunner:
         os.makedirs(self.mdpFolder, exist_ok=True)
         os.makedirs(self.rawOutFolder, exist_ok=True)
 
+
+
     def getMdpFile(self, confName:str, confRep:int):
         return "{}/{}_con{}.json".format(self.mdpFolder, confName, confRep)
 
@@ -89,7 +91,7 @@ class ExperimentRunner:
                             "conf_rep": conf_rep,
                             "env_rep": env_rep,
                             "theories": str(conf['theories']),
-                            "total_time": json_data['duration_total'],
+                            "total_time": json_data['duration_Total'],
                             "plan_time": json_data['duration_Plan'],
                             "mehr_time": json_data['duration_MEHR'],
                             "sol_time": json_data['duration_Sols'],

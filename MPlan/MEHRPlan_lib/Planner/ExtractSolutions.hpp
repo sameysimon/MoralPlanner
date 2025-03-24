@@ -6,7 +6,7 @@
 #define EXTRACTSOLUTIONS_HPP
 
 #include "Solver.hpp"
-#include <memory>
+#include "../Logger.hpp"
 #include <iostream>
 #include <vector>
 
@@ -24,11 +24,10 @@ public:
     ~SolutionExtracter() {
         delete searchedOptions;
     }
-    vector<Policy*>* extractPolicies(vector<vector<int>>& Pi, const vector<int>& Z) {
+    vector<Policy*>* extractPolicies(vector<Policy*>& result, vector<vector<int>>& Pi, const vector<int>& Z) {
         // TODO Maybe don't keep whole policy table, delete far back, only keep time+1
-        // Maps time-state to set of policies from that epoch.
+        // Maps state to set of policies from that epoch.
         policyTable = new unordered_map<int, unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*>();
-
         // Stores of successor-to-sub policies.
         vector<unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*> tmpPolicies;
         auto tmpPolicyIndex = vector<vector<Policy*>*>();
@@ -36,47 +35,35 @@ public:
         // Post-Order Depth-First-Search (bottom-up) building policies
         for (const int stateIdx : Z) {
             int time = mdp.states[stateIdx]->time;
-
             auto myPolicies = new unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>();
             (*policyTable)[stateIdx] = myPolicies;
 
             auto actionsDone = vector<int>();
             for (const auto stateAction : Pi[stateIdx]) {
                 // Skip duplicate actions
-                if (std::find(actionsDone.begin(), actionsDone.end(),stateAction)!=std::end(actionsDone)) { continue; }
-                actionsDone.push_back(stateAction);
-
-                //
-                // Step 1. Get sub-policies of successors into tmpPolicies
-                //
-                // Get successors
-                auto successors = mdp.getActionSuccessors(*mdp.states[stateIdx], stateAction);
-
-                // If successor has no sub-policies, make them.
-                // TODO Make compatible with stationary policies. Check number of unexplored policies or something like that...
-                if (time+1 >= mdp.horizon) {
-                    // Next successor will not have any sub policies.
-                    // Create policy without sub policies.
-                    auto newPi = new Policy();
-                    // Add successor's worth
-                    for (const auto scr : *successors) {
-                        QValue qval = QValue();
-                        mdp.blankQValue(qval);
-                        mdp.heuristicQValue(qval, *mdp.states[scr->target]);
-                        newPi->setWorth(time+1, scr->target, qval);
-                    }
-                    // Add current state worth and aggregate.
-                    newPi->setAction(time, stateIdx, stateAction);
-                    QValue qval = gatherQValue(successors, *newPi, time);
-                    newPi->setWorth(time, stateIdx, qval);
-                    if (myPolicies->find(newPi)==myPolicies->end()) {
-                        myPolicies->insert(newPi);
-                        //std::cout << "   Adding policy: "<< newPi->toString() << endl;
-                    }
+                if (std::find(actionsDone.begin(), actionsDone.end(), stateAction)!=std::end(actionsDone)) {
                     continue;
                 }
-                // Fill tmpPolicies with sub-policies.
-                getSubPolicies(time, tmpPolicies, successors);
+                actionsDone.push_back(stateAction);
+
+                auto successors = MDP::getActionSuccessors(*mdp.states[stateIdx], stateAction);
+
+                if (time+1 >= mdp.horizon) {
+                    // This state takes no actions. It will have no meaningful sub policies.
+                    // Make a dummy one though
+                    /*
+                    Policy* pi = createSubPolicyAtRoot(stateIdx, stateAction, successors);
+                    if (myPolicies->find(pi)==myPolicies->end()) {
+                        myPolicies->insert(pi);
+                    }
+                    continue;*/
+                    throw runtime_error("SolutionExtracter::MDP::getActionSuccessors() over horizon");
+                }
+
+
+                // Get sub-policies of successors.
+                tmpPolicies.clear();
+                getSubPolicies(tmpPolicies, successors);
 
                 //
                 // Step 2. Merge Policies.
@@ -89,10 +76,13 @@ public:
                     tmpPolicyIndex[scrIdx]->insert(tmpPolicyIndex[scrIdx]->end(), tmpPolicies[scrIdx]->begin(), tmpPolicies[scrIdx]->end());
                 }
 
+
                 // Get all combinations of successor's sub-policies.
                 auto policyCombos = vector<vector<int>>();//Stores lists of successor's sub-policy' idxs.
                 auto currentcombo = vector<int>(successors->size());// Stores a current combo from above (for algo purposes).
                 generatePolicyCombos(policyCombos, tmpPolicyIndex, currentcombo, 0);
+
+                //generatePolicyCombos(policyCombos, tmpPolicyIndex);
 
                 for (auto& combo : policyCombos) {
                     auto newPi = new Policy();
@@ -101,9 +91,9 @@ public:
                         newPi->importPolicy(*tmpPolicyIndex[scr_i]->at(combo[scr_i]));// Copy in successor's policy to this new one.
                     }
                     // Aggregate combo's successor qValues with action.
-                    newPi->setAction(time, stateIdx, stateAction);
+                    newPi->setAction(stateIdx, stateAction);
                     QValue qval = gatherQValue(successors, *newPi, time);
-                    newPi->setWorth(time, stateIdx, qval);
+                    newPi->setWorth(stateIdx, qval);
 
                     if (myPolicies->find(newPi)== myPolicies->end()) {
                         myPolicies->insert(newPi);
@@ -136,35 +126,44 @@ public:
         delete policyTable;
 
         // Convert set to vector (that is in budget)
-        auto result = new vector<Policy*>();
         bool existsPolicyInBudget = std::any_of(solns->begin(), solns->end(), [this](Policy* pi) {
             return this->mdp.isQValueInBudget(pi->worth[0]);
         });
 
         if (existsPolicyInBudget) {
             // Only copy those in budget, if any are in budget.
-            std::copy_if(solns->begin(), solns->end(), std::back_inserter(*result), [this](Policy* pi) {
+            std::copy_if(solns->begin(), solns->end(), std::back_inserter(result), [this](Policy* pi) {
                 return this->mdp.isQValueInBudget(pi->worth[0]);
             });
         } else {
             // If none are in budget, copy all solutions.
-            result->insert(result->end(), solns->begin(), solns->end());
+            result.insert(result.end(), solns->begin(), solns->end());
         }
-        return result;
     }
 
-    string policiesToString(vector<Policy*>& policies) {
-        stringstream ss;
-        int myCounter=0;
-        for (auto pi : policies) {
-            ss << myCounter << ". " << pi->toString(mdp) << endl;
-            myCounter++;
+    Policy* createSubPolicyAtRoot(int stateIdx, int stateAction, vector<Successor*>* successors) {
+        // Create policy without sub policies.
+        auto newPi = new Policy();
+        // Add heuristic worth of successors at successor values
+        for (const auto scr : *successors) {
+            QValue qval = QValue();
+            mdp.blankQValue(qval);
+            mdp.heuristicQValue(qval, *mdp.states[scr->target]);
+            newPi->setWorth(scr->target, qval);
         }
-        return ss.str();
+        // Set action/worth of current state+time
+        newPi->setAction(stateIdx, stateAction);
+        QValue qval = gatherQValue(successors, *newPi, mdp.states[stateIdx]->time);
+        newPi->setWorth(stateIdx, qval);
+        return newPi;
+
     }
 
-    void getSubPolicies(int time, vector<unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*>& tmpPolicies, vector<Successor*>* successors) {
-        tmpPolicies.clear();
+
+    // Get sets of sub policies rooted at successors, for each successor.
+    // scrPolicies[scrIdx] = set of policies rooted at scrIdx.
+    // If no sub-policies rooted at successor, create new blank policy with heuristic QValue at scrIdx.
+    void getSubPolicies(vector<unordered_set<Policy*, PolicyPtrHash, PolicyPtrEqual>*>& scrPolicies, vector<Successor*>* successors) {
         // Successor Idx to unique sub policies for this action.
         for (auto* scr : *successors) {
             // Get successor's unique policies
@@ -177,13 +176,25 @@ public:
                 mdp.blankQValue(qval);
                 mdp.heuristicQValue(qval, *mdp.states[scr->target]);
 
-                newPi->setWorth(time+1, scr->target, qval);
+                newPi->setWorth(scr->target, qval);
                 subPolicies->insert(newPi);
-                std::cout << "   No existing sub policies, for successor " << scr->target << " so made one" << endl;
+                Log::writeLog(std::format("No existing sub-policies for successor {} so made one.", scr->target));
             }
-            tmpPolicies.push_back(subPolicies);
+            scrPolicies.push_back(subPolicies);
         }
     }
+
+    string policiesToString(vector<Policy*>& policies) {
+        stringstream ss;
+        int myCounter=0;
+        for (auto pi : policies) {
+            ss << myCounter << ". " << pi->toString(mdp) << endl;
+            myCounter++;
+        }
+        return ss.str();
+    }
+
+
 
 private:
     MDP& mdp;
@@ -212,7 +223,35 @@ private:
             curr[idx] = scr_i;
             generatePolicyCombos(allCombos, successorPis, curr, idx+1);
         }
+    }
 
+    // Generate combinations of successor sub-policies.
+    // If subPolicies[scr_1] = [pi_1, pi_2] and subPolicies[scr_2] = [pi_3, pi_4]
+    // Then allCombos is [[pi_1, pi_3], [pi_1, pi_4], [pi_2, pi_3], [pi_2, pi_4]].
+    static void generatePolicyCombos(vector<vector<int>>& allCombos, vector<vector<Policy*>*>& subPolicies) {
+        int total_Successors = (int)subPolicies.size();
+        if (total_Successors == 0) return;
+
+        // Initialize current combination with all zeros.
+        vector<int> curr(total_Successors, 0);
+
+        while (true) {
+            // Start from the last index and find one to increment.
+            int idx = total_Successors - 1;
+            while (curr[idx] == subPolicies[idx]->size() - 1) {
+                idx--; // Move left if this index has reached its max value
+                if (idx < 0) { break; } // All positions have reached their maximum values
+            }
+
+            // Increment the found index.
+            curr[idx]++;
+            // Reset all indices to the right to zero.
+            for (int j = idx + 1; j < total_Successors; ++j) {
+                curr[j] = 0;
+            }
+
+            allCombos.push_back(curr);
+        }
     }
 };
 

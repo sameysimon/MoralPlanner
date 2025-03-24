@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "Solution.hpp"
 #include "iostream"
 #include "Policy.hpp"
 using namespace std;
@@ -65,7 +64,7 @@ public:
     //
     // Entry Point/Main Call.
     //
-    vector<vector<History*>> extract(vector<Policy*>& policySet) {
+    void extract(vector<vector<History*>>& histories, vector<Policy*>& policySet) {
         //
         // Extract information from solution set.
         //
@@ -78,14 +77,13 @@ public:
             delete hSet;
         }
 
-        std::vector<std::vector<History*>> histories;
+        histories.clear();
         for (const auto& hSet : piToHSet) {
             // Create a vector to store this policy's histories
             std::vector hVec(hSet.begin(), hSet.end());
             histories.push_back(std::move(hVec));
         }
 
-        return histories;
     }
 
     static string ToString(vector<Policy*>& policySet, vector<QValue>& solExpectations, vector<vector<History*>>& histories) {
@@ -130,13 +128,13 @@ private:
         // Base Case. Stop when reaching the horizon.
         if (time >= mdp.horizon) {
             DFS_baseCase(h, hSet);
-            return;
+            return;// Returning early means history h not deleted.
         }
         // Stop if state/time is not in the policy
         auto stateActionIt = pi.policy.find(state.id);
         if (stateActionIt==pi.policy.end()) {
             DFS_baseCase(h, hSet);
-            return;
+            return;// Returning early means history h not deleted.
         }
 
         // Stop if no successors.
@@ -146,18 +144,23 @@ private:
             return;
         }
         */
-        auto successors = mdp.getActionSuccessors(state, stateActionIt->second);
+        auto successors = MDP::getActionSuccessors(state, stateActionIt->second);
         // Recursive Case.
         for (Successor* successor : *successors) {
-            History* h_ = new History(*h);
+            auto* h_ = new History(*h);
             mdp.addCertainSuccessorToQValue(h_->worth, successor);
             h_->probability *= successor->probability;
             h_->addToPath(successor);
             DFS_Histories(*mdp.states[successor->target], time+1, pi, h_, hSet);
         }
 
-        delete h; // Could this work??? Maybe not, must check!!!
+        delete h;
     }
+
+    void extractHistoriesIterative(Policy& pi) {
+
+    }
+
 };
 
 

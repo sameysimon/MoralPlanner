@@ -2,7 +2,6 @@
 #define SOLVER_HPP
 
 #include "Environment/MDP.hpp"
-#include "Solution.hpp"
 #include "Policy.hpp"
 #include <vector>
 #include <unordered_set>
@@ -25,7 +24,6 @@ class Solver {
     bool checkForUnexpandedStates(unordered_set<int>* expanded, vector<int>* bpsg);
     void setPostOrderDFS(unique_ptr<unordered_set<int>>& foundStates);
     bool PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unique_ptr<unordered_set<int>>& foundStates);
-    bool extractSolutionAtState(int stateIdx, int time, shared_ptr<Solution>& currSol, std::unordered_set<std::shared_ptr<Solution>,SolutionHash, SolutionEqual>& solSet);
 
 public:
     size_t expanded_states=0;
@@ -39,9 +37,6 @@ public:
         delete data;
         delete Z;
     }
-    // Single Objective
-    Solution valueIteration();
-    void getBestAction(Solution& sol, State& state, int time);
 
     // Multi-objective ILAO*
     void MOiLAO();
@@ -49,10 +44,7 @@ public:
     void pprune_alt(std::vector<QValue>& inVector, std::vector<int>& outVector);
     void getCandidates(State& state, int time, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction);
     bool checkConverged(vector<vector<QValue>>& data, vector<vector<QValue>>& data_other);
-    vector<Policy*>* getSolutions();
-
-    string SolutionSetToString(vector<shared_ptr<Solution>>& solSet);
-    string SolutionSetToString(unordered_set<shared_ptr<Solution>, SolutionHash, SolutionEqual>& solSet);
+    void getSolutions(vector<Policy*>& policies);
 
     bool operator==(const Solver& other) const {
         if (data->size() != other.data->size()) {
