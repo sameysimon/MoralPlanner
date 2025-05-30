@@ -46,34 +46,15 @@ if args.policy:
     p = PolicyProcessor(args.policy)
 #p = PolicyProcessor(os.getcwd() + "/outputs/DataMPlan-Out.json")
 
-
 # 
 # Derive theory tags from commands, defaults or policy/
 #
 theoryTags = args.theoryTags
 # Default theory tags...
-if p!=-1:
-    theoryTags = p.getTheories()
-if theoryTags is None:
-    print("Using default theory arguments.")
-    if (args.domain=='WindyDrone'):
-        theoryTags = ["0", "Cost", "0", "avoid_playgrounds"]
-    elif (args.domain=='LostInsulin'):
-        theoryTags =  ["0", 'CarlaLife', "0", "ToSteal", "0", "Cost"]
-        theoryTags =  ["0", 'CarlaLife', "0", "StealWithComp", "0", "Cost"]
-        theoryTags =  ["0", 'CarlaLife']
-        theoryTags =  ["0", 'CarlaLife', "0", 'HalLife']
-        theoryTags =  ["0", 'HalLife']
-    else:
-        print("No such moral theory.")
-theoryTags = MDPFactory.changeTagFormat(theoryTags)
-
-# Make the MDP explicitly (Build all states+transitions of the MDP)
+theoryTags = p.getTheories()
 print(theoryTags)
-mdp = MDPFactory.makeMDP(args.domain, theoryTags)
-if (mdp==None):
-    exit(1)
 
+mdp = MDPFactory.makeMDP(args.domain, theoryTags)
 mdp.makeAllStatesExplicit()
 
 actionList = SaveEnvToJSON(mdp, args.out)

@@ -3,18 +3,22 @@
 //
 
 #include <iostream>
+#include <sstream>
 #include "Solver.hpp"
 #include "Utilitarianism.hpp"
 #include "ExtractSolutions.hpp"
+#include "Logger.hpp"
 using namespace std;
 
-// Setup Data to store QValues
+// Setup Data to store Domain-Dependent Heuristic QValues
+// Data structure is d[state_idx] = {QValue : for each undominated solution}
 void Solver::build_blank_data(vector<vector<QValue>>* d) {
-    for (int s = 0; s < mdp.states.size(); s++) {
+    for (auto & state : mdp.states) {
         auto us = vector<QValue>();
+        // New QValue, fill with heuristics
         QValue qv = QValue();
-        for (int theoryIdx=0; theoryIdx < mdp.theories.size(); theoryIdx++) {
-            qv.expectations.push_back(mdp.theories[theoryIdx]->newHeuristic(*mdp.states[s]));
+        for (auto c : mdp.considerations) {
+            qv.expectations.push_back(c->newHeuristic(*state));
         }
         us.push_back(qv);
         d->push_back(us);
@@ -22,12 +26,11 @@ void Solver::build_blank_data(vector<vector<QValue>>* d) {
 }
 
 void clone_data(vector<vector<QValue>>& data, vector<vector<QValue>>& data_clone) {
-    int states = data.size();
+    size_t states = data.size();
     for (int s = 0; s < states; ++s) {
         data_clone[s].clear();
         for (QValue& qv : data[s] ) {
-            QValue qv_clone = QValue(qv);
-            data_clone[s].push_back(qv_clone);
+            data_clone[s].push_back(qv);// Should *Copy* using copy constructor.
         }
     }
 }
@@ -35,61 +38,55 @@ void clone_data(vector<vector<QValue>>& data, vector<vector<QValue>>& data_clone
 //
 // MAIN ALGORITHM.
 //
-
 void Solver::MOiLAO() {
-    // Initialise Multi-Worth Function and a clone.
-    // Each state may have many QValues.
+    // Initialise Multi-Worth Function and a clone. It maps state to a list of solutions' possible QValues.
     data = new vector<vector<QValue>>();
     build_blank_data(data);
     auto data_clone = new vector<vector<QValue>>();
     build_blank_data(data_clone);
 
-    // Initialise Pi. It maps state to vector of available actions.
+    // Initialise Pi. It maps state to a vector of available actions.
     Pi = new vector<vector<int>>();
     for (int s = 0; s < mdp.states.size(); ++s) {
-        Pi->emplace_back(vector<int>());
+        Pi->emplace_back();
     }
-
 
     backups = 0;
     iterations = 0;
 
-    foundStates = make_unique<unordered_set<int>>();// Explicitly encountered states
-    auto* expanded = new unordered_set<int>();
-    Z = new vector<int>(); // Best partial graph.
-
-    // Initialise foundStates and Best partial sub graph.
+    // Explicitly encountered states
+    foundStates = make_unique<unordered_set<int>>();
     foundStates->insert(0);
+
+    auto* expanded = new unordered_set<int>();
+
+    Z = new vector<int>(); // Ordered Best partial sub-graph.
     Z->emplace_back(0);
+
+
+    Log::writeLog("***AO-STAR Planning***", Info);
+    Log::writeFormatLog(Info, "Heuristic Planning with {} states,", data->size());
 
     do {
         clone_data(*data, *data_clone);
-
         for (const int stateIdx : *Z) {
-            int time = mdp.states[stateIdx]->time;
-#ifdef DEBUG
-            cout<< "Backing-up Time " << time << " State " << stateIdx << endl;
-#endif
-            backup(*mdp.states[stateIdx], time);
+            Log::writeLog(std::format("Backing up time {}, state: {}", mdp.states[stateIdx]->time, stateIdx), LogLevel::Info);
+            backup(*mdp.states[stateIdx]);
             backups++;
             expanded->insert(stateIdx);
         }
         setPostOrderDFS(foundStates);
 #ifdef DEBUG
-        cout << "Finished Backups at iteration #" << iterations << endl;
-        cout << "Set Post Order DFS: " << endl;
-        cout << "Found " << foundStates->size() << " states-times:"<<endl;
-        for (auto elem : *foundStates) { cout << "t=" << mdp.states[elem]->time << ",s=" << elem << ";  "; }
-        cout << endl << endl;;
-        cout << "We are at " << backups << " backups and " << iterations << " iterations." << endl;
+        Log::writeLog(std::format("Reached {} Backups at iteration {}", backups, iterations), LogLevel::Info);
+        Log::writeLog(std::format("Set Post Order DFS. Found {} state-times:", foundStates->size()), LogLevel::Info);
+        for (auto elem : *foundStates) { Log::writeLog(std::format("   t={}, s={};", mdp.states[elem]->time, elem), LogLevel::Trace); }
+        Log::writeLog(std::format("\n"), LogLevel::Info);
 #endif
-
         iterations++;
     } while (checkForUnexpandedStates(expanded, Z) or not checkConverged(*data, *data_clone));
 
-
+    // For stats later
     this->expanded_states = expanded->size();
-
     // Cleanup
     delete expanded;
     delete data_clone;
@@ -97,9 +94,11 @@ void Solver::MOiLAO() {
 
 // Termination Condition
 bool Solver::checkConverged(vector<vector<QValue>>& data, vector<vector<QValue>>& data_other) {
+    Log::writeLog("Checking converged states...", LogLevel::Info);
     auto states = data.size();
     for (int s = 0; s < states; ++s) {
         if (data[s].size() != data_other[s].size()) {
+            Log::writeLog("No convergence. Size mismatch.", LogLevel::Info);
             return false;
         }
         bool existsSimilar = false;
@@ -113,6 +112,15 @@ bool Solver::checkConverged(vector<vector<QValue>>& data, vector<vector<QValue>>
             if (existsSimilar) { break; }
         }
         if (!existsSimilar) {
+            Log::writeFormatLog(Info, "No Convergence detected on state {}.", s);
+#ifdef DEBUG
+            stringstream ss;
+            ss << "Old:";
+            for (QValue &qv : data_other[s] ) { ss << qv.toString() << "  "; }
+            ss << "\nNew:";
+            for (QValue &qv : data[s] ) { ss << qv.toString() << "  "; }
+            Log::writeLog(ss.str(), LogLevel::Trace);
+#endif
             return false;
         }
     }
@@ -120,25 +128,14 @@ bool Solver::checkConverged(vector<vector<QValue>>& data, vector<vector<QValue>>
 }
 
 
-void generateCombinations(vector<vector<QValue>>& allCombos, vector<vector<QValue>>& successorQVals, vector<QValue> current, int scr_Idx) {
-    if (scr_Idx==successorQVals.size()) {
-        allCombos.push_back(current);
-        return;
-    }
-    for (auto& qv : successorQVals[scr_Idx]) {
-        current[scr_Idx] = qv;
-        generateCombinations(allCombos, successorQVals, current, scr_Idx+1);
-    }
-}
-
-void Solver::backup(State& state, int time) {
+void Solver::backup(State& state) {
     // Values we need
-    vector<int> indicesOfUndominated = vector<int>();
-    vector<int> qValueIdxToAction = vector<int>();
-    vector<QValue> candidates = vector<QValue>();
+    vector<QValue> candidates = vector<QValue>();// The QValue candidates (corresponding to state-actions)
+    vector<int> indicesOfUndominated = vector<int>();// Indices of candidate QValues that are undominated.
+    vector<int> qValueIdxToAction = vector<int>();// Maps QValue index to action index.
 
     // Get the values
-    getCandidates(state, time, candidates, indicesOfUndominated, qValueIdxToAction);
+    getCandidates(state, candidates, indicesOfUndominated, qValueIdxToAction);
 
     if (indicesOfUndominated.empty()) { return; }
     // Set to Data
@@ -153,10 +150,10 @@ void Solver::backup(State& state, int time) {
     }
 }
 
-void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction) {
+void Solver::getCandidates(State& state, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction) {
     // Auxillary, non-requred vectors.
     vector<shared_ptr<Action>>* actions = mdp.getActions(state);
-    if (actions->size()==0 or time>=mdp.horizon) {
+    if (actions->size()==0 or state.time>=mdp.horizon) {
         return;
     }
     for (int aIdx = 0; aIdx < actions->size(); ++aIdx) {
@@ -164,8 +161,8 @@ void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, v
         // Get successor QValues and initialise combinations space.
         auto successorQValues = vector<vector<QValue>>();
         auto combos = vector<vector<QValue>>();
-        for (int scrIdx=0; scrIdx < successors->size(); ++scrIdx) {
-            auto& q = data->at(successors->at(scrIdx)->target);
+        for (auto & successor : *successors) {
+            auto& q = data->at(successor->target);
             successorQValues.push_back(q);
         }
         // Generate all combinations of SuccessorQValue/theory
@@ -175,15 +172,14 @@ void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, v
         generateCombinations(combos, successorQValues, currentcombo, 0);
         for (auto& elem : combos) {
             QValue new_qv = QValue(elem[0]);// Copy a random QValue (just for size really)
-            for (int theoryIdx = 0; theoryIdx < mdp.theories.size(); ++theoryIdx) {
+            for (int cIdx = 0; cIdx < mdp.considerations.size(); ++cIdx) {
                 // Fill expectations from QValue Combination.
                 std::vector<WorthBase*> comboExpects = std::vector<WorthBase*>(successors->size());
                 for (int scrIdx=0; scrIdx < successors->size(); ++scrIdx) {
-                    comboExpects[scrIdx] = elem[scrIdx].expectations[theoryIdx];
+                    comboExpects[scrIdx] = elem[scrIdx].expectations[cIdx];
                 }
                 // Gather QValue Information.
-                new_qv.expectations[theoryIdx] = mdp.theories[theoryIdx]->gather(*successors, comboExpects);
-                //cout <<  "{" << candidates[0].toString() << "}; " << endl;
+                new_qv.expectations[cIdx] = mdp.considerations[cIdx]->gather(*successors, comboExpects, false);
             }
             // Store Candidate QValue and push back.
             candidates.push_back(new_qv);
@@ -192,18 +188,26 @@ void Solver::getCandidates(State& state, int time, vector<QValue>& candidates, v
     }
     pprune_alt(candidates, indicesOfUndominated);
 #ifdef DEBUG
-    std::cout << "Actions Undominated = ";
+    stringstream ss;
+    ss << "   Actions Undominated = ";
     for (auto elem : indicesOfUndominated) {
         auto a = actions->at(qValueIdxToAction[elem]);
-        cout <<  (a->label) << " @ {" << candidates[elem].toString() << "}; ";
+        ss <<  (a->label) << " @ {" << candidates[elem].toString() << "}; ";
     }
-    cout << endl;
+    Log::writeLog(ss.str(), Trace);
 #endif
 }
 
-
-
-
+void Solver::generateCombinations(vector<vector<QValue>>& allCombos, vector<vector<QValue>>& successorQVals, vector<QValue> current, int scr_Idx) {
+    if (scr_Idx==successorQVals.size()) {
+        allCombos.push_back(current);
+        return;
+    }
+    for (auto& qv : successorQVals[scr_Idx]) {
+        current[scr_Idx] = qv;
+        generateCombinations(allCombos, successorQVals, current, scr_Idx+1);
+    }
+}
 
 void Solver::pprune_alt(std::vector<QValue>& inVector, std::vector<int>& outVector) {
     if (inVector.size()==0) {return; };
@@ -218,7 +222,7 @@ void Solver::pprune_alt(std::vector<QValue>& inVector, std::vector<int>& outVect
             }
         }
     }
-
+    // TODO This does more comparisons than necessary. Could be optimised.
     for (int i=0; i<inVector.size(); i++) {
         if (anyInBudget && !inBudget[i]) {
             continue; // Over budget QValues cannot be undominated/added to outVector
@@ -230,8 +234,8 @@ void Solver::pprune_alt(std::vector<QValue>& inVector, std::vector<int>& outVect
             if (anyInBudget && !inBudget[j]) {
                 continue;// Over budget QValues cannot dominate anything.
             }
-            int r = mdp.compareQValues(qv, inVector[j], false);
-            if (r==-1) {
+            int r = mdp.CompareByConsiderations(qv, inVector[j]);
+            if (r == -1) {
                 isDominated=true;
                 break;
             }
@@ -239,12 +243,8 @@ void Solver::pprune_alt(std::vector<QValue>& inVector, std::vector<int>& outVect
         if (!isDominated) {
             outVector.push_back(i);
         }
-
-
     }
-
 }
-
 
 bool Solver::checkForUnexpandedStates(unordered_set<int>* expanded, vector<int>* bpsg) {
     if (expanded->size()==0 or bpsg->size()==0) {

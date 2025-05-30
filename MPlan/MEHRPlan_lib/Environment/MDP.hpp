@@ -18,6 +18,7 @@
 #include "Successor.hpp"
 #include "MoralTheory.hpp"
 #include <format>
+#include <set>
 #include "QValue.hpp"
 
 class QValue;
@@ -30,16 +31,19 @@ class MDP {
     void buildFromJSON(nlohmann::json& data);
     void actionsFromJSON(nlohmann::json& data);
     void theoriesFromJSON(nlohmann::json& data);
+    int findMEHRTheoryIdx(std::string &theoryName);
     void statesFromJSON(nlohmann::json& data);
     void successorsFromJSON(nlohmann::json& data);
 
     int compareQValueByRank(QValue& qv1, QValue& qv2, int rank);
+    void AddMEHRTheory(MEHRTheory *mehrTheory, int rank, std::set<int> &unique_ordered_ranks);
 public:
     std::vector<Action*> actions;
     std::vector<State*> states;
-    std::vector<MoralTheory*> theories;
-    // Groups of moral theory indices, first holds lowest ranked theories.
-    std::vector<std::vector<int>> groupedTheoryIndices;
+    std::vector<Consideration*> considerations;
+    std::vector<MEHRTheory*> mehr_theories;
+    // Groups of MEHR moral theory indices, first holds lowest (best) ranked theories.
+    std::vector<std::vector<size_t>> groupedTheoryIndices;
 
     //
     // Fields
@@ -77,15 +81,14 @@ public:
         return &(stateActions[state.id]);
     }
     void addCertainSuccessorToQValue(QValue& qval, Successor* scr);
-    int compareQValues(QValue& qv1, QValue& qv2, bool useRanks=false);
-    int countAttacks(QValue& qv1, QValue& qv2);
+    int CompareByTheories(QValue& qv1, QValue& qv2, bool useRanks=false);
+    int CompareByConsiderations(QValue& qv1, QValue& qv2);
     int compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories);
 
     void blankQValue(QValue& qval);
     void getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval);
     void heuristicQValue(QValue& qval, State& state);
     bool isQValueInBudget(QValue& qval) const;
-
 
 
 

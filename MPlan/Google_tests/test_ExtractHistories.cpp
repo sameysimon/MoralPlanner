@@ -25,7 +25,7 @@ protected:
         delete mdp;
     }
 
-    static History* createHistory(vector<WorthBase*>& worth, double prob) {
+    [[nodiscard]] static History* createHistory(vector<WorthBase*>& worth, double prob) {
         auto qv = new QValue();
         qv->expectations.insert(qv->expectations.end(), std::make_move_iterator(worth.begin()),
                                       std::make_move_iterator(worth.end()));
@@ -61,12 +61,12 @@ protected:
 };
 
 TEST_F(ExtractHistoriesTest, SimpleTest) {
+    // Loads histories into class's histories vector.
     loadHistoriesFrom("my_test.json");
     std::vector<int> unfoundPolicies(histories.size());
     std::iota(unfoundPolicies.begin(), unfoundPolicies.end(), 0);
     vector<WorthBase*> expectedWorths;
     vector<History*> expectedHistories;
-
 
     //
     // Check History for Policy 1

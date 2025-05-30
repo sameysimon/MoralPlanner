@@ -206,11 +206,11 @@ private:
         mdp.blankQValue(new_qv);
         std::vector<WorthBase*> baselines = std::vector<WorthBase*>(successors->size());
 
-        for (int theoryIdx = 0; theoryIdx < mdp.theories.size(); ++theoryIdx) {
+        for (int theoryIdx = 0; theoryIdx < mdp.considerations.size(); ++theoryIdx) {
             for (int scrIdx=0; scrIdx < successors->size(); ++scrIdx) {
                 baselines[scrIdx] = pi.getWorthAtTheory(currentTime+1, (*successors)[scrIdx]->target, theoryIdx);
             }
-            new_qv.expectations[theoryIdx] = mdp.theories[theoryIdx]->gather(*successors,baselines);
+            new_qv.expectations[theoryIdx] = mdp.considerations[theoryIdx]->gather(*successors,baselines, false);
         }
         return new_qv;
     }

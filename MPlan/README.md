@@ -1,21 +1,18 @@
-##  JSON Environment Template
-
-
-
+#  JSON Environment Information
 ```
 {
     "total_states": 5, // Total integer number of states.
     "actions": ["A", "B", "C"], // All possible actions. Possibly obsolete.
     "state_transitions": [// Ordered list of dicts for each state transition
         {
-            "A": [[0.5, 1, 1, 0, false], [0.5, 1, 2, 0, false]],
+            "A": [[0.5, 1, 1, 0, false], [0.5, 1, 2, 0, false]], // [Probability, Successor Idx, Theory_1 value, Theory_2 value ...]
             "B": [[1, 1, 1, 1, false]]
         },
         // Dict maps action to list of lists. 
         // Each list is an outcome:
         //      [probability, cost, destination Index, theory 1 judgement, theory 2 judgement]
         {
-            "A": [[1, 1, 1, 0, false]],//
+            "A": [[1, 1, 1, 0, false, [[dead_people], True, 1, 10] ]],//
             "B": [[1, 1, 1, 1, false]]
         }
     ],
@@ -46,7 +43,29 @@
             "Heuristic":[0,0]
             "default": 0,
             "threshold": 0.4 // Minimum acceptable probability
-        }
+        },
+        {
+            "Name": "Principle of Double Effect",
+            "Rank": 2,
+            "Type": "PoDE",
+            "Facts": ["group_died", "fatman_died", "person_died"],
+            "Moral_Goals": [4], // List of states (by index) that are moral goals
+            "Heuristic": [[[dead_people], False, 1, 10] ], [[dead_people], False, 1, 10] ], ... FOR EVERY STATE ... ]
+        },
+        {
+            "Name": "Person_A", 
+            "Type": "Maximin",
+            "Component_Of: "Rawls", // Implicitly makes a Maximin theory called Rawls
+            "Rank": 2,
+            "Heuristic": [0,0,0],            
+        },
+        {
+            "Name": "Person_B",
+            "Type": "Maximin",
+            "Component_Of: "Rawls"
+            "Heuristic": [0,0,0],            
+        },
+        
     }
     ]
 

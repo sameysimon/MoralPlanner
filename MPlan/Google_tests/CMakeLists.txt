@@ -8,7 +8,8 @@ add_executable(Google_Tests_run
         test_QValueCompare.cpp
         test_ExtractHistories.cpp
         test_MEHR.cpp
-        TestBase.hpp)
+        TestBase.hpp
+        test_maximin.cpp)
 
 # linking Google_Tests_run with DateConverter_lib which will be tested
 target_link_libraries(Google_Tests_run PRIVATE gtest gtest_main MEHRPlan_lib)

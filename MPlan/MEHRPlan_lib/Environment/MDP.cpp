@@ -19,9 +19,9 @@ void MDP::getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval) 
     auto scrs = getActionSuccessors(state, stateActionIndex);
     if (scrs->empty()) { return; }
     std::vector<WorthBase*> nullBaselines = std::vector<WorthBase*>(scrs->size(), nullptr);
-    for (auto & t : theories) {
+    for (auto & t : considerations) {
         std::fill(nullBaselines.begin(), nullBaselines.end(), t->newWorth());
-        qval.expectations.push_back(t->gather(*scrs, nullBaselines));
+        qval.expectations.push_back(t->gather(*scrs, nullBaselines, false));
         delete nullBaselines[0];
     }
 }
@@ -29,19 +29,19 @@ void MDP::getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval) 
 void MDP::addCertainSuccessorToQValue(QValue& qval, Successor* scr) {
     std::vector<Successor*> successors = {scr};
     auto baselines = std::vector<WorthBase*>(1);
-    for (int i=0; i<theories.size(); ++i) {
+    for (int i=0; i<considerations.size(); ++i) {
         baselines[0]=qval.expectations[i];
-        qval.expectations[i] = theories[i]->gather(successors, baselines, true);
+        qval.expectations[i] = considerations[i]->gather(successors, baselines, true);
     }
 }
 void MDP::blankQValue(QValue& qval) {
-    for (auto & t : theories) {
+    for (auto & t : considerations) {
         qval.expectations.push_back(t->newWorth());
     }
 }
 
 int MDP::compareQValueByRank(QValue& qv1, QValue& qv2, int rank) {
-    std::vector<int>& theoriesInRank = groupedTheoryIndices[rank];
+    std::vector<size_t>& theoriesInRank = groupedTheoryIndices[rank];
     bool atLeastOneGreater = false;
     bool atLeastOneLesser = false;
     for (auto i : theoriesInRank) {
@@ -67,13 +67,32 @@ int MDP::compareQValueByRank(QValue& qv1, QValue& qv2, int rank) {
     return 0;
 }
 
+/**
+ * Compares QValues by considerations only. Meant for planning. Does not use lexicographic order.
+ * @return 1 for qv1 attacks qv2 (forward-attack), -1 for reverse, 0 for draw.
+ */
+int MDP::CompareByConsiderations(QValue& qv1, QValue& qv2) {
+    int result = 0;
+    int currResult = 0;
+    for (auto pCon : considerations) {
+        currResult = qv1.expectations[pCon->id]->compare(*qv2.expectations[pCon->id]);
+        if (result != 0 && currResult != result) {
+            // Disagreement with last result. Attakcs fires both ways. Draw.
+            return 0;
+        }
+        result = currResult;
+    }
+    return result;
+}
+
+
 
 /**
  * Progresses down ranks, searching for earliest inequality.
  * @param useRanks whether to use Weak-Lexicographic ranks.
  * @return 1 for forward-attack, -1 for back-attack, 0 for draw, 2 for draw.
  */
-int MDP::compareQValues(QValue& qv1, QValue& qv2, bool useRanks) {
+int MDP::CompareByTheories(QValue& qv1, QValue& qv2, bool useRanks) {
     int result = 0;
     int newResult = 0;
     for (int rank=0; rank<groupedTheoryIndices.size(); rank++) {
@@ -106,23 +125,25 @@ int MDP::compareQValues(QValue& qv1, QValue& qv2, bool useRanks) {
  * @return 1 if qv1 attacks qv2; -1 if qv2 attacks qv1; 0 if no attacks; 2 if both attack each other.
  */
 int MDP::compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories) {
+    // TODO Make sensitive to multi-consideration theories.
+
     // Find rank where there is a decision.
     int attackDirection = 0;// Initially 0, means undecided.
     for (int rank=0; rank<groupedTheoryIndices.size(); rank++) {
-        std::vector<int>& theoriesInRank = groupedTheoryIndices[rank];
+        std::vector<size_t>& theoriesInRank = groupedTheoryIndices[rank];
         int rankResult = 0;
         for (auto tIdx : theoriesInRank) {
-            int newR = qv1.expectations[tIdx]->compare(*qv2.expectations[tIdx]);
+            int newR = mehr_theories[tIdx]->CriticalQuestionTwo(qv1, qv2);
             // Still searching for direction
             if (newR!=rankResult && rankResult!=0 && attackDirection==0) {
                 // Disagreement at rank, but no attackDirection established.
                 attackDirection=2;//Dilemma.
             }
             if (newR==1 || newR==2) {
-                forwardTheories.push_back(tIdx);
+                forwardTheories.push_back((ushort)tIdx);
             }
             if (newR==-1 || newR==2) {
-                reverseTheories.push_back(tIdx);
+                reverseTheories.push_back((ushort)tIdx);
             }
             rankResult = newR;
         }
@@ -144,7 +165,7 @@ int MDP::compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forward
  * Counts the number of moral theories where qv1 attacks qv2.
  * // TODO change to a broader potentially multi-theory comparison thing.
  * @return number of attacks.
- */
+
 int MDP::countAttacks(QValue& qv1, QValue& qv2) {
     int attacks = 0;
     for (int i=0; i<theories.size(); ++i) {
@@ -156,6 +177,8 @@ int MDP::countAttacks(QValue& qv1, QValue& qv2) {
     }
     return attacks;
 }
+*/
+
 
 /**
  * Sets a QValue expectations field with heuristic estimates for state.
@@ -163,8 +186,8 @@ int MDP::countAttacks(QValue& qv1, QValue& qv2) {
  * @param state The state whose value must be estimated.
  */
 void MDP::heuristicQValue(QValue& qval, State& state) {
-    for (int i=0; i<theories.size(); ++i) {
-        qval.expectations[i] = theories[i]->newHeuristic(state);
+    for (int i=0; i<considerations.size(); ++i) {
+        qval.expectations[i] = considerations[i]->newHeuristic(state);
     }
 }
 
@@ -191,7 +214,7 @@ MDP::~MDP()
         delete a;
     }
     // Clear moral theories off the heap.
-    for (MoralTheory* mt : theories) {
+    for (Consideration* mt : considerations) {
         delete mt;
     }
 }

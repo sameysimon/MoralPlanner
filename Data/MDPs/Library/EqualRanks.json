@@ -2,6 +2,9 @@
   "horizon": 6,
   "total_states": 11,
   "actions": ["Recommend", "Ignore", "Next"],
+  "notes": ["Two polices.", 
+    "Recommend should get 1 non-accept (always loses by theory 2.",
+    "Ignore should get 0.7 non-accept since 0.3 change student passes anyway."],
   "state_transitions": {
     "0": {
       "Recommend": [[0.4, 3, 0, true], [0.6, 4, 0, true]],

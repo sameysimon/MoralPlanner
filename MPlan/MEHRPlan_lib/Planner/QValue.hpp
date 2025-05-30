@@ -18,7 +18,7 @@ public:
     QValue() {
         expectations = std::vector<WorthBase*>();
     }
-    QValue(std::vector<WorthBase*> expectations_) {
+    explicit QValue(std::vector<WorthBase*> expectations_) {
         expectations = std::move(expectations_);
     }
     QValue(const QValue& other) {
@@ -33,9 +33,17 @@ public:
         expectations.push_back(ev);
     };
     [[nodiscard]] std::string toString() const {
-        std::string result = "";
+        std::string result;
         for (WorthBase* ev : expectations) {
             result += ev->ToString() + "; ";
+        }
+        return result;
+    }
+    [[nodiscard]] std::vector<std::string> toStringVector() const {
+        std::vector<std::string> result;
+        result.reserve(expectations.size());
+        for (WorthBase* ev : expectations) {
+            result.push_back(ev->ToString());
         }
         return result;
     }

@@ -18,7 +18,7 @@ protected:
         qv1.expectations = {new ExpectedUtility(u1), new ExpectedUtility(u2)};
         auto qv2 = QValue();
         qv2.expectations = {new ExpectedUtility(u3), new ExpectedUtility(u4)};
-        int actual = mdp->compareQValues(qv1, qv2, useRanks);
+        int actual = mdp->CompareByTheories(qv1, qv2, useRanks);
         EXPECT_EQ(actual, expectedResult)
             << "Comparison fail. (" << qv1.toString() << ") to (" << qv2.toString() << ") -> " << actual << " and not expected " << expectedResult;
         clearAndDeleteQValue(qv1);
@@ -29,7 +29,7 @@ protected:
         qv1.expectations = {new ExpectedUtility(u1), new ExpectedUtility(u2), new ExpectedUtility(u3)};
         auto qv2 = QValue();
         qv2.expectations = {new ExpectedUtility(u4), new ExpectedUtility(u5), new ExpectedUtility(u6)};
-        int actual = mdp->compareQValues(qv1, qv2, useRanks);
+        int actual = mdp->CompareByTheories(qv1, qv2, useRanks);
         EXPECT_EQ(actual, expectedResult)
             << "Comparison fail. (" << qv1.toString() << ") to (" << qv2.toString() << ") -> " << actual << " and not expected " << expectedResult;
         clearAndDeleteQValue(qv1);
@@ -70,7 +70,7 @@ TEST_F(QValueTestFixture, UtilityCompare) {
     //
     // First theory less preferred (greater rank)
     //
-    mdp->theories[0]->rank = 1;
+    mdp->considerations[0]->rank = 1;
     mdp->groupedTheoryIndices = {{1}, {0}};
     // All equal. Draw
     duoUtilityQValueCompare(0, 0, 0, 0, 0, mdp, true);

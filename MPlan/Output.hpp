@@ -10,8 +10,6 @@
 #include "ExtractHistories.hpp"
 #include <fstream>
 #include <sstream>
-#include "Runner.hpp"
-#include <utility>
 
 using json = nlohmann::json;
 using namespace std;
@@ -34,6 +32,7 @@ struct FIELD {
     static constexpr const char* ACTION_MAP = "Action_Map";
     static constexpr const char* EXPECTED_COST = "Expected_Cost";
     static constexpr const char* EXPECTATION = "Expectation";
+    static constexpr const char* DATA = "Data";
 };
 
 
@@ -94,7 +93,7 @@ public:
 
     void addPolicies(vector<Policy*>& policies, vector<double> &non_accept) {
         json solutions = json::array();
-        // Add solutions in order of non-acceptability. First solution has lowest Non Accept.
+        // Add solutions in order of non-acceptability. First solution has the lowest Non Accept.
         std::vector<size_t> sorted_indices = sort_indices(non_accept);
         for (auto i : sorted_indices) {
             json solution_json;// Init
@@ -106,7 +105,7 @@ public:
             buildPolicyMap(action_map, policies[i]);
             solution_json[FIELD::ACTION_MAP] = action_map;
 
-            // Add Expectd Cost
+            // Add Expected Cost
             if (mdp->non_moralTheoryIdx != -1) {
                 ExpectedUtility* cost = dynamic_cast<ExpectedUtility*>(policies[i]->worth[0].expectations[mdp->non_moralTheoryIdx]);
                 solution_json[FIELD::EXPECTED_COST] = cost->value;
@@ -114,15 +113,24 @@ public:
 
             // Add policy's expectations for all moral theories.
             solution_json[FIELD::EXPECTATION] = json::object();
-            for (int thIdx=0; thIdx < mdp->theories.size(); thIdx++) {
-                solution_json[FIELD::EXPECTATION][mdp->theories[thIdx]->label] = policies[i]->worth[0].expectations[thIdx]->ToString();
+            for (int thIdx=0; thIdx < mdp->considerations.size(); thIdx++) {
+                solution_json[FIELD::EXPECTATION][mdp->considerations[thIdx]->label] = policies[i]->worth[0].expectations[thIdx]->ToString();
             }
 
             solutions.push_back(solution_json);
             results[FIELD::SOLUTIONS] = solutions;
         }
     }
-
+    void addData(Solver &solver) {
+        auto d = solver.getData();
+        results[FIELD::DATA] = json::object();
+        for (int s_idx=0; s_idx < d->size(); s_idx++) {
+            results[FIELD::DATA][s_idx] = json::array();
+            for (int alt_idx=0; alt_idx < d[s_idx].size() ; alt_idx++) {
+                results[FIELD::DATA][s_idx].push_back(d->at(s_idx)[alt_idx].toStringVector());
+            }
+        }
+    }
 
     void writeToFile(const std::string& fileOut, const std::string& fileIn) {
         // Add input file to end of json for easy processing!

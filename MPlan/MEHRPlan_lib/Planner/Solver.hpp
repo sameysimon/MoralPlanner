@@ -37,12 +37,16 @@ public:
         delete data;
         delete Z;
     }
+    vector<vector<QValue>>* getData() {
+        return data;
+    }
 
     // Multi-objective ILAO*
     void MOiLAO();
-    void backup(State& state, int time);
+    void backup(State& state);
     void pprune_alt(std::vector<QValue>& inVector, std::vector<int>& outVector);
-    void getCandidates(State& state, int time, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction);
+    void generateCombinations(vector<vector<QValue>>& allCombos, vector<vector<QValue>>& successorQVals, vector<QValue> current, int scr_Idx);
+    void getCandidates(State& state, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction);
     bool checkConverged(vector<vector<QValue>>& data, vector<vector<QValue>>& data_other);
     void getSolutions(vector<Policy*>& policies);
 
@@ -64,8 +68,6 @@ public:
             }
         }
         return true;
-
-
     }
 };
 

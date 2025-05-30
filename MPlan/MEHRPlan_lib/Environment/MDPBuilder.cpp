@@ -5,11 +5,12 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <set>
+#include <sstream>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
 
 #include "Absolutism.hpp"
+#include "Maximin.hpp"
 #include "Utilitarianism.hpp"
 #include "Threshold.hpp"
 #include "MoralTheory.hpp"
@@ -23,10 +24,7 @@ MDP::MDP(nlohmann::json& data) {
 }
 
 MDP::MDP(const string& fileName) {
-    std::ifstream file(fileName); // Don't know how/if to put on heap?
-    if (!file.is_open()) {
-        throw std::runtime_error("File does not exist: '" + fileName + "'");
-    }
+    std::ifstream file(fileName);
     std::cout << fileName << " opened successfully." << std::endl;
     json data;
     try {
@@ -34,7 +32,8 @@ MDP::MDP(const string& fileName) {
         file.close();
     }
     catch (json::parse_error& ex) {
-        std::cerr << ex.what() << "at byte " << ex.byte << std::endl;
+        std::cout << "Cannot read file: " << ex.what() << std::endl;
+        throw ex;
     }
     this->buildFromJSON(data);
 }
@@ -124,16 +123,45 @@ void verifyJSON(nlohmann::json& data) {
 
 
 void MDP::buildFromJSON(nlohmann::json& data) {
+    std::ostringstream oss;
     verifyJSON(data);
+
     // HORIZON
     horizon = data["horizon"];
-    actionsFromJSON(data);
 
-    theoriesFromJSON(data);
+    try {
+        actionsFromJSON(data);
+    } catch (nlohmann::json::exception& e) {
+        cerr << "MDP::buildFromJSON. Failed to load action data: " << e.what() << endl;
+        exit(1);
+    }
 
-    statesFromJSON(data);
+    try {
+        theoriesFromJSON(data);
+    } catch (nlohmann::json::exception& e) {
+        cerr << "MDP::buildFromJSON. Bad JSON for Moral Theories. " << e.what() << endl;
+        exit(1);
+    }
 
-    successorsFromJSON(data);
+    try {
+        statesFromJSON(data);
+    } catch (nlohmann::json::exception& e) {
+        oss << "MDP::buildFromJSON. Failed to load states data. " << e.what();
+        throw std::runtime_error(oss.str());
+    }
+
+    try {
+        successorsFromJSON(data);
+    } catch (nlohmann::json::exception& e) {
+        cerr << "MDP::buildFromJSON. Failed to load successor data: " << e.what() << endl;
+        exit(1);
+    }
+
+
+
+
+
+
 }
 
 
@@ -148,38 +176,82 @@ void MDP::actionsFromJSON(nlohmann::json& data) {
 
 void MDP::theoriesFromJSON(nlohmann::json &data) {
     std::vector<int> ranks = std::vector<int>();
-    for (json t : data["theories"] )
+    for (json t : data["theories"] ) {
         ranks.push_back(t["Rank"]);
-    std::set<int> unique_ordered_ranks(ranks.begin(), ranks.end());
-    groupedTheoryIndices = std::vector<std::vector<int>>(unique_ordered_ranks.size());
-    for (auto& i : groupedTheoryIndices) {
-        i = vector<int>();
     }
-    int theoryId = 0;
+    // std sorts ranks uniquely
+    std::set<int> unique_ordered_ranks(ranks.begin(), ranks.end());
+    groupedTheoryIndices = std::vector<std::vector<size_t>>(unique_ordered_ranks.size());
+    for (auto& i : groupedTheoryIndices) {
+        i = vector<size_t>();
+    }
+
+    size_t conID = 0;
     for (json t : data["theories"] ) {
         std::string type = t["Type"];
-        MoralTheory *m;
+        std::string name = t["Name"];
+        MEHRTheory *m;
         if (type == "Utility") {
-            m = new Utilitarianism(t, theoryId);
+            this->considerations.push_back(new Utilitarianism(t, conID));
+            AddMEHRTheory(new MEHRUtilitarianism(t["Rank"], conID, name), t["Rank"], unique_ordered_ranks);
         } else if (type=="Cost") {
             // Make Utiltarian theory
-            m = new Utilitarianism(t, theoryId);
+            considerations.push_back(new Utilitarianism(t, conID));
             budget = t["Budget"];
-            non_moralTheoryIdx = this->theories.size();
+            non_moralTheoryIdx = static_cast<int>(conID);
+            m = new MEHRUtilitarianism(t["Rank"], conID, name);
+            AddMEHRTheory(m, t["Rank"], unique_ordered_ranks);
         } else if (type=="Threshold") {
-            m = new Threshold(t, theoryId);
+            this->considerations.push_back(new Threshold(t, conID));
+            m = new MEHRThreshold(t["Rank"], conID, t["Threshold"], name);
+            AddMEHRTheory(m, t["Rank"], unique_ordered_ranks);
         } else if (type=="Absolutism") {
-            m = new Absolutism(t, theoryId);
-        } else {
-            throw runtime_error("MDP::buildFromJSON: unrecognized theory type.");
+            this->considerations.push_back(new Absolutism(t, conID));
+            m = new MEHRAbsolutism(t["Rank"], conID, name);
+            AddMEHRTheory(m, t["Rank"], unique_ordered_ranks);
         }
-        int index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(t["Rank"]));
-        groupedTheoryIndices[index].push_back(static_cast<int>(theories.size()));
-        this->theories.push_back(m);
-        theoryId++;
+        else if (type=="PoDE") {
+            // TO IMPLEMENT...
+        } else if (type=="Maximin") {
+            std::string mehr_name = t["Component_Of"];
+            int mehr_id = findMEHRTheoryIdx(mehr_name);
+            MEHRMaximin* mehrMaximin;
+            if (mehr_id == -1) {
+                // no theory exists -> make one.
+                mehrMaximin = new MEHRMaximin(t["Rank"], mehr_name);
+                AddMEHRTheory(mehrMaximin, t["Rank"], unique_ordered_ranks);
+            } else {
+                mehrMaximin = dynamic_cast<MEHRMaximin*>(mehr_theories[mehr_id]);
+            }
+            considerations.push_back(new Maximin(t, conID));
+            mehrMaximin->addConsideration(conID);
+        }
+        else {
+            std::ostringstream oss;
+            oss << "MDP::buildFromJSON: unrecognized theory type, '" << type << "'";
+            throw runtime_error(oss.str());
+        }
+        conID = considerations.size();
         // TODO Other theories...
     }
 }
+
+void MDP::AddMEHRTheory(MEHRTheory *mehrTheory, int rank, std::set<int> &unique_ordered_ranks) {
+    auto index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(rank));
+    groupedTheoryIndices[index].push_back(mehr_theories.size());
+    mehr_theories.push_back(mehrTheory);
+}
+
+int MDP::findMEHRTheoryIdx(string& theoryName) {
+    for (int i = 0; i < mehr_theories.size(); i++) {
+        if (mehr_theories[i]->mName == theoryName) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 void MDP::statesFromJSON(nlohmann::json &data) {
     total_states = data["total_states"];
     states = std::vector<State*>(total_states);
@@ -234,8 +306,8 @@ void MDP::successorsFromJSON(nlohmann::json &data) {
                 successorSet->push_back(successor);
 
                 // Pass successor judgement to moral theory
-                for (int i = 0; i < this->theories.size(); ++i) {
-                    this->theories[i]->processSuccessor(successor, successorData[i+2]);
+                for (int i = 0; i < this->considerations.size(); ++i) {
+                    this->considerations[i]->processSuccessor(successor, successorData[i+2]);
                 }
 
             }

@@ -1,7 +1,7 @@
 //
 // Created by e56834sk on 21/08/2024.
 //
-#include "gtest/gtest.h"
+#include "TestBase.hpp"
 #include "MDP.hpp"
 #include <fstream>
 #include <unordered_map>
@@ -9,16 +9,12 @@
 
 using json = nlohmann::json;
 
-class JsonMDPFixture : public ::testing::Test {
+class JsonMDPFixture : public TestBase {
   protected:
-    template <typename T>
-    bool checkPointerBy(std::vector<T>& objs, T& target) {
-        return std::find(objs.begin(), objs.end(), target) != objs.end();
-    }
-    void checkForSuccessor(std::vector<Successor*>& successors, int source, int target, double prob) {
 
-        for (int i = 0; i < successors.size(); i++) {
-            if ((successors[i]->source==source and successors[i]->target==target) and (successors[i]->probability==prob)) {
+    static void CheckForSuccessor(std::vector<Successor*>& successors, int source, int target, double prob) {
+        for (auto & successor : successors) {
+            if ((successor->source==source and successor->target==target) and (successor->probability==prob)) {
                 return;
             }
         }
@@ -27,43 +23,37 @@ class JsonMDPFixture : public ::testing::Test {
 };
 
 TEST_F(JsonMDPFixture, ConstructorTest) {
-    /*
-    std::string dataFolder = DATA_FOLDER_PATH;
-    std::string fn = dataFolder + "/test.json";
-    MDP mdp = MDP(fn);
-    EXPECT_EQ(mdp.states.size(), 2);
-    EXPECT_EQ(mdp.total_states, 2);
-    EXPECT_EQ(mdp.theories.size(), 1);
+    MDP mdp = *getMDP("test.json");
 
-    // Check there are correct actions
-    EXPECT_EQ(mdp.actions.size(), 3);
-    EXPECT_EQ(*mdp.actions[0]->label, "A");
-    Action* actA = mdp.actions[0];
-    EXPECT_EQ(*mdp.actions[1]->label, "B");
-    Action* actB = mdp.actions[1];
-    EXPECT_EQ(*mdp.actions[2]->label, "C");
-    Action* actC = mdp.actions[2];
+    ASSERT_EQ(mdp.states.size(), 2);
+    ASSERT_EQ(mdp.total_states, 2);
+    ASSERT_EQ(mdp.mehr_theories.size(), 1);
+    ASSERT_EQ(mdp.considerations.size(), 1);
 
     // Check state 1 is the goal:
-    EXPECT_EQ(mdp.states[1]->isGoal, true);
+    ASSERT_EQ(mdp.states[1]->isGoal, true);
 
-    // Check states go to correct actions.
-    std::vector<Action*> acts = *mdp.getActions(*mdp.states[0]);
-    // State 1 should go to Action A and Action B.
-    EXPECT_EQ(checkPointerBy(acts, actA), true);
-    EXPECT_EQ(checkPointerBy(acts, actB), true);
+    // Check states map to correct actions.
+    auto acts = mdp.getActions(*mdp.states[0]);
+    bool hasActionA = std::any_of(acts->begin(), acts->end(), [&](shared_ptr<Action>& a) {
+        return a->label == "A";
+    });
+    ASSERT_TRUE(hasActionA);
+    bool hasActionB = std::any_of(acts->begin(), acts->end(), [&](shared_ptr<Action>& a) {
+        return a->label == "B";
+    });
+    ASSERT_TRUE(hasActionB);
 
 
     // Check for successors:
     // Action A, state 0
-    std::vector<Successor*> successors;
-    successors = *mdp.getActionSuccessors(*mdp.states[0], 0);
-    checkForSuccessor(successors, 0, 1, 0.5);
-    checkForSuccessor(successors, 0, 1, 0.5);
+    std::vector<Successor*>* pSuccessors = MDP::getActionSuccessors(*mdp.states[0], 0);
+    CheckForSuccessor(*pSuccessors, 0, 1, 0.5);
+    CheckForSuccessor(*pSuccessors, 0, 1, 0.5);
 
     // Action B, state 0
-    successors = *mdp.getActionSuccessors(*mdp.states[0], 1);
-    checkForSuccessor(successors, 0, 1, 1);*/
+    pSuccessors = MDP::getActionSuccessors(*mdp.states[0], 1);
+    CheckForSuccessor(*pSuccessors, 0, 1, 1);
 
 }
 

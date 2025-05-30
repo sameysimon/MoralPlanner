@@ -9,13 +9,13 @@ import os
 
 defaultConfig = {"name": "HalCarlaEqual", "theories":["0", "utility", "0", "law"], "budget": 18.5, "horizon": 4}
 configs = {
-    "HalCarlaEqual": ["0", "CarlaLife", "0", "HalLife"],
-    "HalHigherCarla": ["0", "CarlaLife", "1", "HalLife"],
-    "HalCarlaHigher": ["1", "CarlaLife", "0", "HalLife"],
-    "HalCarlaNoSteal": ["0", "CarlaLife", "0", "HalLife", "0", "ToSteal"],
-    "HalCarlaNoStealComp": ["1", "CarlaLife", "0", "HalLife", "0", "StealWithComp"],
-    "CostCarla": ["0", "CarlaLife", "0", "Cost"],
-    "CostCarlaSteal": ["0", "CarlaLife", "0", "Cost", "0", "ToSteal"]
+    #"HalCarlaEqual": ["0", "CarlaLife", "0", "HalLife"],
+    #"HalHigherCarla": ["0", "CarlaLife", "1", "HalLife"],
+    #"HalCarlaHigher": ["1", "CarlaLife", "0", "HalLife"],
+    "HalCarlaNoSteal": ["0", "CarlaLife", "0", "HalLife", "0", "ToSteal"]#,
+    #"HalCarlaNoStealComp": ["1", "CarlaLife", "0", "HalLife", "0", "StealWithComp"],
+    #"CostCarla": ["0", "CarlaLife", "0", "Cost"],
+    #"CostCarlaSteal": ["0", "CarlaLife", "0", "Cost", "0", "ToSteal"]
 }
 configs = {"HalCarlaEqual": ["0", "CarlaLife", "0", "HalLife"]}
 

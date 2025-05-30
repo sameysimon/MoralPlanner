@@ -6,17 +6,21 @@ set(HEADER_FILES
         Environment/Successor.hpp
         Environment/Action.hpp
         Environment/State.hpp
+        Planner/ExtractHistories.hpp
         Environment/MoralTheories/MoralTheory.hpp
         Environment/MDP.hpp
         Planner/Solver.hpp
         Planner/QValue.hpp
         Environment/MoralTheories/Utilitarianism.hpp
+        Environment/MoralTheories/DoubleEffect.hpp
+        Environment/MoralTheories/Absolutism.hpp
         Environment/MoralTheories/Threshold.hpp
+        Environment/MoralTheories/Absolutism.hpp
+        Planner/ExtractSolutions.hpp
         Planner/MEHR.hpp
         ../Output.hpp
-        Environment/MoralTheories/Absolutism.cpp
-        Environment/MoralTheories/Absolutism.hpp
-        ../Logger.hpp
+        Logger.hpp
+        Environment/MoralTheories/Maximin.hpp
 )
 
 set(SOURCE_FILES
@@ -28,7 +32,6 @@ set(SOURCE_FILES
         Environment/Successor.cpp
         Planner/QValue.cpp
         Planner/Solver.cpp
-        Environment/MoralTheories/MoralTheory.cpp
         Environment/MDPBuilder.cpp
         Planner/MO_Solver.cpp
         Planner/MEHR.cpp
@@ -36,12 +39,12 @@ set(SOURCE_FILES
         Planner/MO_ILAO_STAR.cpp
         ../Output.cpp
         Environment/MoralTheories/Absolutism.cpp
-        Environment/MoralTheories/Absolutism.hpp
-        Planner/ExtractSolutions.hpp
         Planner/Policy.hpp
         Planner/PostOrderDFS.cpp
         Planner/ExtractHistories.cpp
-        Planner/ExtractHistories.hpp
+        Environment/MoralTheories/DoubleEffect.cpp
+        Environment/MoralTheories/Maximin.cpp
+        Environment/MoralTheories/MoralTheory.cpp
 )
 
 

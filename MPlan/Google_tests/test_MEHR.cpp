@@ -2,34 +2,25 @@
 // Created by Simon Kolker on 23/09/2024.
 //
 #include "TestBase.hpp"
-#include "Solver.hpp"
-#include "../Runner.hpp"
+#include "Logger.hpp"
+
 
 class MEHR_Tests : public TestBase {
 protected:
     double tolerance = 1e-9;
-
-
-    vector<size_t> getPolicyIdsByStateAction(Runner& r, int state_idx, vector<string> &actions) {
-        auto stateActions = r.mdp->getActions(*r.mdp->states[state_idx]);
-        // Map action string to Action Idx.
-        vector<size_t> actionToIdx(actions.size(), -1);
-        for (int i = 0; i < stateActions->size(); ++i) {
-            for (size_t aIdx=0; aIdx<actions.size(); ++aIdx) {
-                if (stateActions->at(i)->label == actions[aIdx]) {
-                    actionToIdx[aIdx] = i;
-                }
-            }
+    // Assumes Utilitarianism for now
+    static void AssertOrder(Runner &run, size_t policyIdx, size_t theoryIdx) {
+        auto mehrUtil = dynamic_cast<MEHRUtilitarianism*>(run.mdp->mehr_theories[theoryIdx]);
+        auto orderedHistories = mehrUtil->getSortedHistories()->orderedHistories;
+        auto policyHistories = run.histories[policyIdx];
+        // Histories should be sorted into descending order.
+        size_t largestHistoryIdx = orderedHistories[policyIdx][0];
+        auto lastUtil = dynamic_cast<ExpectedUtility*>(policyHistories[largestHistoryIdx]->worth.expectations[theoryIdx])->value;
+        for (auto hIdx : orderedHistories[policyIdx]) {
+            auto currUtil = dynamic_cast<ExpectedUtility*>(policyHistories[hIdx]->worth.expectations[theoryIdx])->value;
+            ASSERT_LE(currUtil, lastUtil) << "Histories out of order. Theory '" << theoryIdx <<"'. History Idx:" << hIdx << ", utility:" << currUtil << " is greater than previous History Idx:" << hIdx-1 << ", utility:" << lastUtil;
+            lastUtil = currUtil;
         }
-        vector<size_t> actionToPolicyIdx(actions.size(), -1);
-        for (int i=0; i < r.policies.size(); ++i) {
-            for (size_t aIdx=0; aIdx<actionToIdx.size(); ++aIdx) {
-                if (r.policies.at(i)->policy[state_idx] == actionToIdx[aIdx]) {
-                    actionToPolicyIdx[aIdx] = i;
-                }
-            }
-        }
-        return actionToPolicyIdx;
     }
 };
 
@@ -76,6 +67,26 @@ TEST_F(MEHR_Tests, LibraryTest_Utility_Priority) {
 
 }
 
+TEST_F(MEHR_Tests, SortHistories) {
+    auto run = Runner("check_for_attack.json");
+    run.timePlan();
+    run.timeExtractSols();
+    run.timeExtractHists();
+
+    vector<string> actions = {"A", "B"};
+    auto piIdx = getPolicyIdsByStateAction(run, 0, actions);
+
+    MEHR mehr = MEHR(*run.mdp, run.histories, run.polExpectations, true);
+
+
+    // Get policy-histories for theory 0
+    AssertOrder(run, piIdx[0], 0);
+    AssertOrder(run, piIdx[1], 0);
+    AssertOrder(run, piIdx[1], 1);
+    AssertOrder(run, piIdx[1], 1);
+}
+
+
 TEST_F(MEHR_Tests, CheckForAttack) {
     auto run = Runner("check_for_attack.json");
     run.timePlan();
@@ -87,19 +98,11 @@ TEST_F(MEHR_Tests, CheckForAttack) {
     vector<int> theories = {0};
 
     MEHR mehr = MEHR(*run.mdp, run.histories, run.polExpectations, true);
-    auto hRT = vector<vector<vector<int>>>();
-    mehr.sortHistories(run.histories, hRT);
 
     // Actual test
-    double r = mehr.checkForAttack((int)piIdx[0], (int)piIdx[1], theories, hRT);
+    double result = mehr.checkForAttack((int)piIdx[0], (int)piIdx[1], theories);
     // Check right non-acceptability
-    ASSERT_NEAR(r, 0.75, tolerance);
-    // Check only 1 history remaining.
-    ASSERT_EQ(hRT[0][piIdx[1]].size(), 1);
-    // Check remaining history is the correct one
-    auto last_hist = run.histories[piIdx[1]][hRT[0][piIdx[1]][0]];
-    ASSERT_EQ(dynamic_cast<ExpectedUtility*>(last_hist->worth.expectations[0])->value, 4);
-    ASSERT_EQ(dynamic_cast<ExpectedUtility*>(last_hist->worth.expectations[1])->value, 0);
+    ASSERT_NEAR(result, 0.75, tolerance);
 
 
 }

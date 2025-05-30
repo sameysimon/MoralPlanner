@@ -40,8 +40,8 @@ public:
     AbsoluteValue(const AbsoluteValue& other) {
         this->value = other.value;
     }
-    ~AbsoluteValue() = default;
-    AbsoluteValue& operator=(WorthBase& w) override {
+    ~AbsoluteValue() override = default;
+    AbsoluteValue& operator=(WorthBase& w) {
         if (const AbsoluteValue* eu = dynamic_cast<const AbsoluteValue*>(&w)) {
             this->value = eu->value;
         }
@@ -55,17 +55,17 @@ public:
 
 
 
-class Absolutism : public MoralTheory {
+class Absolutism : public Consideration {
     std::unordered_map<Successor*, AbsoluteValue*> judgementMap;
     std::vector<bool> heuristicList;
     AbsoluteValue& quickCast(WorthBase& w) {
         return static_cast<AbsoluteValue&>(w);
     }
 public:
-    explicit Absolutism(int id_) : MoralTheory(id_) {
+    explicit Absolutism(size_t id_) : Consideration(id_) {
         judgementMap = std::unordered_map<Successor*, AbsoluteValue*>();
     }
-    Absolutism(json &t, int id_) : MoralTheory(id_) {
+    Absolutism(json &t, size_t id_) : Consideration(id_) {
         label = t["Name"];
         rank = t["Rank"];
         for (auto it = t["Heuristic"].begin(); it != t["Heuristic"].end(); it++) {
@@ -111,7 +111,21 @@ public:
         ab->value = val;
         this->judgementMap.insert(std::make_pair(successor, ab));
     }
+};
+
+class MEHRAbsolutism : public MEHRTheory {
+    size_t mConsiderationIdx;
+    SortHistories *pSortedHistories;
+public:
+    MEHRAbsolutism(size_t rank_, size_t considerationIdx_, std::string name_) : MEHRTheory(rank_, name_), mConsiderationIdx(considerationIdx_) {
+        pSortedHistories = new SortHistories(*this);
+    }
     int attack(QValue& qv1, QValue& qv2) override;
+    double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>> &histories) override;
+    int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
+    void InitMEHR(std::vector<std::vector<History*>> &histories) override {
+        pSortedHistories->InitMEHR(histories);
+    }
 };
 
 

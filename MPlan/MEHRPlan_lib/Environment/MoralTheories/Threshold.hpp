@@ -45,7 +45,7 @@ public:
         this->value = other.value;
     }
     ~ExpectedValue() = default;
-    ExpectedValue& operator=(WorthBase& w) override {
+    ExpectedValue& operator=(WorthBase& w) {
         if (const ExpectedValue* eu = dynamic_cast<const ExpectedValue*>(&w)) {
             this->value = eu->value;
         }
@@ -60,22 +60,20 @@ public:
 
 
 // The Moral Consideration
-class Threshold : public MoralTheory {
+class Threshold : public Consideration {
     std::unordered_map<Successor*, ExpectedValue*> judgementMap;
     std::vector<double> heuristicList;
 
     static ExpectedValue& quickCast(WorthBase& w) {
         return static_cast<ExpectedValue&>(w);
     }
-    double threshold = 0;
 public:
-    Threshold(int id) : MoralTheory(id) {
+    Threshold(size_t id) : Consideration(id) {
         judgementMap = std::unordered_map<Successor*, ExpectedValue*>();
     }
-    Threshold(json& t, int id) : MoralTheory(id) {
+    Threshold(json& t, size_t id) : Consideration(id) {
         label = t["Name"];
         rank = t["Rank"];
-        threshold = t["Threshold"];
         judgementMap = std::unordered_map<Successor*, ExpectedValue*>();
         for (auto it = t["Heuristic"].begin(); it != t["Heuristic"].end(); it++) {
             this->heuristicList.push_back(it.value());
@@ -93,7 +91,7 @@ public:
         ExpectedValue* ex;
         for (int i = 0; i < successors.size(); i++) {
             ExpectedValue* j = judge(*successors[i]);
-            ex = static_cast<ExpectedValue*>(baselines[i]);// May be better way to do this?
+            ex = static_cast<ExpectedValue*>(baselines[i]);// May be a better way to do this?
             double newVal = j->value + ex->value;
             if (not ignoreProbability) {
                 newVal *= successors[i]->probability;
@@ -122,7 +120,23 @@ public:
         u->value = val;
         this->judgementMap.insert(std::make_pair(successor, u));
     }
+};
+
+class MEHRThreshold : public MEHRTheory {
+    size_t considerationIdx;
+    double threshold;
+    SortHistories *pSortedHistories;
+public:
+    explicit MEHRThreshold(size_t rank_, size_t id, double threshold, std::string &name_) : MEHRTheory(rank_, name_), considerationIdx(id), threshold(threshold) {
+        pSortedHistories = new SortHistories(*this);
+    }
     int attack(QValue& qv1, QValue& qv2) override;
+    double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>> &histories) override;
+    int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
+    void InitMEHR(std::vector<std::vector<History*>> &histories) override {
+        pSortedHistories->InitMEHR(histories);
+    }
+
 };
 
 

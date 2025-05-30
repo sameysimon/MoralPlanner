@@ -16,20 +16,36 @@ include_directories(MEHRPlan_lib/Planner)
 
 add_executable(MPlan main.cpp
         time_config.hpp
-        Runner.hpp)
+        Runner.hpp
+        Output.hpp
+        crow_all.h
+        REST_App.hpp
+)
 
-
+# Google Test for unit tests
 include(FetchContent)
 FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/releases/download/v1.15.2/googletest-1.15.2.tar.gz
 )
 FetchContent_MakeAvailable(googletest)
+
+# NLOHMANN_JSON for json read/writing
 FetchContent_Declare(
         nlohmann_json
         URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
 )
 FetchContent_MakeAvailable(nlohmann_json)
+
+
+# Fetch asio for the CROW REST API
+FetchContent_Declare(
+        asio
+        URL https://github.com/chriskohlhoff/asio/archive/refs/tags/asio-1-33-0.tar.gz
+)
+FetchContent_MakeAvailable(asio)
+set(ASIO_INCLUDE_DIR "${asio_SOURCE_DIR}/asio/include")
+include_directories(${ASIO_INCLUDE_DIR})
 
 
 include_directories(MEHRPlan_lib)

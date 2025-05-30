@@ -5,8 +5,7 @@
 //  Created by e56834sk on 29/07/2024.
 //
 
-#ifndef Utilitarianism_hpp
-#define Utilitarianism_hpp
+#pragma once
 
 #include "MoralTheory.hpp"
 #include "Successor.hpp"
@@ -27,8 +26,7 @@ public:
             return 1;
         return 0;
     }
-    std::string ToString() const override {
-
+    [[nodiscard]] std::string ToString() const override {
         return doubleToString(value);
     }
     bool isEquivalent(WorthBase& w) const override {
@@ -39,7 +37,7 @@ public:
         }
         return (std::abs(value - eu->value) < 1e-3);
     }
-    WorthBase* clone() const override {
+    [[nodiscard]] WorthBase* clone() const override {
         return new ExpectedUtility(*this);
     }
     ExpectedUtility() {value=0;}
@@ -48,7 +46,7 @@ public:
         this->value = other.value;
     }
     ~ExpectedUtility() override = default;
-    ExpectedUtility& operator=(WorthBase& w) override {
+    ExpectedUtility& operator=(WorthBase& w) {
         if (const ExpectedUtility* eu = dynamic_cast<const ExpectedUtility*>(&w)) {
             this->value = eu->value;
         }
@@ -60,8 +58,7 @@ public:
 };
 
 
-
-class Utilitarianism : public MoralTheory {
+class Utilitarianism : public Consideration {
     std::unordered_map<Successor*, ExpectedUtility*> judgementMap;
     std::vector<double> heuristicList;
 
@@ -69,15 +66,14 @@ class Utilitarianism : public MoralTheory {
         return static_cast<ExpectedUtility&>(w);
     }
 public:
-    Utilitarianism(json &t, int id) : MoralTheory(id) {
+    Utilitarianism(json &t, size_t id) : Consideration(id) {
         label = t["Name"];
-        rank = t["Rank"];
         // Process heuristics
         for (auto it = t["Heuristic"].begin(); it != t["Heuristic"].end(); it++) {
             this->heuristicList.push_back(it.value());
         }
     }
-    explicit Utilitarianism(int id_) : MoralTheory(id_) {
+    explicit Utilitarianism(int id_) : Consideration(id_) {
         judgementMap = std::unordered_map<Successor*, ExpectedUtility*>();
     }
     //
@@ -104,7 +100,7 @@ public:
         return ex;
     };
     WorthBase* newHeuristic(State& s) override {
-        ExpectedUtility* eu = new ExpectedUtility();
+        auto eu = new ExpectedUtility();
         if (s.id > heuristicList.size()) {
             throw std::runtime_error("Heuristic list is too small");
         }
@@ -124,10 +120,27 @@ public:
         u->value = val;
         this->judgementMap.insert(std::make_pair(successor, u));
     }
-    int attack(QValue& qv1, QValue& qv2) override;
 };
 
+class MEHRUtilitarianism : public MEHRTheory {
+    size_t considerationIdx;
+    SortHistories *pSortedHistories;
+public:
+    MEHRUtilitarianism(size_t rank_, size_t id, std::string &name_) : MEHRTheory(rank_, name_), considerationIdx(id) {
+        pSortedHistories = new SortHistories(*this);
+    }
+    /*~MEHRUtilitarianism() override {
+     *Not sure if I need this to get rid of pSortedHistories, if it will deal with base class stuff
+        delete pSortedHistories;
+    }*/
+    int attack(QValue& qv1, QValue& qv2) override;
+    double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>>& histories) override;
+    int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
+    void InitMEHR(std::vector<std::vector<History*>> &histories) override {
+        pSortedHistories->InitMEHR(histories);
+    }
+    SortHistories* getSortedHistories() {
+        return pSortedHistories;
+    }
+};
 
-
-
-#endif /* Utilitarianism_hpp */

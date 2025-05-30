@@ -46,6 +46,12 @@ def SaveEnvToJSON(mdp: MDP, fileName:str):
             currTheory['Threshold'] = theory.threshold
         if (theory.type=="Cost"):
             currTheory['Budget'] = mdp.budget
+        if (theory.type=="PoDE"):
+            currTheory["Facts"] = theory.getFacts()
+            currTheory["Moral_Goals"] = [theory.IsMoralGoal(s) for s in mdp.states]
+            
+            
+
         currTheory['Heuristic'] = []
         for s in mdp.states:
             currTheory['Heuristic'].append(theory.StateHeuristic(s))

@@ -54,6 +54,7 @@ class ExperimentRunner:
         #
         # Generate Environments.
         #
+        print("****\nBuiling environments...\n****")
         for i in range(configRepetitions):
             for conf in configs:
                 MDPFactory.buildEnvToFile(domain, fileOut=self.getMdpFile(conf['name'], i), **conf)
