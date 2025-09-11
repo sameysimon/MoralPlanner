@@ -6,6 +6,8 @@
 
 
 #pragma once
+#include <format>
+
 #include "MoralTheory.hpp"
 using namespace std;
 class PoDEWorth : public WorthBase {
@@ -17,7 +19,7 @@ public:
     double utility = 1.0;
 
     // Use simple numeric operators
-    int compare(WorthBase& wb) const override { }
+    int compare(WorthBase& wb) const override;
 
     [[nodiscard]] string ToString() const override {
         string out = actionGood ? "Good Action " : "Bad Action ";
