@@ -9,6 +9,7 @@
         },
         {}
     ],
+    "state_time" : [0,1],
     "goals":[1],
     "theories": [
         {

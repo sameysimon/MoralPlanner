@@ -13,6 +13,28 @@
 #include "Successor.hpp"
 
 
+struct Attack {
+    double p = 0;
+    size_t sourcePolicyIdx;
+    size_t targetPolicyIdx;
+    size_t theoryIdx;
+    // Stores {i,j} if source history i attacks target history j.
+    std::vector<std::pair<size_t,size_t>> HistoryEdges;
+    Attack(size_t sourcePolicyIdx, size_t targetPolicyIdx, size_t theoryIdx) : sourcePolicyIdx(sourcePolicyIdx), targetPolicyIdx(targetPolicyIdx), theoryIdx(theoryIdx) {};
+    void addEdge(size_t sourceHistory, size_t targetHistory, double targetProbability) {
+        HistoryEdges.emplace_back(sourceHistory, targetHistory);
+        p += targetProbability;;
+    }
+    void addEdge(size_t sourceHistory, size_t targetHistory) {
+        HistoryEdges.emplace_back(sourceHistory, targetHistory);
+    }
+    [[nodiscard]] bool isUndefined() const {
+        return HistoryEdges.empty();
+    }
+
+};
+
+
 class History;
 using json = nlohmann::json;
 
@@ -73,6 +95,7 @@ public:
     explicit HistoryHandler(MEHRTheory &mehrTheory) : rMehrTheory(mehrTheory) { }
     virtual ~HistoryHandler() = default;
     virtual void InitMEHR(std::vector<std::vector<History*>> &histories) = 0;
+    virtual void AddPolicyHistories(std::vector<std::vector<History*>> &histories) = 0;
 };
 
 class SortHistories : public HistoryHandler {
@@ -80,24 +103,26 @@ public:
     std::vector<std::vector<size_t>> orderedHistories;
     explicit SortHistories(MEHRTheory &mehrTheory): HistoryHandler(mehrTheory) {}
     void InitMEHR(std::vector<std::vector<History*>> &histories) override;
-    double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>>& histories);
+    void AddPolicyHistories(std::vector<std::vector<History*>> &histories) override;
+
+    Attack CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>>& histories, size_t theoryIdx);
 };
 
 class MEHRTheory {
 public:
     size_t mRank = 0;
     std::string mName;
-    explicit MEHRTheory(size_t rank_, std::string &name_) : mRank(rank_), mName(name_) {}
+    size_t mId = 0;
+    explicit MEHRTheory(size_t rank_, size_t id_, std::string &name_) : mRank(rank_), mId(id_), mName(name_) {}
     virtual ~MEHRTheory() = default;
     // Finds the sum probability of Policy targetSol's attacked arguments from sourceSol, according to QValues in histories.
     // Assumes sourceSol attacks targetSol by CQ2 -- expectations not used.
     // Method depends on Moral Theory. Some variant of comparing histories though.
-    virtual double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>> &histories) = 0;
+    virtual Attack CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>> &histories) = 0;
     virtual int CriticalQuestionTwo(QValue& qv1, QValue& qv2) = 0;
     virtual int attack(QValue& qv1, QValue& qv2) = 0;
     virtual void InitMEHR(std::vector<std::vector<History*>> &histories) = 0;
-
-
+    virtual void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) = 0;
 };
 
 

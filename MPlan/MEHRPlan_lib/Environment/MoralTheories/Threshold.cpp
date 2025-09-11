@@ -17,7 +17,7 @@ int MEHRThreshold::attack(QValue& qv1, QValue& qv2) {
     }
     return 0;
 }
-double MEHRThreshold::CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>> &histories) {
+Attack MEHRThreshold::CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>> &histories) {
     throw std::runtime_error("MEHRThreshold: CriticalQuestionOne() not implemented");
 }
 

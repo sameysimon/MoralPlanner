@@ -178,7 +178,7 @@ public:
 
                 newPi->setWorth(scr->target, qval);
                 subPolicies->insert(newPi);
-                Log::writeLog(std::format("No existing sub-policies for successor {} so made one.", scr->target));
+                Log::writeLog(std::format("No existing sub-policies for successor {} so made one.", scr->target), Debug);
             }
             scrPolicies.push_back(subPolicies);
         }

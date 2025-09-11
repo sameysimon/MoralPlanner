@@ -1,14 +1,12 @@
 //
 // Created by Simon Kolker on 23/04/2025.
 //
-
 #pragma once
 #include "MoralTheory.hpp"
 #include "Successor.hpp"
 #include "State.hpp"
 #include "Utilitarianism.hpp"
 #include "unordered_set"
-#include <cmath>
 #include <sstream>
 
 
@@ -73,11 +71,11 @@ class MEHRMaximin : public MEHRTheory {
     // Stores attacked histories for each policy. attacks[policy_idx] = [attacked histories]
     std::vector<std::unordered_set<size_t>> attacks;
 public:
-    MEHRMaximin(size_t rank_, std::string &name_) : MEHRTheory(rank_, name_) { }
+    MEHRMaximin(size_t rank_, size_t id_, std::string &name_) : MEHRTheory(rank_, id_, name_) { }
     void addConsideration(size_t c_idx) { considerations.push_back(c_idx); }
     int attack(QValue& qv1, QValue& qv2) override;
-    double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>> &histories) override;
+    Attack CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>> &histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
     void InitMEHR(std::vector<std::vector<History*>> &histories) override;
-
+    void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override;
 };

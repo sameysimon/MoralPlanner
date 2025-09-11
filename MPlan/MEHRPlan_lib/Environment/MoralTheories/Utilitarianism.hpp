@@ -126,7 +126,7 @@ class MEHRUtilitarianism : public MEHRTheory {
     size_t considerationIdx;
     SortHistories *pSortedHistories;
 public:
-    MEHRUtilitarianism(size_t rank_, size_t id, std::string &name_) : MEHRTheory(rank_, name_), considerationIdx(id) {
+    MEHRUtilitarianism(size_t rank_, size_t con_id, size_t theory_id, std::string &name_) : MEHRTheory(rank_, theory_id, name_), considerationIdx(con_id) {
         pSortedHistories = new SortHistories(*this);
     }
     /*~MEHRUtilitarianism() override {
@@ -134,10 +134,13 @@ public:
         delete pSortedHistories;
     }*/
     int attack(QValue& qv1, QValue& qv2) override;
-    double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>>& histories) override;
+    Attack CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>>& histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
     void InitMEHR(std::vector<std::vector<History*>> &histories) override {
         pSortedHistories->InitMEHR(histories);
+    }
+    void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override {
+        pSortedHistories->AddPolicyHistories(histories);
     }
     SortHistories* getSortedHistories() {
         return pSortedHistories;

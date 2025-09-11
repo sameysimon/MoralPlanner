@@ -5,19 +5,22 @@
 #pragma once
 #include "iostream"
 #include "Policy.hpp"
-using namespace std;
 
 class History {
 public:
     QValue worth;
     mutable double probability;
     bool hasPath;
+    vector<Successor*>* path = nullptr;
     History(const History& hist) {
         worth = hist.worth;
         probability = hist.probability;
         hasPath = hist.hasPath;
-        if (hist.hasPath) {
-            path = hist.path;
+        if (hist.hasPath && hist.path!=nullptr) {
+            path = new vector<Successor*>(hist.path->size());
+            for (size_t i = 0; i < hist.path->size(); ++i) {
+                (*path)[i] = hist.path->at(i);
+            }
         }
     }
 
@@ -38,9 +41,10 @@ public:
         }
         path->push_back(successor);
     }
-private:
-    vector<Successor*>* path = nullptr;
+
 };
+
+using namespace std;
 
 class HistoryPtrHash {
 public:
@@ -72,6 +76,7 @@ public:
         vector<unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>> piToHSet;
         for (Policy* pi : policySet) {
             // Add/Extract History outcomes
+            std::string x = pi->worth[0].toString();
             auto hSet = extractHistories(*pi);
             piToHSet.push_back(std::move(*hSet));
             delete hSet;
@@ -108,7 +113,8 @@ private:
     unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>* extractHistories(Policy& pi) {
         QValue qval = QValue();
         mdp.blankQValue(qval);
-        auto firstHistory = new History(qval, 1, false);
+        // TODO Some better mechanism to determine if we want to keep history?
+        auto firstHistory = new History(qval, 1, true);
         auto hSet = new unordered_set<History*, HistoryPtrHash, HistoryPtrEqual>();
         DFS_Histories(*mdp.states[0], 0, pi, firstHistory, hSet);
         return hSet;
@@ -136,18 +142,11 @@ private:
             DFS_baseCase(h, hSet);
             return;// Returning early means history h not deleted.
         }
-
-        // Stop if no successors.
-        /*
-        if (!state.hasSuccessors) {
-            DFS_baseCase(h, hSet);
-            return;
-        }
-        */
         auto successors = MDP::getActionSuccessors(state, stateActionIt->second);
         // Recursive Case.
         for (Successor* successor : *successors) {
             auto* h_ = new History(*h);
+            // TODO smarter, copying other histories thing? Reduce number of copied sequences.
             mdp.addCertainSuccessorToQValue(h_->worth, successor);
             h_->probability *= successor->probability;
             h_->addToPath(successor);

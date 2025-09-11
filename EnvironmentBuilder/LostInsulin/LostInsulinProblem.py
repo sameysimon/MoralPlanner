@@ -6,18 +6,19 @@ import random
 
 class LostInsulin(MDP):
 
-    def __init__(self, initialProps=None, horizon=20, budget=18, theoryClasses=[['time']], **kwargs):
+    def __init__(self, initialProps=None, horizon=20, budget=18.5, theoryClasses=[['time']], **kwargs):
         super().__init__()
         if initialProps==None:
             initialProps=LostInsulin.defaultProps
         if not horizon==None:
             initialProps['horizon'] = horizon
+        self.horizon=horizon
+        
         self.stateFactory(initialProps) # Create at least one initial state
         self.rules = [LostInsulin.ToGive, LostInsulin.ToSteal, LostInsulin.LeaveOrWait, LostInsulin.DeathChance] 
-        self.CostTheory = Time()
         self.Theories = []
         self.theorySetup(theoryClasses)
-        self.horizon=horizon
+        self.CostTheory = Time(self.horizon)
         self.budget = budget
         self.isNonMoral = False
 
@@ -207,7 +208,9 @@ class LostInsulin(MDP):
         for theoryGroup in theoryClasses:
             for tag in theoryGroup:
                 if 'time'==tag:
-                    mt = Time()
+                    mt = Time(self.horizon)
+                elif 'overall'==tag:
+                    mt = OverallUtility()
                 elif 'LifeAndDeath'==tag:
                     mt = LifeAndDeath()
                 elif 'ToSteal'==tag:
@@ -220,7 +223,7 @@ class LostInsulin(MDP):
                     mt = CarlaLife()
                 elif 'Cost'==tag:
                     self.isNonMoral=True
-                    mt = Time()
+                    mt = Time(self.horizon)
                 else:
                     raise Exception('Moral theory with tag ' + tag + ' at rank ' + str(rank) + ' invalid.')
                 mt.rank = rank

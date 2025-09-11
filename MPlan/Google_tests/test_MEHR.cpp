@@ -29,8 +29,8 @@ TEST_F(MEHR_Tests, SimpleTest) {
     runner.solve();
 
     // Each policy should have 1 non-acceptability--attacks from both theories
-    ASSERT_EQ(runner.non_accept[0], 1);
-    ASSERT_EQ(runner.non_accept[1], 1);
+    ASSERT_EQ(runner.non_accept.getPolicyNonAccept(0), 1);
+    ASSERT_EQ(runner.non_accept.getPolicyNonAccept(1), 1);
 }
 
 
@@ -41,8 +41,8 @@ TEST_F(MEHR_Tests, LibraryTest_EqualRanks) {
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR(runner.non_accept[piIdx[0]], 1, tolerance);
-    ASSERT_NEAR(runner.non_accept[piIdx[1]], 0.7, tolerance);
+    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[0]), 1, tolerance);
+    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[1]), 0.7, tolerance);
 
 }
 TEST_F(MEHR_Tests, LibraryTest_No_Leaks_Priority) {
@@ -52,8 +52,8 @@ TEST_F(MEHR_Tests, LibraryTest_No_Leaks_Priority) {
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR(runner.non_accept[piIdx[0]], 1, tolerance);
-    ASSERT_NEAR(runner.non_accept[piIdx[1]], 0, tolerance);
+    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[0]), 1, tolerance);
+    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[1]), 0, tolerance);
 
 }
 TEST_F(MEHR_Tests, LibraryTest_Utility_Priority) {
@@ -62,8 +62,8 @@ TEST_F(MEHR_Tests, LibraryTest_Utility_Priority) {
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR(runner.non_accept[piIdx[0]], 0, tolerance);
-    ASSERT_NEAR(runner.non_accept[piIdx[1]], 0.7, tolerance);
+    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[0]), 0, tolerance);
+    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[1]), 0.7, tolerance);
 
 }
 
@@ -76,7 +76,7 @@ TEST_F(MEHR_Tests, SortHistories) {
     vector<string> actions = {"A", "B"};
     auto piIdx = getPolicyIdsByStateAction(run, 0, actions);
 
-    MEHR mehr = MEHR(*run.mdp, run.histories, run.polExpectations, true);
+    MEHR mehr = MEHR(*run.mdp, run.policies, run.histories);
 
 
     // Get policy-histories for theory 0
@@ -97,12 +97,14 @@ TEST_F(MEHR_Tests, CheckForAttack) {
     auto piIdx = getPolicyIdsByStateAction(run, 0, actions);
     vector<int> theories = {0};
 
-    MEHR mehr = MEHR(*run.mdp, run.histories, run.polExpectations, true);
+    MEHR mehr = MEHR(*run.mdp, run.policies, run.histories);
+
 
     // Actual test
-    double result = mehr.checkForAttack((int)piIdx[0], (int)piIdx[1], theories);
+    FAIL() << "Refactored CheckForAttack implementation. Must update.";
+    //double result = mehr.checkForAttack((int)piIdx[0], (int)piIdx[1], theories);
     // Check right non-acceptability
-    ASSERT_NEAR(result, 0.75, tolerance);
+    //ASSERT_NEAR(result, 0.75, tolerance);
 
 
 }

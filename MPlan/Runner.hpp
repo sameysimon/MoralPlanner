@@ -5,30 +5,43 @@
 #ifndef RUNNER_HPP
 #define RUNNER_HPP
 
-
+#include "fstream"
 #include "time_config.hpp"
 #include "MDP.hpp"
 #include "Solver.hpp"
 #include "MEHR.hpp"
 #include <chrono>
-#include "Output.hpp"
 #include "ExtractHistories.hpp"
 #include "MEHRPlan_lib/Logger.hpp"
+#include "nlohmann/json.hpp"
+#include "JSONBuilder.hpp"
+
+
+struct explainResult {
+    long long planTime=0;
+    long long solutionExtractionTime=0;
+    long long historyExtractionTime=0;
+    long long mehrTime=0;
+    long long totalTime=0;
+    std::vector<size_t> newPolicyIndices;
+};
 
 class Runner {
     int stage=0;
 public:
+    array<long long, 4> durations;
     shared_ptr<MDP> mdp;
     shared_ptr<Solver> solver;
     unique_ptr<MEHR> mehr;
     vector<vector<History*>> histories;
     vector<Policy*> policies;
-    vector<double> non_accept;
+    shared_ptr<NonAcceptability> non_accept;
     vector<QValue> polExpectations;
     std::string fileIn;
 
-    Runner() = default;
 
+
+    Runner() = default;
     explicit Runner(const std::string& fileIn) {
         setInputFile(fileIn);
     }
@@ -71,8 +84,8 @@ public:
     }
 
     long long timePlan() {
-        if (stage < 1) { throw std::runtime_error("Not Ready for plannng"); }
-        long long d = timeFunc(&Solver::MOiLAO, *solver);
+        if (stage < 1) { throw std::runtime_error("Not Ready for planning"); }
+        long long d = timeFunc(&Solver::MOiAO_Star, *solver);
         Log::writeLog(std::format("Finished Planning in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
         stage = 2;
         return d;
@@ -98,7 +111,7 @@ public:
             polExpectations->push_back(pi->worth.at(0));
         }
 
-        Log::writeLog(eh->ToString(policies, *polExpectations, histories));
+        Log::writeLog(eh->ToString(policies, *polExpectations, histories), LogLevel::Debug);
         delete eh;
         delete polExpectations;
         stage = 4;
@@ -113,18 +126,17 @@ public:
             polExpectations.push_back(pi->worth.at(0));
         }
         // Create MEHR object
-        mehr = make_unique<MEHR>(*mdp, histories, polExpectations, true);
+        mehr = make_unique<MEHR>(*mdp, policies, histories);
+        non_accept = make_shared<NonAcceptability>(mdp->mehr_theories.size(), policies.size());
         // Time and start MEHR:
-        long long d = timeFunc(&MEHR::findNonAccept, *mehr, non_accept);
+        long long d = timeFunc(&MEHR::findNonAccept, *mehr, *non_accept);
 
-        Log::writeLog(mehr->ToString(polExpectations, histories, non_accept), LogLevel::Debug);
+        Log::writeLog(mehr->ToString(polExpectations, histories, *non_accept), LogLevel::Debug);
         Log::writeLog(std::format("Finished MEHR in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
         stage = 5;
         return d;
     }
     void writeTo(std::string &fileOut) {
-            auto durations = array<long long, 4>();
-
             // Do planning
             durations[0] = timePlan();
 
@@ -135,16 +147,65 @@ public:
             durations[2] = timeExtractHists();
 
             durations[3] = timeMEHR();
-            Log::writeLog(std::format("Total time {} {}", std::accumulate(durations.begin(), durations.end(), (long long)(0)), TIME_METRIC_STR), LogLevel::Info);
+            Log::writeLog(std::format("Total time {} {}", std::accumulate(durations.begin(), durations.end(), (long long)(0)), TIME_METRIC_STR), Info);
 
-            //
-            // Write results to file
-            //
-            auto outputter = Output(mdp.get(), *solver);
-            outputter.addDuration(durations[0], durations[1], durations[2], durations[3]);
-            outputter.addHistories(histories);
-            outputter.addPolicies(policies, non_accept);
-            outputter.writeToFile(fileOut, fileIn);
+            // Save File
+            json result = JSONBuilder::toJSON(*this);
+            std::ofstream file(fileOut);
+            if (file.is_open()) {
+                file << result.dump(4);
+                file.close();
+                std::cout << "JSON file '" << fileOut << "' created successfully!" << std::endl;
+            }
+            else {
+                std::cerr << "Could not open the file '" << fileOut << "' for output." << std::endl;
+            }
+    }
+
+    explainResult explain(size_t stateIdx, size_t act_idx, Policy* policy_base) {
+        explainResult r{};
+        auto satisfyingPols = mdp->findPoliciesWithAction(policies, *mdp->states[stateIdx], (int)act_idx);
+        if (!satisfyingPols.empty()) {
+            r.newPolicyIndices = satisfyingPols;
+            return r;
+        }
+        State* pState = mdp->states[stateIdx];
+        // Plan
+        solver->lockAction(*pState, act_idx, *policy_base);
+        r.planTime = timeFunc(&Solver::MOiAO_Star, *solver);
+        // Get solutions
+        vector<Policy*> newPolicies;
+        r.solutionExtractionTime = timeFunc(&Solver::getSolutions, *solver, newPolicies);
+        // Get histories
+        auto eh = new ExtractHistories(*mdp);
+        vector<vector<History*>> newHistories;
+        r.historyExtractionTime = timeFunc(&ExtractHistories::extract, *eh, newHistories, newPolicies);
+
+        // Do MEHR
+        r.newPolicyIndices.resize(newPolicies.size());
+        std::iota(r.newPolicyIndices.begin(), r.newPolicyIndices.end(), policies.size());
+        r.mehrTime = timeFunc(&MEHR::addPoliciesToMEHR, *mehr, *non_accept, newPolicies, newHistories);
+        r.totalTime = r.solutionExtractionTime + r.historyExtractionTime + r.mehrTime + r.planTime;
+
+        solver->removeLocks();
+        return r;
+    }
+
+    explainResult explain(size_t stateIdx, std::string action_label, Policy* policy_base) {
+        State *pState = mdp->states[stateIdx];
+        // Find action with state.
+        auto actions = mdp->getActions(*pState);
+        size_t act_idx = -1;
+        for (size_t i = 0; i < actions->size(); ++i) {
+            if (actions->at(i)->label == action_label) {
+                act_idx = i;
+                break;
+            }
+        }
+        if (act_idx == -1) {
+            throw runtime_error(std::format("Explain: Could not find action with label {} for state id {}", action_label, stateIdx));
+        }
+        return explain(stateIdx, act_idx, policy_base);
     }
 };
 

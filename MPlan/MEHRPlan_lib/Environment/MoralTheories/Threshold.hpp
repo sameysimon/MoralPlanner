@@ -127,14 +127,17 @@ class MEHRThreshold : public MEHRTheory {
     double threshold;
     SortHistories *pSortedHistories;
 public:
-    explicit MEHRThreshold(size_t rank_, size_t id, double threshold, std::string &name_) : MEHRTheory(rank_, name_), considerationIdx(id), threshold(threshold) {
+    explicit MEHRThreshold(size_t rank_, size_t conId, size_t theoryID, double threshold, std::string &name_) : MEHRTheory(rank_, theoryID, name_), considerationIdx(conId), threshold(threshold) {
         pSortedHistories = new SortHistories(*this);
     }
     int attack(QValue& qv1, QValue& qv2) override;
-    double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>> &histories) override;
+    Attack CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>> &histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
     void InitMEHR(std::vector<std::vector<History*>> &histories) override {
         pSortedHistories->InitMEHR(histories);
+    }
+    void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override {
+        pSortedHistories->AddPolicyHistories(histories);
     }
 
 };

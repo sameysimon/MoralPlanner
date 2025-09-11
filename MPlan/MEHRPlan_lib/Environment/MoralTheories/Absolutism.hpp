@@ -117,14 +117,17 @@ class MEHRAbsolutism : public MEHRTheory {
     size_t mConsiderationIdx;
     SortHistories *pSortedHistories;
 public:
-    MEHRAbsolutism(size_t rank_, size_t considerationIdx_, std::string name_) : MEHRTheory(rank_, name_), mConsiderationIdx(considerationIdx_) {
+    MEHRAbsolutism(size_t rank_, size_t theoryIdx_, size_t considerationIdx_, std::string name_) : MEHRTheory(rank_, theoryIdx_, name_), mConsiderationIdx(considerationIdx_) {
         pSortedHistories = new SortHistories(*this);
     }
     int attack(QValue& qv1, QValue& qv2) override;
-    double CriticalQuestionOne(int sourceSol, int targetSol, std::vector<std::vector<History*>> &histories) override;
+    Attack CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>> &histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
     void InitMEHR(std::vector<std::vector<History*>> &histories) override {
         pSortedHistories->InitMEHR(histories);
+    }
+    void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override {
+        pSortedHistories->AddPolicyHistories(histories);
     }
 };
 

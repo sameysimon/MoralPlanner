@@ -14,7 +14,7 @@ protected:
         MDP* mdp = getMDP(fileName);
         // Solve MDP
         Solver solver = Solver(*mdp);
-        solver.MOiLAO();
+        solver.MOiAO_Star();
         // Extract Policies.
         vector<Policy*> policies;
         solver.getSolutions(policies);

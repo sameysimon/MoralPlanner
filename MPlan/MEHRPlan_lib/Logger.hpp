@@ -6,7 +6,6 @@
 #include <iostream>
 #include <format>
 #include "../time_config.hpp"
-#include <utility>
 
 enum LogLevel {
   Fatal=0,
@@ -26,8 +25,8 @@ enum Color {
 };
 
 typedef std::chrono::high_resolution_clock::time_point TimeVar;
-inline ushort defaultColor = White;
-static ushort LogLevel=6;
+inline ushort defaultColor = 7;
+static ushort LogLevel=5;
 
 class Log {
 public:
@@ -35,21 +34,22 @@ public:
   static void setLogLevel(ushort level_) {
     LogLevel=level_;
   }
-  // Write log to console. Level, 0=FATAL; 1=ERROR; 2=WARN; 3=INFO; 4=DEBUG; 5=TRACE; 6=ALL
-  // Optionally set a color. Color 31=red text; 32=green text 34=blue text
-  static void writeLog(const std::string &msg, ushort level_=defaultColor, ushort color=defaultColor) {
+  // Write log to console with a log level; optionally set a color
+  static void writeLog(const std::string &msg, ushort level_=3, ushort color=7) {
+    //std::cout << "level=" << level_ << ", loglevel=" << LogLevel << " thus should print=" << (level_ <= LogLevel) << msg << std::endl;
     if (level_<= LogLevel) {
-      std::cout << "\e[0;3" << color << "m" << msg << "\e[0;30m" << std::endl;
+      //std::cout << "\e[0;3" << color << "m" << msg << "\e[0;3" << defaultColor << "m" <<  std::endl << std::flush;
+      std::cout << msg << std::endl;
     }
   }
   template <class... Args>
-  static void writeFormatLog(ushort level_=Debug, ushort color=defaultColor, std::format_string<Args...> fmt="{}", Args&&... args) {
+  static void writeFormatLog(ushort level_=3, ushort color=7, std::format_string<Args...> fmt="{}", Args&&... args) {
     if (level_<= LogLevel) {
         writeLog(std::format(fmt, std::forward<Args>(args)...), level_, color);
     }
   }
   template <class... Args>
-  static void writeFormatLog(ushort level_=Debug, std::format_string<Args...> fmt="{}", Args&&... args) {
+  static void writeFormatLog(ushort level_=3, std::format_string<Args...> fmt="{}", Args&&... args) {
       if (level_<= LogLevel) {
         writeLog(std::format(fmt, std::forward<Args>(args)...), level_);
       }
@@ -74,7 +74,4 @@ public:
     return result;
   }
 
-
-
 };
-

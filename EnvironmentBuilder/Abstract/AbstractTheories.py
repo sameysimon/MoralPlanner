@@ -1,10 +1,10 @@
 from EnvironmentBuilder.BaseMDP import MDP, MoralTheory
     
 class TheLaw(MoralTheory):
-    def __init__(self):
+    def __init__(self, theoryid):
         self.type='Absolutism'
         self.rank=0
-        self.tag='ToSteal'
+        self.tag='AbstractLaw' + str(theoryid)
         self.default = False
 
     def judge(self, successor: MDP.Successor):
@@ -14,14 +14,15 @@ class TheLaw(MoralTheory):
         return False
     
 class Utility(MoralTheory):
-    def __init__(self):
+    def __init__(self, theoryid):
+        self.theoryid = theoryid
         self.type='Utility'
         self.rank=0
-        self.tag='HalLife'
+        self.tag='AbstractUtility' + str(theoryid)
         self.default = 0
 
     def judge(self, successor: MDP.Successor):
-        return successor.targetState.props['utility']
+        return successor.targetState.props['utility' + str(self.theoryid)]
         
     def StateHeuristic(self, state:MDP.State):
         return 10 * (20 - state.props['time'])

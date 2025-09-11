@@ -78,6 +78,9 @@ public:
         ss << "}";
         return ss.str();
     }
+    string getActionAsString(MDP& mdp, int state) {
+        return mdp.getActions(*mdp.states[state])->at(policy.at(state))->label;
+    }
 };
 
 struct PolicyPtrEqual {

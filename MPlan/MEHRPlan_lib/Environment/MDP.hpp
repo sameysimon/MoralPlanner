@@ -22,7 +22,7 @@
 #include "QValue.hpp"
 
 class QValue;
-
+class Policy;
 class MDP {
     // Maps action labels to action object
     std::unordered_map<std::string, std::shared_ptr<Action>> actionMap;
@@ -36,7 +36,7 @@ class MDP {
     void successorsFromJSON(nlohmann::json& data);
 
     int compareQValueByRank(QValue& qv1, QValue& qv2, int rank);
-    void AddMEHRTheory(MEHRTheory *mehrTheory, int rank, std::set<int> &unique_ordered_ranks);
+    size_t AddMEHRTheory(MEHRTheory *mehrTheory, int rank, std::set<int> &unique_ordered_ranks);
 public:
     std::vector<Action*> actions;
     std::vector<State*> states;
@@ -90,8 +90,9 @@ public:
     void heuristicQValue(QValue& qval, State& state);
     bool isQValueInBudget(QValue& qval) const;
 
-
-
+    bool checkPoliciesEqual(Policy& p1, Policy& p2);
+    int checkPolicyInVector(const Policy& pi, const std::vector<Policy*>& pols);
+    std::vector<size_t> findPoliciesWithAction(std::vector<Policy*>& pols, State& state, int actIdx);
 
 };
 

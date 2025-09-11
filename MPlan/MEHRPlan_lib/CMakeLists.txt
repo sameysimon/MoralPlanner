@@ -18,7 +18,6 @@ set(HEADER_FILES
         Environment/MoralTheories/Absolutism.hpp
         Planner/ExtractSolutions.hpp
         Planner/MEHR.hpp
-        ../Output.hpp
         Logger.hpp
         Environment/MoralTheories/Maximin.hpp
 )
@@ -37,7 +36,6 @@ set(SOURCE_FILES
         Planner/MEHR.cpp
         Planner/AttackType.hpp
         Planner/MO_ILAO_STAR.cpp
-        ../Output.cpp
         Environment/MoralTheories/Absolutism.cpp
         Planner/Policy.hpp
         Planner/PostOrderDFS.cpp
@@ -45,6 +43,7 @@ set(SOURCE_FILES
         Environment/MoralTheories/DoubleEffect.cpp
         Environment/MoralTheories/Maximin.cpp
         Environment/MoralTheories/MoralTheory.cpp
+        Planner/BuildHeuristic.cpp
 )
 
 

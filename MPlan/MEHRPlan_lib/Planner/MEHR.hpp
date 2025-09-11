@@ -5,6 +5,7 @@
 #define MEHR_H
 #include "AttackType.hpp"
 #include "iostream"
+#include "MoralTheory.hpp"
 #include "ExtractHistories.hpp"
 #include <numeric>
 #include "../Logger.hpp"
@@ -22,17 +23,39 @@ struct AttackTargetHash {
     }
 };
 
-struct Attack {
-    int sourcePolicyIdx;
-    int targetPolicyIdx;
-    int theoryIdx;
-    int sourceHistoryIdx;
-    int targetHistoryIdx;
-    double probability;
-    Attack(int sourcePolicyIdx, int targetPolicyIdx, int theoryIdx, int sourceHistoryIdx, int targetHistoryIdx, double p) :
-    sourcePolicyIdx(sourcePolicyIdx), targetPolicyIdx(targetPolicyIdx), theoryIdx(theoryIdx), sourceHistoryIdx(sourceHistoryIdx), targetHistoryIdx(targetHistoryIdx), probability(p) {}
-};
+struct NonAcceptability {
+    // Indexed by theory-then policy. non_accept[tIdx][pIdx] = non_accept by theory tIdx for policy pIdx.
+    std::vector<std::vector<double>> non_accept;
+    NonAcceptability(size_t theoryCount, size_t policyCount) {
+        non_accept.resize(theoryCount);
+        for (vector<double> &n : non_accept) {
+            n.resize(policyCount);
+            std::fill(n.begin(), n.end(), 0);
+        }
+    }
+    [[nodiscard]] double getPolicyNonAccept(size_t policyIdx) const {
+        double r = 0;
+        for (const vector<double>& n : non_accept) {
+            r += n[policyIdx];
+        }
+        return r;
+    }
+    [[nodiscard]] size_t getTotalPolicies() {
+        return non_accept[0].size();
+    }
+    [[nodiscard]] size_t getTotalTheories() const {
+        return non_accept.size();
+    }
+    void addNonAccept(size_t theoryIdx, size_t policyIdx, double value) {
+        non_accept[theoryIdx][policyIdx] += value;
+    }
+    void appendPolicy() {
+        for (vector<double>& n : non_accept) {
+            n.push_back(0);
+        }
+    }
 
+};
 
 
 class MEHR {
@@ -44,82 +67,56 @@ class MEHR {
     long long clear_time = 0;
     long long total_CFA = 0;
 #endif
+    bool doneMEHR=false;
     bool useAttackHash=true;
     MDP& mdp;
-    vector<QValue>& policyWorths;
+    vector<Policy*>& policies;
     vector<vector<History*>>& histories;
-    // Stores a vector of Attacks on each policy: attacksByTarget[i] = [attacks on policy with idx i]
-    unordered_set<array<int, 3>, AttackTargetHash> attacks;
 
-    // Builds hRT (histories' Ranked by Theories)
-    // For each theory, each policy, all histories in order.
-    // Sort costs HlogH (for H histories). Thus, T*PI*H*logH.
-    // This can reduce
-    // hRT[theoryIdx][piIdx] = [histIdx1, histIdx2, ...
-    void addAttack(int sourcePolicyIdx, int targetPolicyIdx, int theoryIdx, int sourceHistoryIdx, int targetHistoryIdx, double prob) {
-        attacks.insert({targetPolicyIdx, targetHistoryIdx, theoryIdx});
-        (*attacksByTarget)[targetPolicyIdx].emplace_back(sourcePolicyIdx, targetPolicyIdx, theoryIdx, sourceHistoryIdx, targetHistoryIdx, prob);
-    }
-
-    bool checkAttackExists(int policyIdx, int historyIdx, int theoryIdx) {
-        if (useAttackHash) {
-            return attacks.contains({policyIdx, historyIdx, theoryIdx});
-        }
-        auto& potAttacks = (*attacksByTarget)[policyIdx];
-        for (Attack& att : potAttacks) {
-            // Looping through all attacks to make this check is naive, though only 0.18% of MEHR computation time currently.
-            if (att.targetHistoryIdx==historyIdx && att.theoryIdx==theoryIdx) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
+    // Stores the best expected policies for each moral theory. Maps theory ID to vector of policy indices.
+    unordered_map<size_t, vector<size_t>> bestExpectedPolicyByTheory;
+    // Stores which policies are undominated at what ranks: invulnerablePolicies[3] = 2 -> policy Idx=3 is the best/undominated policy at ordinal rank 2.
+    unordered_map<size_t, size_t> invulnerablePolicies;
 
   public:
-    vector<vector<Attack>>* attacksByTarget;
-    MEHR(MDP& mdp, vector<vector<History*>>& histories_, vector<QValue>& policyWorths_, bool useAttackHash_)
-    : mdp(mdp), histories(histories_), policyWorths(policyWorths_), useAttackHash(useAttackHash_) {
-        attacksByTarget = new vector<vector<Attack>>();
-        for (int i = 0; i < policyWorths.size(); i++) {
-            vector<Attack> attacksOnPolicy = vector<Attack>();
-            attacksByTarget->push_back(attacksOnPolicy);
-        }
-
-        // Prepare each moral theory for MEHR
+    vector<vector<Attack>> attacks;
+    MEHR(MDP& mdp, vector<Policy*> &policies_, vector<vector<History*>> &histories_)
+    : mdp(mdp), policies(policies_), histories(histories_) {
+        attacks.resize(policies.size());
+        // Prepare each moral theory for MEHR based on these theories.
         for (auto t : mdp.mehr_theories) {
             t->InitMEHR(histories);
         }
-
     }
 
-    ~MEHR() {
-        cout << "MEHR DESTRCUTOR" << endl;
-        delete attacksByTarget;
-    };
-    void SortHistories(vector<vector<History*>>& histories, vector<vector<vector<int>>>& hRT) const;
-    void findNonAccept(vector<double> &non_accept);
-    double checkForAttack(int sourceSol, int targetSol, vector<int>& mehrTheories);
+    // Normal MEHR Functions
+    void findNonAccept(NonAcceptability &non_accept);
+    int PolicyCompare(ushort theoryIdx, ushort rankIdx, const size_t &lhs, const size_t &rhs);
+    int CheckAttackToRank(ushort toRank, const size_t& left, const size_t& right);
+    vector<size_t> MaxPolicyForTheory(unsigned long& theoryIdx, size_t rank);
+    void attackBetweenBestPolicies(NonAcceptability& non_accept,
+                                   size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies);
 
-    string ToString(vector<QValue>& policyWorths, vector<vector<History*>>& histories, vector<double>& non_accept) {
+    // Explainability functions
+    void addPolicyToMEHR(Policy *pi, vector<History*> &h, NonAcceptability &non_accept);
+    void addPoliciesToMEHR(NonAcceptability &non_accept, vector<Policy*> &newPolicies, vector<vector<History*>> &newHistories);
+    void BestPoliciesAttackPi(NonAcceptability& non_accept, size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies, size_t pi_idx);
+    void PiAttackBestPolicies(NonAcceptability& non_accept, size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies, size_t pi_idx);
+
+
+    string ToString(vector<QValue>& policyWorths, vector<vector<History*>>& histories, NonAcceptability& non_accept) {
         stringstream ss;
-        if (attacksByTarget==nullptr) {
-            ss << "Uninitialised.";
-            return ss.str();
-        }
-        for (int tarIdx=0; tarIdx<attacksByTarget->size(); tarIdx++) {
-            ss << " Attacks on policy " << tarIdx << " with expected worth " << policyWorths[tarIdx].toString() << "." << endl;
-            for (Attack& att : (*attacksByTarget)[tarIdx]) {
-                History* targetHist = histories.at(att.targetPolicyIdx).at(att.targetHistoryIdx);
-                History* sourceHist = histories.at(att.sourcePolicyIdx).at(att.sourceHistoryIdx);
-                ss << "     From Pi " << att.sourcePolicyIdx << ", history " << att.sourceHistoryIdx << "(" << sourceHist->worth.toString() <<") ---> " << att.targetHistoryIdx << " ("<< targetHist->worth.toString() << ") with P= +" << targetHist->probability << " by theory " << att.theoryIdx << "(" << mdp.considerations[att.theoryIdx]->label << ")" << endl;
+        for (int tarIdx=0; tarIdx < attacks.size(); tarIdx++) {
+            ss << "Non-acceptability on policy " << tarIdx << " with expected worth " << policyWorths[tarIdx].toString() << " has non-accept " << non_accept.getPolicyNonAccept(tarIdx) << ":" << endl;
+            for (Attack& att : attacks[tarIdx]) {
+                ss << "   * From Policy " << att.sourcePolicyIdx << " (" << policyWorths[att.sourcePolicyIdx].toString() << ") by theory " << mdp.mehr_theories[att.theoryIdx]->mName << " P=" << att.p << endl;
+                for (auto edge : att.HistoryEdges) {
+                    ss << "     - History " << edge.first << "(" << histories[att.sourcePolicyIdx][edge.first]->worth.toString() << ") --> " << edge.second << " (" << histories[att.targetPolicyIdx][edge.second]->worth.toString() << ")" << " for P=" << histories[att.targetPolicyIdx][edge.second]->probability << endl;
+                }
             }
-            ss << " Pi " << tarIdx << " non-Acceptability = " << non_accept.at(tarIdx) << endl << endl;;
         }
         return ss.str();
     }
-
 
 };
 

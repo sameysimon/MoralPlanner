@@ -193,21 +193,19 @@ void MDP::theoriesFromJSON(nlohmann::json &data) {
         MEHRTheory *m;
         if (type == "Utility") {
             this->considerations.push_back(new Utilitarianism(t, conID));
-            AddMEHRTheory(new MEHRUtilitarianism(t["Rank"], conID, name), t["Rank"], unique_ordered_ranks);
+            AddMEHRTheory(new MEHRUtilitarianism(t["Rank"], conID, mehr_theories.size(), name), t["Rank"], unique_ordered_ranks);
         } else if (type=="Cost") {
             // Make Utiltarian theory
             considerations.push_back(new Utilitarianism(t, conID));
             budget = t["Budget"];
             non_moralTheoryIdx = static_cast<int>(conID);
-            m = new MEHRUtilitarianism(t["Rank"], conID, name);
-            AddMEHRTheory(m, t["Rank"], unique_ordered_ranks);
         } else if (type=="Threshold") {
             this->considerations.push_back(new Threshold(t, conID));
-            m = new MEHRThreshold(t["Rank"], conID, t["Threshold"], name);
+            m = new MEHRThreshold(t["Rank"], conID, mehr_theories.size(), t["Threshold"], name);
             AddMEHRTheory(m, t["Rank"], unique_ordered_ranks);
         } else if (type=="Absolutism") {
             this->considerations.push_back(new Absolutism(t, conID));
-            m = new MEHRAbsolutism(t["Rank"], conID, name);
+            m = new MEHRAbsolutism(t["Rank"], mehr_theories.size(), conID, name);
             AddMEHRTheory(m, t["Rank"], unique_ordered_ranks);
         }
         else if (type=="PoDE") {
@@ -218,7 +216,7 @@ void MDP::theoriesFromJSON(nlohmann::json &data) {
             MEHRMaximin* mehrMaximin;
             if (mehr_id == -1) {
                 // no theory exists -> make one.
-                mehrMaximin = new MEHRMaximin(t["Rank"], mehr_name);
+                mehrMaximin = new MEHRMaximin(t["Rank"], mehr_theories.size(), mehr_name);
                 AddMEHRTheory(mehrMaximin, t["Rank"], unique_ordered_ranks);
             } else {
                 mehrMaximin = dynamic_cast<MEHRMaximin*>(mehr_theories[mehr_id]);
@@ -236,10 +234,11 @@ void MDP::theoriesFromJSON(nlohmann::json &data) {
     }
 }
 
-void MDP::AddMEHRTheory(MEHRTheory *mehrTheory, int rank, std::set<int> &unique_ordered_ranks) {
-    auto index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(rank));
+size_t MDP::AddMEHRTheory(MEHRTheory *mehrTheory, int rank, std::set<int> &unique_ordered_ranks) {
+    size_t index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(rank));
     groupedTheoryIndices[index].push_back(mehr_theories.size());
     mehr_theories.push_back(mehrTheory);
+    return index;
 }
 
 int MDP::findMEHRTheoryIdx(string& theoryName) {
@@ -258,7 +257,7 @@ void MDP::statesFromJSON(nlohmann::json &data) {
     stateActions = std::vector<std::vector<shared_ptr<Action>>>(total_states);
     State* state;
     auto s_t = data["state_transitions"];
-    for (int i=0; i <this->total_states; ++i) {
+    for (int i=0; i < this->total_states; ++i) {
         int number_of_actions = 0;
         if (s_t.is_array()) { number_of_actions = s_t[i].size(); }
         if (s_t.is_object()) { number_of_actions = s_t[to_string(i)].size(); }
@@ -266,14 +265,21 @@ void MDP::statesFromJSON(nlohmann::json &data) {
         states[i] = state;
         stateActions[i] = vector<shared_ptr<Action>>();
     }
+    for (int gIdx : data["goals"]) {
+        this->states[gIdx]->isGoal = true;
+    }
+    // May not be state tags, so skip final step if not.
+    if (!data.contains("state_tags")) {
+        return;
+    }
     if (data.count("state_tags")) {
         for (int i=0; i <this->total_states; ++i) {
             states[i]->tag = data["state_tags"][i];
         }
     }
-    for (int gIdx : data["goals"]) {
-        this->states[gIdx]->isGoal = true;
-    }
+
+
+
 }
 void MDP::successorsFromJSON(nlohmann::json &data) {
     auto t = data["state_transitions"];

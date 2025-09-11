@@ -34,7 +34,10 @@ class AbstractMDP(MDP):
             self.myActions.append('a_' + str(i))
     defaultProps = {
             'time':0,
-            'utility':0,
+            'utility0':0,
+            'utility1':0,
+            'utility2':0,
+            'utility3':0,
             'law': False,
             'isGoal':False
         }
@@ -57,8 +60,9 @@ class AbstractMDP(MDP):
         for i in range(self.branchFactor):
             props_ = deepcopy(props)
             props_['time']+=1
-            props_['utility'] = random.uniform(-10, 10)
-            props_['law'] = random.random() > 0.5
+            props_['utility0'] = random.uniform(-10, 10)
+            props_['utility1'] = random.uniform(-10, 10)
+            props_['law'] = random.random() < 0.001
             if (props_['time']>=self.horizon/2):
                 props_['isGoal']=random.random()>self.goalOdds
             outs.append((props_, prob * probDist[i]))
@@ -73,16 +77,18 @@ class AbstractMDP(MDP):
     def theorySetup(self, theoryClasses):
         rank = 0
         mt = 0
+        theoryid = 0
         for theoryGroup in theoryClasses:
             for tag in theoryGroup:
                 if 'utility'==tag:
-                    mt = Utility()
+                    mt = Utility(theoryid)
                 elif 'law'==tag:
-                    mt = TheLaw()
+                    mt = TheLaw(theoryid)
                 else:
                     raise Exception('Moral theory with tag ' + tag + ' at rank ' + str(rank) + ' invalid.')
                 mt.rank = rank
                 self.Theories.append(mt)
+                theoryid+=1
             rank+=1
     def optionsString():
         s = ""

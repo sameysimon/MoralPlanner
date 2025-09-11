@@ -25,6 +25,7 @@ int main(int argc, const char * argv[]) {
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--server") == 0) {
             run_as_server = true;
+            break;
         }
     }
     if (run_as_server) {
@@ -34,7 +35,9 @@ int main(int argc, const char * argv[]) {
 
     std::string dataFolder = DATA_FOLDER_PATH;
     std::string outputFolder = OUTPUT_FOLDER_PATH;
-    std::string fileIn = dataFolder + "../Experiments/LostInsulin/AAMAS Results/mdps/CostCarla_con0.json";
+
+    std::string fileIn = dataFolder + "../Experiments/Random/2025-03-21 16:27:23/mdps/0Util_0Law__hor=6_con0.json";
+    fileIn = "/Users/user/Desktop/MyMoralPlanner/MoralPlanner/Data/Experiments/LostInsulin/2025-07-17 11:39:12/raw/HalCarlaEqual_con0_rep0.json";
     std::string fileOut = outputFolder + "MPlan-Out.json";
 
 
@@ -44,7 +47,11 @@ int main(int argc, const char * argv[]) {
     if (argc==4) {
         Log::setLogLevel(strtol(argv[3], nullptr, 10));
         Log::writeFormatLog(Info, "Debug level set to {}" , argv[3]);
+    } else {
+        Log::setLogLevel(Trace);
     }
+    std::cout << "Log level=" << LogLevel << std::endl;
+
     if (argc >= 3) {
         fileIn = argv[1];
         fileOut = argv[2];

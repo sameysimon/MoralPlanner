@@ -17,9 +17,10 @@ include_directories(MEHRPlan_lib/Planner)
 add_executable(MPlan main.cpp
         time_config.hpp
         Runner.hpp
-        Output.hpp
         crow_all.h
         REST_App.hpp
+        JSONBuilder.hpp
+        JSONBuilder.cpp
 )
 
 # Google Test for unit tests

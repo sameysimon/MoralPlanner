@@ -1,14 +1,12 @@
 from EnvironmentBuilder.TutorProblem.TeacherProblem import TeacherProblem
 from EnvironmentBuilder.GridWorld.GridWorldProblem import GridWorldProblem
 from EnvironmentBuilder.LostInsulin.LostInsulinProblem import LostInsulin
+from EnvironmentBuilder.Elder.ElderProblem import Elder
 from EnvironmentBuilder.SaveEnvironment import SaveEnvToJSON
 from EnvironmentBuilder.Abstract.AbstractMDP import AbstractMDP
 
 from collections import defaultdict
 import argparse
-import random
-import numpy as np
-import datetime
 import os
 
 
@@ -36,72 +34,65 @@ def changeTagFormat(theoryTags):
         theoryTags.append(x)
     return theoryTags
 
-
-
-def generateRandom(hor, bf, af, tags, b, g, seed, fileName):
-    # Generate random environment.
-    
-    mdp = AbstractMDP(horizon=hor, branchFactor=bf, actionFactor=af, theoryClasses=tags, budget=b, goalOdds=g)
-    
-    return mdp
+domains = {
+    "WindyDrone": GridWorldProblem,
+    "Tutor": TeacherProblem,
+    "LostInsulin": LostInsulin,
+    "Abstract": AbstractMDP,
+    "Elder": Elder
+}
 
 def makeMDP(domain, theories, **kwargs):
-    # build the mdp and expand all states
-    
-    if (domain=='WindyDrone'):
-        return GridWorldProblem(theoryClasses=theories, **kwargs)
-    if (domain=='Teacher'):
-        return TeacherProblem(theoryClasses=theories, **kwargs)
-    if (domain=='LostInsulin'):
-        return LostInsulin(theoryClasses=theories, **kwargs)
-    if (domain=='random'):
-        return AbstractMDP(theoryClasses=theories, **kwargs)
-    print("No domain " + domain)
-    return None
+    if (not domain in domains.keys()):
+        raise Exception(f"Sim: No MMMDP domain '{domain}'.") 
+    return domains[domain](theoryClasses=theories, **kwargs)
 
 def buildEnvToFile(domain:str, theories:list, fileOut:str, **kwargs):
     theories = changeTagFormat(theories)
     mdp = makeMDP(domain, theories, **kwargs)
     mdp.makeAllStatesExplicit()
     SaveEnvToJSON(mdp, fileOut)
-    print("Written MDP to {fileOut} with domain {domain} and theories {theories}.")
+    print(f"Written MDP to {fileOut} with domain {domain} and theories {theories}.")
 
 
 
 def main():
-    # Create the parser
-    parser = argparse.ArgumentParser(description="Generate MDPs based on input parameters.")
+    parser = argparse.ArgumentParser(description="Generate MDP file based on input parameters.")
+    parser.add_argument("domain",
+                        type=str,
+                        required=True,
+                        help=f"Generate a domain from list {str(list(domains.keys()))}")
 
     # Add arguments
     parser.add_argument(
         "-bf", "--branchFactor",
         type=int,
-        required=True,
-        help="Branch factor (must be an integer greater than 0)",
+        default=2,
+        help="Only for abstract domain. Default=2"
     )
     parser.add_argument(
         "-a", "--actionFactor",
         type=int,
-        required=True,
-        help="Action factor (must be an integer greater than 0)",
+        default=2,
+        help="Only for abstract domain. Default=2"
     )
     parser.add_argument(
         "-hz", "--horizon",
         type=int,
-        required=True,
-        help="Horizon (must be an integer greater than 1)",
+        default=4,
+        help="Only for abstract domain. Default=2"
     )
     parser.add_argument(
         "-b", "--budget",
         type=int,
-        default=0,
-        help="Budget (must be an integer greater than 0). Optional.",
+        default=4,
+        help="Only for SMMDPs. Default=4",
     )
     parser.add_argument(
         "-g,", "--goals",
         type=float,
         default=0,
-        help="Probability a state with depth greater than horizon/2 is a goal. If not specified, there will be no goals. Value should be between 0 and 1.",
+        help="Only for abstract domain. Probability a state with depth greater than horizon/2 is a goal. If not specified, there will be no goals. Value should be between 0 and 1. Default=0"
     )
     parser.add_argument(
         "-t", "--theories",
@@ -144,7 +135,7 @@ def main():
         parser.error("--horizon must be greater than 1.")
 
     theoryTags = changeTagFormat(args.theories)
-    generateRandom(args.horizon, args.branchFactor, args.actionFactor, theoryTags, args.budget, args.goals, args.out)
+    buildEnvToFile(domain=argparse.domain, theories=theoryTags, fileOut=args.out, kwargs={"horizon":args.horizon, "seed":args.seed, "goals":args.goals, "budget":args.budget, "actionFactor": args.actionFactor, "branchFactor": args.branchFactor} )
 
 if __name__ == "__main__":
     main()

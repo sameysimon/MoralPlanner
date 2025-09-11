@@ -9,7 +9,9 @@
 #include <iostream>
 #include <vector>
 #include "MDP.hpp"
+#include "Policy.hpp"
 #include "Utilitarianism.hpp"
+#include <stack>
 
 #include <vector>
 
@@ -34,6 +36,7 @@ void MDP::addCertainSuccessorToQValue(QValue& qval, Successor* scr) {
         qval.expectations[i] = considerations[i]->gather(successors, baselines, true);
     }
 }
+
 void MDP::blankQValue(QValue& qval) {
     for (auto & t : considerations) {
         qval.expectations.push_back(t->newWorth());
@@ -76,11 +79,13 @@ int MDP::CompareByConsiderations(QValue& qv1, QValue& qv2) {
     int currResult = 0;
     for (auto pCon : considerations) {
         currResult = qv1.expectations[pCon->id]->compare(*qv2.expectations[pCon->id]);
-        if (result != 0 && currResult != result) {
+        if ((result != 0 && currResult != 0) && currResult != result) {
             // Disagreement with last result. Attakcs fires both ways. Draw.
             return 0;
         }
-        result = currResult;
+        if (currResult != 0) {
+            result = currResult;
+        }
     }
     return result;
 }
@@ -201,6 +206,87 @@ bool MDP::isQValueInBudget(QValue& qval) const {
     auto cost = static_cast<ExpectedUtility*>(qval.expectations[non_moralTheoryIdx]);
     return cost->value > -1 * budget;
 }
+
+/**
+ * Explores the policies in the MDP. If, in the policy's reachable area of the MDP, they are equal, then they are the same.
+ * @return True if they are equal.
+ */
+bool MDP::checkPoliciesEqual(Policy& p1, Policy& p2) {
+    std::stack<int> stack;
+    stack.push(0);
+    while (!stack.empty()) {
+        auto currStateIdx = stack.top();
+        stack.pop();
+        auto p1Action = p1.policy.find(currStateIdx);
+        auto p2Action = p2.policy.find(currStateIdx);
+        if (p1Action==p1.policy.end() && p2Action==p2.policy.end()) {
+            continue;
+        }
+        if (p1Action==p1.policy.end() || p2Action==p2.policy.end()) {
+            return false;
+        }
+        if (p1.policy[currStateIdx] != p2.policy[currStateIdx]) {
+            return false;
+        }
+        // If they are both in the map, and they are equal
+        auto scrs = *getActionSuccessors(*states[currStateIdx], p1.policy[currStateIdx]);
+        for (auto scr : scrs) {
+            stack.push(scr->target);
+        }
+    }
+    return true;
+}
+
+/**
+ * Checks if there exists a policy in pols behaviourally equal pi. Traverses MDP for states reachable by pi to do this.
+ * @return The index of the matching policy in pols; -1 if no such policy exists.
+ */
+int MDP::checkPolicyInVector(const Policy& pi, const vector<Policy*>& pols) {
+    std::stack<int> stack;
+    stack.push(0);
+    vector<int> equalPolicies(pols.size());
+    std::iota(equalPolicies.begin(), equalPolicies.end(), 0);
+    while (!stack.empty()) {
+        auto currStateIdx = stack.top();
+        stack.pop();
+
+        auto p1Action = pi.policy.find(currStateIdx);
+        bool piHasNoAction = p1Action==pi.policy.end();
+        for (auto it = equalPolicies.begin(); it != equalPolicies.end(); ++it) {
+            auto x = pols[*it]->policy.find(currStateIdx);
+            if (x == pols[*it]->policy.end() && !piHasNoAction) {
+                // Curr pol has no action, but pi does, then remove curr pol.
+                it = equalPolicies.erase(it);
+            }
+            if (*x != *p1Action) {
+                // Policies do not match, so remove curr pol.
+                it = equalPolicies.erase(it);
+            }
+        }
+        if (pols.empty()) {
+            return -1;
+        }
+        // If they are both in the map, and they are equal
+        int actionIdx = pi.policy.at(currStateIdx);
+        auto scrs = *getActionSuccessors(*states[currStateIdx], actionIdx);
+        for (auto scr : scrs) {
+            stack.push(scr->target);
+        }
+    }
+    return equalPolicies[0];
+}
+
+std::vector<size_t> MDP::findPoliciesWithAction(std::vector<Policy*>& pols, State& state, int actIdx) {
+    std::vector<size_t> equalPols;
+    for (int piIdx=0; piIdx<pols.size(); ++piIdx) {
+        auto pi = pols[piIdx];
+        if (pi->policy.contains(state.id) && pi->policy.at(state.id) == actIdx) {
+            equalPols.push_back(piIdx);
+        }
+    }
+    return equalPols;
+}
+
 
 
 MDP::~MDP()
