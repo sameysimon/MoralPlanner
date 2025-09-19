@@ -27,16 +27,18 @@ protected:
     // Given a runner with policies, builds list of policy indices.
     // return vector policies[i] has is such that runner.policies[policies[i]](state_idx) = actions[i]
     // In other words, policy id policies[i] has state_idx map to actions[i].
-    static vector<size_t> getPolicyIdsByStateAction(Runner& r, int state_idx, vector<string> &actions) {
-        auto stateActions = r.mdp->getActions(*r.mdp->states[state_idx]);
+    static unordered_map<std::string, size_t> getPolicyIdsByStateAction(Runner& r, int state_idx, vector<string> &actions) {
         // Map action string to Action Idx.
         vector<size_t> actionToIdx = getActionIdsByLabels(r, state_idx, actions);
         // Match policies to action Idx.
-        vector<size_t> actionToPolicyIdx(actions.size(), -1);
+        unordered_map<std::string, size_t> actionToPolicyIdx;
+        for (auto &a : actions) {
+            actionToPolicyIdx[a]=-1;
+        }
         for (int i=0; i < r.policies.size(); ++i) {
             for (size_t aIdx=0; aIdx<actionToIdx.size(); ++aIdx) {
                 if (r.policies.at(i)->policy[state_idx] == actionToIdx[aIdx]) {
-                    actionToPolicyIdx[aIdx] = i;
+                    actionToPolicyIdx[actions[aIdx]] = i;
                 }
             }
         }

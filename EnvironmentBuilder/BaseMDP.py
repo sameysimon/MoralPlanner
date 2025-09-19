@@ -100,17 +100,24 @@ class MDP(ABC):
                 ruleSuccessorsValues.extend(new)
             successorsValues = ruleSuccessorsValues
         
-        state.successors[action] = []
+        scrToProb = {}
         for targetProperties, probability in successorsValues:
-            successorState = MDP.Successor(state, self.stateFactory(targetProperties), probability, action)
+            scrState = self.stateFactory(targetProperties)
+            scrToProb.setdefault(scrState.id, 0)
+            scrToProb[scrState.id] += probability
+        
+        state.successors[action] = []
+        for scrID, p in scrToProb.items():
+            successorState = MDP.Successor(state, self.states[scrID], p, action)
             state.successors[action].append(successorState)
+
         return state.successors[action]
 
-    def stateFactory(self, stateProps):
+    def stateFactory(self, stateProps) -> State:
         """Generates new State object based of state properties.
         
         Returns:
-            State: new State object, or existing State if already exists with stateProps.
+              New State object, or existing State if already exists with state props
         """
         propStr = str(stateProps)
         if propStr in self.__statePropIndex.keys():

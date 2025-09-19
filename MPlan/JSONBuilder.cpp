@@ -168,16 +168,14 @@ json JSONBuilder::toJSON(Solver& solver) {
 
 json JSONBuilder::toJSON(vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction, MDP& mdp, State& s) {
     json r;
-
     // Make an object + fields for each action
     for (int i=0; i<candidates.size(); i++) {
         std::string act = (mdp.getActions(s))->at(qValueIdxToAction[i])->label;
         r[act] = json::object();
         r[act]["containsUndominated"] = false;
         r[act]["QValues"] = json::array();
-        r[act]["indexOfUndominated"] = json::array();
+        r[act]["indexOfUndominated"] = indicesOfUndominated;
     }
-
     for (int i=0; i<candidates.size(); i++) {
         std::string act = (mdp.getActions(s))->at(qValueIdxToAction[i])->label;
         // Add qvalue to action.
@@ -186,6 +184,5 @@ json JSONBuilder::toJSON(vector<QValue>& candidates, vector<int>& indicesOfUndom
         r[act]["QValues"][r[act]["QValues"].size()-1]["isUndominated"] = std::find(indicesOfUndominated.begin(), indicesOfUndominated.end(), i)!=indicesOfUndominated.end();
         r[act]["containsUndominated"] = r[act]["containsUndominated"].dump()=="true" || std::find(indicesOfUndominated.begin(), indicesOfUndominated.end(), i)!=indicesOfUndominated.end();
     }
-
     return r;
 }

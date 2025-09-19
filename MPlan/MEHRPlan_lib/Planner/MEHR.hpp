@@ -103,7 +103,38 @@ class MEHR {
     void BestPoliciesAttackPi(NonAcceptability& non_accept, size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies, size_t pi_idx);
     void PiAttackBestPolicies(NonAcceptability& non_accept, size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies, size_t pi_idx);
 
-
+    // Intepretation
+    bool containsAttack(size_t sourcePolicy, size_t targetPolicy) {
+        return std::any_of(attacks[targetPolicy].begin(),attacks[targetPolicy].end(),
+            [sourcePolicy](Attack& a) {return a.sourcePolicyIdx==sourcePolicy;});
+    }
+    bool containsAttack(size_t sourcePolicy, size_t targetPolicy, const QValue& targetHistoryWorth) {
+        for (auto &a : attacks[targetPolicy]) {
+            if (a.sourcePolicyIdx==sourcePolicy) {
+                for (std::pair<size_t,size_t> &ed : a.HistoryEdges) {
+                    auto& tarWorth = histories[targetPolicy][ed.second]->worth;
+                    if (tarWorth==targetHistoryWorth) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    bool containsAttack(size_t sourcePolicy, const QValue& sourceHistoryWorth, size_t targetPolicy, const QValue& targetHistoryWorth) {
+        for (auto &a : attacks[targetPolicy]) {
+            if (a.sourcePolicyIdx==sourcePolicy) {
+                for (std::pair<size_t,size_t> &ed : a.HistoryEdges) {
+                    auto& srcWorth = histories[sourcePolicy][ed.first]->worth;
+                    auto& tarWorth = histories[targetPolicy][ed.second]->worth;
+                    if (srcWorth==sourceHistoryWorth && tarWorth==targetHistoryWorth) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
     string ToString(vector<QValue>& policyWorths, vector<vector<History*>>& histories, NonAcceptability& non_accept) {
         stringstream ss;
         for (int tarIdx=0; tarIdx < attacks.size(); tarIdx++) {

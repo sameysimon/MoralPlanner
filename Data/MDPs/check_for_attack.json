@@ -9,7 +9,7 @@
     }, {}
   ],
   "notes": ["This is a test MDP for the check_for_attack function.", 
-           "A expects (1.75, 0). For theory 9, loses on all outcomes.",
+           "A expects (1.75, 0). For theory 2, loses on all outcomes.",
            "B expects (1.5, 25). For theory 1, loses for -1, 1, 2. Last outcome 4 is un-attacked. 0.75 non-accept. "],
   "state_time":  [0,1],
   "goals":[],

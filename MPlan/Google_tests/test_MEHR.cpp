@@ -29,8 +29,8 @@ TEST_F(MEHR_Tests, SimpleTest) {
     runner.solve();
 
     // Each policy should have 1 non-acceptability--attacks from both theories
-    ASSERT_EQ(runner.non_accept.getPolicyNonAccept(0), 1);
-    ASSERT_EQ(runner.non_accept.getPolicyNonAccept(1), 1);
+    ASSERT_EQ(runner.non_accept->getPolicyNonAccept(0), 1);
+    ASSERT_EQ(runner.non_accept->getPolicyNonAccept(1), 1);
 }
 
 
@@ -41,8 +41,8 @@ TEST_F(MEHR_Tests, LibraryTest_EqualRanks) {
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[0]), 1, tolerance);
-    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[1]), 0.7, tolerance);
+    ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["Recommend"]), 1, tolerance);
+    ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["Ignore"]), 0.7, tolerance);
 
 }
 TEST_F(MEHR_Tests, LibraryTest_No_Leaks_Priority) {
@@ -52,8 +52,8 @@ TEST_F(MEHR_Tests, LibraryTest_No_Leaks_Priority) {
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[0]), 1, tolerance);
-    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[1]), 0, tolerance);
+    ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["Recommend"]), 1, tolerance);
+    ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["Ignore"]), 0, tolerance);
 
 }
 TEST_F(MEHR_Tests, LibraryTest_Utility_Priority) {
@@ -62,8 +62,8 @@ TEST_F(MEHR_Tests, LibraryTest_Utility_Priority) {
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
-    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[0]), 0, tolerance);
-    ASSERT_NEAR(runner.non_accept.getPolicyNonAccept(piIdx[1]), 0.7, tolerance);
+    ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["Recommend"]), 0, tolerance);
+    ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["Ignore"]), 0.7, tolerance);
 
 }
 
@@ -80,12 +80,37 @@ TEST_F(MEHR_Tests, SortHistories) {
 
 
     // Get policy-histories for theory 0
-    AssertOrder(run, piIdx[0], 0);
-    AssertOrder(run, piIdx[1], 0);
-    AssertOrder(run, piIdx[1], 1);
-    AssertOrder(run, piIdx[1], 1);
+    AssertOrder(run, piIdx["A"], 0);
+    AssertOrder(run, piIdx["B"], 0);
+    AssertOrder(run, piIdx["B"], 1);
+    AssertOrder(run, piIdx["B"], 1);
 }
 
+bool checkForUtilityAttack(MEHR &m, size_t sourcePolicy, std::initializer_list<double> sourceUtility, size_t targetPolicy, std::initializer_list<double> targetUtility) {
+    vector<WorthBase*> expSourceUtility;
+    expSourceUtility.reserve(sourceUtility.size());
+    vector<WorthBase*> expTargetUtility;
+    expTargetUtility.reserve(targetUtility.size());
+    for (auto x : sourceUtility) {
+        expSourceUtility.push_back(new ExpectedUtility(x));
+    }
+    for (auto x : targetUtility) {
+        expTargetUtility.push_back(new ExpectedUtility(x));
+    }
+    bool b = m.containsAttack(sourcePolicy,
+        QValue(expSourceUtility),
+        targetPolicy,
+        QValue(expTargetUtility));
+
+    for (auto x : expSourceUtility) {
+        delete x;
+    }
+    for (auto x : expTargetUtility) {
+        delete x;
+    }
+
+    return b;
+}
 
 TEST_F(MEHR_Tests, CheckForAttack) {
     auto run = Runner("check_for_attack.json");
@@ -95,16 +120,22 @@ TEST_F(MEHR_Tests, CheckForAttack) {
 
     vector<string> actions = {"A", "B"};
     auto piIdx = getPolicyIdsByStateAction(run, 0, actions);
-    vector<int> theories = {0};
+    vector theories = {0};
 
     MEHR mehr = MEHR(*run.mdp, run.policies, run.histories);
+    auto non_accept = NonAcceptability(run.mdp->mehr_theories.size(), run.policies.size());
+    mehr.findNonAccept(non_accept);
+    ASSERT_NEAR(non_accept.getPolicyNonAccept(piIdx["A"]), 1, tolerance);
+    ASSERT_NEAR(non_accept.getPolicyNonAccept(piIdx["B"]), 0.75, tolerance);
 
+    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["A"], {3,0}, piIdx["B"], {-1,100}));
+    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["A"], {3,0}, piIdx["B"], {1,0}));
+    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["A"], {3,0}, piIdx["B"], {2,0}));
 
-    // Actual test
-    FAIL() << "Refactored CheckForAttack implementation. Must update.";
-    //double result = mehr.checkForAttack((int)piIdx[0], (int)piIdx[1], theories);
-    // Check right non-acceptability
-    //ASSERT_NEAR(result, 0.75, tolerance);
+    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["B"], {-1,100}, piIdx["A"], {0,0}));
+    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["B"], {-1,100}, piIdx["A"], {1,0}));
+    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["B"], {-1,100}, piIdx["A"], {3,0}));
+
 
 
 }

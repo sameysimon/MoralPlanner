@@ -21,10 +21,18 @@ public:
     explicit QValue(std::vector<WorthBase*> expectations_) {
         expectations = std::move(expectations_);
     }
+    QValue(std::initializer_list<WorthBase*> expectations_) {
+        expectations = std::vector(expectations_.begin(), expectations_.end());
+    }
     QValue(const QValue& other) {
         expectations = std::vector<WorthBase*>(other.expectations.size());
         for (int i = 0; i < other.expectations.size(); i++) {
             expectations[i] = other.expectations[i]->clone();
+        }
+    }
+    void deleteExpectations() {
+        for (auto & expectation : expectations) {
+            delete expectation;
         }
     }
 
@@ -71,6 +79,7 @@ public:
         // CLion says hash_combine is unreachable??
         seed ^= hash + 0x9e3779b9 + (seed << 6) + (seed >> 2);  // A common hash combine technique. Check this out.
     }
+
 
 };
 
