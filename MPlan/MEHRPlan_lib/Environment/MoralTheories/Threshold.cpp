@@ -6,18 +6,11 @@
 #include "QValue.hpp"
 
 int MEHRThreshold::attack(QValue& qv1, QValue& qv2) {
-    auto val_1 = static_cast<ExpectedValue*>(qv1.expectations[considerationIdx]);
-    auto val_2 = static_cast<ExpectedValue*>(qv2.expectations[considerationIdx]);
-
-    if (val_1->value >= threshold and val_2->value < threshold) {
-        return 1;
-    }
-    if (val_1->value < threshold and val_2->value >= threshold) {
-        return -1;
-    }
+    auto val_1 = static_cast<FactoredUtility*>(qv1.expectations[considerationIdx].get());
+    auto val_2 = static_cast<FactoredUtility*>(qv2.expectations[considerationIdx].get());
     return 0;
 }
-Attack MEHRThreshold::CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>> &histories) {
+Attack MEHRThreshold::CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>> &histories) {
     throw std::runtime_error("MEHRThreshold: CriticalQuestionOne() not implemented");
 }
 

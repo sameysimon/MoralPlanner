@@ -32,14 +32,14 @@ void MDP::addCertainSuccessorToQValue(QValue& qval, Successor* scr) {
     std::vector<Successor*> successors = {scr};
     auto baselines = std::vector<WorthBase*>(1);
     for (int i=0; i<considerations.size(); ++i) {
-        baselines[0]=qval.expectations[i];
+        baselines[0] = qval.expectations[i].get();
         qval.expectations[i] = considerations[i]->gather(successors, baselines, true);
     }
 }
 
 void MDP::blankQValue(QValue& qval) {
-    for (auto & t : considerations) {
-        qval.expectations.push_back(t->newWorth());
+    for (auto t : considerations) {
+        qval.expectations.push_back(t->UniqueWorth());
     }
 }
 
@@ -56,15 +56,15 @@ int MDP::compareQValueByRank(QValue& qv1, QValue& qv2, int rank) {
         }
     }
     // Reverse attack
-    if (atLeastOneGreater and not atLeastOneLesser) {
+    if (atLeastOneGreater && not atLeastOneLesser) {
         return -1;
     }
     // Forward Attack
-    if (not atLeastOneGreater and atLeastOneLesser) {
+    if (not atLeastOneGreater && atLeastOneLesser) {
         return 1;
     }
     // Dilemma
-    if (atLeastOneGreater and atLeastOneLesser) {
+    if (atLeastOneGreater && atLeastOneLesser) {
         return 2;
     }
     return 0;
@@ -80,7 +80,7 @@ int MDP::CompareByConsiderations(QValue& qv1, QValue& qv2) {
     for (auto pCon : considerations) {
         currResult = qv1.expectations[pCon->id]->compare(*qv2.expectations[pCon->id]);
         if ((result != 0 && currResult != 0) && currResult != result) {
-            // Disagreement with last result. Attakcs fires both ways. Draw.
+            // Disagreement with last result. Attack fires both ways. Draw.
             return 0;
         }
         if (currResult != 0) {
@@ -90,6 +90,32 @@ int MDP::CompareByConsiderations(QValue& qv1, QValue& qv2) {
     return result;
 }
 
+int MDP::ParetoCompare(QValue& qv1, QValue& qv2) {
+    int result = 0;
+    bool atLeastOneGreater = false;
+    bool atLeastOneLesser = false;
+    bool allAtLeast = true;
+    bool allAtMost = true;
+    int r = 0;
+    for (auto pCon : considerations) {
+        r = qv1.expectations[pCon->id]->compare(*qv2.expectations[pCon->id]);
+        if (r==1) {
+            atLeastOneGreater = true;
+            allAtMost = false;
+        }
+        if (r==-1) {
+            atLeastOneLesser = true;
+            allAtLeast = false;
+        }
+    }
+    if (atLeastOneGreater and allAtLeast) {
+        return 1;
+    }
+    if (atLeastOneLesser and allAtMost) {
+        return -1;
+    }
+    return 0;
+}
 
 
 /**
@@ -203,7 +229,7 @@ void MDP::heuristicQValue(QValue& qval, State& state) {
  */
 bool MDP::isQValueInBudget(QValue& qval) const {
     if (non_moralTheoryIdx==-1) { return true; }
-    auto cost = static_cast<ExpectedUtility*>(qval.expectations[non_moralTheoryIdx]);
+    auto cost = static_cast<ExpectedUtility*>(qval.expectations[non_moralTheoryIdx].get());
     return cost->value > -1 * budget;
 }
 
@@ -217,19 +243,19 @@ bool MDP::checkPoliciesEqual(Policy& p1, Policy& p2) {
     while (!stack.empty()) {
         auto currStateIdx = stack.top();
         stack.pop();
-        auto p1Action = p1.policy.find(currStateIdx);
-        auto p2Action = p2.policy.find(currStateIdx);
-        if (p1Action==p1.policy.end() && p2Action==p2.policy.end()) {
+        auto p1Action = p1.getAction(currStateIdx);
+        auto p2Action = p2.getAction(currStateIdx);
+        if (p1Action==-1 && p2Action==-1) {
             continue;
         }
-        if (p1Action==p1.policy.end() || p2Action==p2.policy.end()) {
+        if (p1Action==-1 || p2Action==-1) {
             return false;
         }
-        if (p1.policy[currStateIdx] != p2.policy[currStateIdx]) {
+        if (p1Action != p2Action) {
             return false;
         }
         // If they are both in the map, and they are equal
-        auto scrs = *getActionSuccessors(*states[currStateIdx], p1.policy[currStateIdx]);
+        auto scrs = *getActionSuccessors(*states[currStateIdx], p1Action);
         for (auto scr : scrs) {
             stack.push(scr->target);
         }
@@ -241,7 +267,7 @@ bool MDP::checkPoliciesEqual(Policy& p1, Policy& p2) {
  * Checks if there exists a policy in pols behaviourally equal pi. Traverses MDP for states reachable by pi to do this.
  * @return The index of the matching policy in pols; -1 if no such policy exists.
  */
-int MDP::checkPolicyInVector(const Policy& pi, const vector<Policy*>& pols) {
+int MDP::checkPolicyInVector(Policy& pi, const vector<Policy*>& pols) {
     std::stack<int> stack;
     stack.push(0);
     vector<int> equalPolicies(pols.size());
@@ -250,15 +276,15 @@ int MDP::checkPolicyInVector(const Policy& pi, const vector<Policy*>& pols) {
         auto currStateIdx = stack.top();
         stack.pop();
 
-        auto p1Action = pi.policy.find(currStateIdx);
-        bool piHasNoAction = p1Action==pi.policy.end();
+        auto p1Action = pi.getAction(currStateIdx);
+        bool piHasNoAction = p1Action==-1;
         for (auto it = equalPolicies.begin(); it != equalPolicies.end(); ++it) {
-            auto x = pols[*it]->policy.find(currStateIdx);
-            if (x == pols[*it]->policy.end() && !piHasNoAction) {
+            auto x = pols[*it]->policy.at(currStateIdx);
+            if (x == -1 && !piHasNoAction) {
                 // Curr pol has no action, but pi does, then remove curr pol.
                 it = equalPolicies.erase(it);
             }
-            if (*x != *p1Action) {
+            if (x != p1Action) {
                 // Policies do not match, so remove curr pol.
                 it = equalPolicies.erase(it);
             }
@@ -267,7 +293,7 @@ int MDP::checkPolicyInVector(const Policy& pi, const vector<Policy*>& pols) {
             return -1;
         }
         // If they are both in the map, and they are equal
-        int actionIdx = pi.policy.at(currStateIdx);
+        int actionIdx = pi.getAction(currStateIdx);
         auto scrs = *getActionSuccessors(*states[currStateIdx], actionIdx);
         for (auto scr : scrs) {
             stack.push(scr->target);
@@ -276,11 +302,15 @@ int MDP::checkPolicyInVector(const Policy& pi, const vector<Policy*>& pols) {
     return equalPolicies[0];
 }
 
-std::vector<size_t> MDP::findPoliciesWithAction(std::vector<Policy*>& pols, State& state, int actIdx) {
+std::vector<size_t> MDP::findPoliciesWithAction(std::vector<unique_ptr<Policy>>& pols, State& state, int actIdx) {
     std::vector<size_t> equalPols;
     for (int piIdx=0; piIdx<pols.size(); ++piIdx) {
-        auto pi = pols[piIdx];
-        if (pi->policy.contains(state.id) && pi->policy.at(state.id) == actIdx) {
+        auto &pi = pols[piIdx];
+        auto piIt = pi->policy.find(state.id);
+        if (piIt == pi->policy.end()) {
+            continue;
+        }
+        if (piIt->second == actIdx) {
             equalPols.push_back(piIdx);
         }
     }

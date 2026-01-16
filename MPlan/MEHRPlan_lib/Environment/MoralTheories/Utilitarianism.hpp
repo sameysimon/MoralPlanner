@@ -10,6 +10,7 @@
 #include "MoralTheory.hpp"
 #include "Successor.hpp"
 #include "State.hpp"
+#include "HistoryHandler.hpp"
 #include <cmath>
 #include <iostream>
 
@@ -17,7 +18,7 @@
 class ExpectedUtility : public WorthBase {
 public:
     double value=0;
-    // Use simple numeric operators
+
     int compare(WorthBase& wb) const override {
         auto eu = static_cast<ExpectedUtility*>(&wb);
         if (value < eu->value)
@@ -37,8 +38,8 @@ public:
         }
         return (std::abs(value - eu->value) < 1e-3);
     }
-    [[nodiscard]] WorthBase* clone() const override {
-        return new ExpectedUtility(*this);
+    [[nodiscard]] unique_ptr<WorthBase> clone() const override {
+        return make_unique<ExpectedUtility>(*this);
     }
     ExpectedUtility() {value=0;}
     explicit ExpectedUtility(double v) {value=v;}
@@ -59,58 +60,58 @@ public:
 
 
 class Utilitarianism : public Consideration {
-    std::unordered_map<Successor*, ExpectedUtility*> judgementMap;
-    std::vector<double> heuristicList;
+    std::unordered_map<Successor*, ExpectedUtility*> mJudgementMap;
+    std::vector<double> mHeuristicList;
 
     static ExpectedUtility& quickCast(WorthBase& w) {
         return static_cast<ExpectedUtility&>(w);
     }
 public:
+    Utilitarianism() = default;
     Utilitarianism(json &t, size_t id) : Consideration(id) {
         label = t["Name"];
         // Process heuristics
         for (auto it = t["Heuristic"].begin(); it != t["Heuristic"].end(); it++) {
-            this->heuristicList.push_back(it.value());
+            this->mHeuristicList.push_back(it.value());
         }
     }
     explicit Utilitarianism(int id_) : Consideration(id_) {
-        judgementMap = std::unordered_map<Successor*, ExpectedUtility*>();
+        mJudgementMap = std::unordered_map<Successor*, ExpectedUtility*>();
     }
     //
     // Getters
     //
     ExpectedUtility* judge(Successor& successor) {
-        return judgementMap[&successor];
+        return mJudgementMap[&successor];
     }
-    WorthBase* gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability=false) override {
+    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
         double utility = 0;
         ExpectedUtility* ex;
         for (int i = 0; i < successors.size(); i++) {
             ExpectedUtility* j = judge(*successors[i]);
             ex = static_cast<ExpectedUtility*>(baselines[i]);
             double newVal = j->value + ex->value;
-            if (not ignoreProbability) {
+            if (!ignoreProbability) {
                 newVal *= successors[i]->probability;
             }
             utility+=newVal;
         }
-
-        ex = new ExpectedUtility();
-        ex->value = utility;
-        return ex;
+        auto res = make_unique<ExpectedUtility>(utility);
+        return res;
     };
-    WorthBase* newHeuristic(State& s) override {
-        auto eu = new ExpectedUtility();
-        if (s.id > heuristicList.size()) {
+    std::unique_ptr<WorthBase> newHeuristic(State& s) override {
+
+        if (s.id > mHeuristicList.size()) {
             throw std::runtime_error("Heuristic list is too small");
         }
-        eu->value = heuristicList[s.id];
-        return eu;
+        return make_unique<ExpectedUtility>(mHeuristicList[s.id]);
     };
     WorthBase* newWorth() override {
         return new ExpectedUtility();
     }
-
+    std::unique_ptr<WorthBase> UniqueWorth() override {
+        return std::make_unique<ExpectedUtility>();
+    }
     //
     // Initialisation
     //
@@ -118,15 +119,15 @@ public:
         double val = successorData;
         auto u = new ExpectedUtility();
         u->value = val;
-        this->judgementMap.insert(std::make_pair(successor, u));
+        this->mJudgementMap.insert(std::make_pair(successor, u));
     }
 };
 
 class MEHRUtilitarianism : public MEHRTheory {
-    size_t considerationIdx;
+    size_t considerationIdx=0;
     SortHistories *pSortedHistories;
 public:
-    MEHRUtilitarianism(size_t rank_, size_t con_id, size_t theory_id, std::string &name_) : MEHRTheory(rank_, theory_id, name_), considerationIdx(con_id) {
+    MEHRUtilitarianism(size_t rank_, size_t theory_id, std::string &name_) : MEHRTheory(rank_, theory_id, name_) {
         pSortedHistories = new SortHistories(*this);
     }
     /*~MEHRUtilitarianism() override {
@@ -134,7 +135,7 @@ public:
         delete pSortedHistories;
     }*/
     int attack(QValue& qv1, QValue& qv2) override;
-    Attack CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>>& histories) override;
+    Attack CriticalQuestionOne(Attack& att, std::vector<std::vector<History*>>& histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
     void InitMEHR(std::vector<std::vector<History*>> &histories) override {
         pSortedHistories->InitMEHR(histories);
@@ -145,5 +146,46 @@ public:
     SortHistories* getSortedHistories() {
         return pSortedHistories;
     }
+    void AddConsideration(Consideration& con) override {
+        considerationIdx = con.id;
+    };
 };
 
+class MiniUtilitarianism: public Utilitarianism {
+public:
+    MiniUtilitarianism() = default;
+    MiniUtilitarianism(json &t, size_t id) : Utilitarianism(t, id) {}
+    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
+        double utility = 0;
+        double minUtility = 0;
+        ExpectedUtility* ex;
+        for (int i = 0; i < successors.size(); i++) {
+            ExpectedUtility* j = judge(*successors[i]);
+            ex = static_cast<ExpectedUtility*>(baselines[i]);
+            double newVal = j->value + ex->value;
+            utility+=newVal;
+            minUtility = std::min(utility, minUtility);
+        }
+        auto res = make_unique<ExpectedUtility>(minUtility);
+        return res;
+    };
+};
+class MaxiUtilitarianism: public Utilitarianism {
+public:
+    MaxiUtilitarianism() = default;
+    MaxiUtilitarianism(json &t, size_t id) : Utilitarianism(t, id) {}
+    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
+        double utility = 0;
+        double maxUtility = 0;
+        ExpectedUtility* ex;
+        for (int i = 0; i < successors.size(); i++) {
+            ExpectedUtility* j = judge(*successors[i]);
+            ex = static_cast<ExpectedUtility*>(baselines[i]);
+            double newVal = j->value + ex->value;
+            utility+=newVal;
+            maxUtility = std::max(utility, maxUtility);
+        }
+        auto res = make_unique<ExpectedUtility>(maxUtility);
+        return res;
+    };
+};

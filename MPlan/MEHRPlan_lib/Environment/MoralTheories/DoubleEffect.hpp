@@ -3,30 +3,38 @@
 //
 
 
-
+// Minimise probability of violating pode or probability of bad following good. Good must come first.
+// Pass back prob of bad action
+// Pass back bad consequences.
+// Pass back
 
 #pragma once
 #include <format>
 
 #include "MoralTheory.hpp"
 using namespace std;
+
 class PoDEWorth : public WorthBase {
 public:
-    // Hard limit of 5 consequences at the moment, may change in the future...
-    array<ushort, 5> consequences;
-    bool actionGood = true;
-    double moralGoalProbability = 1.0;
-    double utility = 1.0;
+    double violationPr = 0.0;
+    double goalPr = 0.0;
+    double badPr = 0.0;
 
     // Use simple numeric operators
-    int compare(WorthBase& wb) const override;
+    int compare(WorthBase& wb) const override {
+        auto other = static_cast<PoDEWorth*>(&wb);
+       if (violationPr < other->violationPr) {
+           return 1; // Try to minimise pode.
+       }
+        if (violationPr > other->violationPr) {
+            return -1;
+        }
+        return 0;
+    }
+
 
     [[nodiscard]] string ToString() const override {
-        string out = actionGood ? "Good Action " : "Bad Action ";
-        out += format("hits moral goal at P={}, uility={} w/ consequences", moralGoalProbability, utility);
-        for (auto i : consequences) { out += format("{}, ", i); }
-        out.erase(out.size() - 2);
-        return out;
+
     }
     bool isEquivalent(WorthBase& w) const override {
         auto pode_worth = dynamic_cast<PoDEWorth*>(&w);
@@ -34,39 +42,40 @@ public:
             throw std::invalid_argument("Expected WorthBase to be of type Principle of Double Effect Worth");
             return false;
         }
-        return consequences==pode_worth->consequences
-            && actionGood==pode_worth->actionGood
-            && (std::abs(moralGoalProbability - pode_worth->moralGoalProbability) < 1e-3)
-            && (std::abs(utility - pode_worth->utility) < 1e-3);
+        return
+            (std::abs(goalPr - pode_worth->goalPr) < 1e-3)
+            && (std::abs(badPr - pode_worth->badPr) < 1e-3)
+            && (std::abs(violationPr - pode_worth->violationPr) < 1e-3);
     }
 
-    [[nodiscard]] WorthBase* clone() const override {
-        return new PoDEWorth(*this);
+    [[nodiscard]] unique_ptr<WorthBase> clone() const override {
+        return make_unique<PoDEWorth>(*this);
     }
     PoDEWorth() = default;
-    PoDEWorth(array<ushort, 5> cons_, bool actionGood_, double moralGoalProb_, double utility_) :
-        consequences(cons_), actionGood(actionGood_), moralGoalProbability(moralGoalProb_), utility(utility_) {}
+    PoDEWorth(double goalPr_, double badPr_, double violationPr_) :
+        violationPr(violationPr_), badPr(badPr_), goalPr(goalPr_) {}
 
     PoDEWorth(const PoDEWorth& other)  : WorthBase(other) {
-        this->consequences = other.consequences;
-        this->actionGood = other.actionGood;
-        this->moralGoalProbability = other.moralGoalProbability;
-        this->utility = other.utility;
+        this->goalPr = other.goalPr;
+        this->violationPr = other.violationPr;
+        this->badPr = other.badPr;
     }
     ~PoDEWorth() override = default;
 
     PoDEWorth& operator=(WorthBase& w) {
-        if (const PoDEWorth* pode_worth = dynamic_cast<const PoDEWorth*>(&w)) {
-            this->consequences = pode_worth->consequences;
-            this->actionGood = pode_worth->actionGood;
-            this->moralGoalProbability = pode_worth->moralGoalProbability;
-            this->utility = pode_worth->utility;
+        if (auto pode_worth = dynamic_cast<const PoDEWorth*>(&w)) {
+            this->violationPr = pode_worth->violationPr;
+            this->goalPr = pode_worth->goalPr;
+            this->badPr = pode_worth->badPr;
         }
         return *this;
     }
     std::size_t hash() override {
         // TODO: Make this hash the worth *properly*.
-        return std::hash<double>()(utility);
+        auto h = std::hash<double>()(goalPr);
+        h ^= std::hash<double>()(badPr);
+        h ^= std::hash<double>()(violationPr);
+        return h;
     }
 };
 
@@ -77,13 +86,32 @@ public:
 
 class DoubleEffect : Consideration {
     std::unordered_map<Successor*, PoDEWorth*> judgementMap;
-    //std::vector<double> heuristicList;
+    //std::vector<PoDE> heuristicList;
 public:
     bool sortHistories = false;
+
+    DoubleEffect(json &t, size_t id) : Consideration(id) {
+        label = t["Name"];
+        /* Process heuristics
+        for (auto it = t["Heuristic"].begin(); it != t["Heuristic"].end(); it++) {
+            this->heuristicList.push_back(it.value());
+        }*/
+    }
+
+
     PoDEWorth* judge(Successor& successor) {
         return judgementMap[&successor];
     }
     WorthBase* gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability=false) override {
+        double violationPr = 0;
+        PoDEWorth* base;
+        for (int i = 0; i < successors.size(); i++) {
+            PoDEWorth* j = judge(*successors[i]);
+            base = static_cast<PoDEWorth*>(baselines[i]);
+            if (j->badPr == 1) {
+                violationPr += j->violationPr;
+            }
+        }
     }
     WorthBase* newWorth() override {
         return new PoDEWorth();

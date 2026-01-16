@@ -1,8 +1,8 @@
 {
-  "horizon": 3,
-  "total_states": 5,
-  "actions": ["A", "B","N"],
-  "state_transitions": [
+  "Horizon": 3,
+  "Total_states": 5,
+  "Actions": ["A", "B","N"],
+  "State_transitions": [
     {
       "A": [[0.5, 1, 3, 0], [0.5, 2, 3, 0]],
       "B": [[1, 3, 0, 1]]
@@ -20,23 +20,29 @@
       "N": [[1,4,0,0]]
     }
   ],
-  "state_time":  [0,1,1,1,2],
-  "goals":[],
-  "theories": [
+  "State_time":  [0,1,1,1,2],
+  "Goals":[],
+  "Theories": [
     {
-      "Name": "Utilitarianism",
-      "Rank": 6,
+      "Name": "Theory_One",
       "Type": "Utility",
-      "Heuristic":[0,0,0,0,0],
-      "default": 0
-    },
-    {
-      "Name": "Other Utility",
-      "Rank": 6,
+      "Rank": 0
+    },{
+      "Name": "Theory_Two",
       "Type": "Utility",
-      "Heuristic":[0,0,0,0,0],
-      "default": 0
-    }
-
-  ]
+      "Rank": 0
+    }],
+  "Considerations": [{
+    "Name": "Con_One",
+    "Type": "Utility",
+    "Component_of": "Theory_One",
+    "Default": 0,
+    "Heuristic": [0, 0, 0, 0, 0]
+  }, {
+    "Name": "Con_Two",
+    "Type": "Utility",
+    "Component_of": "Theory_Two",
+    "Default": 0,
+    "Heuristic": [0, 0, 0, 0, 0]
+  }]
 }

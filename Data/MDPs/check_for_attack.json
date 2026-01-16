@@ -1,32 +1,43 @@
 {
-  "horizon": 2,
-  "total_states": 2,
-  "actions": ["A", "B"],
-  "state_transitions": [
+  "Horizon": 2,
+  "Total_states": 2,
+  "Actions": ["A", "B"],
+  "State_transitions": [
     {
       "A": [[0.25, 1, 0,0], [0.25, 1, 1,0], [0.25, 1, 3,0], [0.25, 1, 3,0]],
       "B": [[0.25, 1,-1,100], [0.25, 1,1,0], [0.25, 1,2,0], [0.25, 1,4,0]]
     }, {}
   ],
-  "notes": ["This is a test MDP for the check_for_attack function.", 
+  "Notes": ["This is a test MDP for the check_for_attack function.",
            "A expects (1.75, 0). For theory 2, loses on all outcomes.",
            "B expects (1.5, 25). For theory 1, loses for -1, 1, 2. Last outcome 4 is un-attacked. 0.75 non-accept. "],
-  "state_time":  [0,1],
-  "goals":[],
-  "theories": [
+  "State_time":  [0,1],
+  "Goals":[],
+  "Considerations": [
+    {
+      "Name": "Utilitarianism",
+      "Type": "Utility",
+      "Heuristic":[0,0],
+      "default": 0,
+      "Component_of": "Utilitarianism"
+    },{
+      "Name": "Other Utility",
+      "Type": "Utility",
+      "Heuristic":[0,0],
+      "default": 0,
+      "Component_of": "Other Utility"
+    }
+  ],
+  "Theories": [
     {
       "Name": "Utilitarianism",
       "Rank": 6,
-      "Type": "Utility",
-      "Heuristic":[0,0],
-      "default": 0
-    }, {
+      "Type": "Utility"
+    },
+    {
       "Name": "Other Utility",
       "Rank": 6,
-      "Type": "Utility",
-      "Heuristic":[0,0],
-      "default": 0
+      "Type": "Utility"
     }
-
   ]
 }

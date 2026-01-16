@@ -9,11 +9,13 @@
 
 json JSONBuilder::toJSON(Runner& run) {
     json result = json::object();
-    result.merge_patch(JSONBuilder::toJSON(run.durations[0], run.durations[1], run.durations[2], run.durations[3]));
-    result.merge_patch(JSONBuilder::toJSON(run.histories, false));
-    result.merge_patch(JSONBuilder::toJSON(*(run.solver)));
-    result.merge_patch(JSONBuilder::toJSON(run.policies, *(run.mdp), *(run.non_accept)));
+    result.merge_patch(toJSON(run.durations));
+    result.merge_patch(toJSON(run.histories, false));
+    result.merge_patch(toJSON(*(run.solver)));
+    result.merge_patch(toJSON(run.policies, *(run.mdp), *(run.non_accept)));
 
+    result[FIELD::DURATION_CQ_1] = run.mehr->cq1_time;
+    result[FIELD::DURATION_CQ_2] = run.mehr->cq2_time;
 
     // Add input file to end of json for easy processing!
     std::ifstream inputFile = std::ifstream(run.fileIn);
@@ -46,7 +48,7 @@ json JSONBuilder::toJSON(const std::vector<Attack>& attackVector) {
 json JSONBuilder::toJSON(explainResult &er, Runner& runner) {
     json r = json::object();
     // Add durations
-    r.merge_patch(toJSON(er.planTime, er.solutionExtractionTime, er.historyExtractionTime, er.mehrTime));
+    r.merge_patch(toJSON(runner.durations));
 
     // Add Policies + Histories
     r[FIELD::FOILSOLUTIONS] = json::object();
@@ -63,16 +65,24 @@ json JSONBuilder::toJSON(explainResult &er, Runner& runner) {
     return r;
 }
 
-json JSONBuilder::toJSON(vector<Policy*>& policies, MDP &mdp, NonAcceptability &non_accept, bool includeActions) {
+json JSONBuilder::toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcceptability &non_accept, bool includeActions) {
     json ar = json::array();
     std::vector<size_t> sorted_indices = sort_indices(non_accept);
+    double min_non_acc = non_accept.getPolicyNonAccept(sorted_indices[0]);
+    int num_of_min_non_acc = 0;
     for (size_t i =0; i < policies.size(); ++i) {
-        ar.push_back(toJSON(*policies[i], mdp, non_accept.getPolicyNonAccept(i), includeActions));
+        auto nacc = non_accept.getPolicyNonAccept(i);
+        ar.push_back(toJSON(*policies[i], mdp, nacc, includeActions));
+        if (nacc==min_non_acc) {
+            num_of_min_non_acc++;
+        }
+
     }
     json r = json::object();
     r[FIELD::SOLUTIONS] = ar;
     r[FIELD::SOLUTION_TOTAL] = policies.size();
     r[FIELD::SOLUTIONS_ORDER] = sorted_indices;
+    r[FIELD::NUM_OF_MIN_NON_ACCEPT] = num_of_min_non_acc;
     return r;
 }
 
@@ -89,7 +99,7 @@ json JSONBuilder::toJSON(Policy &pi, MDP &mdp, double non_accept, bool includeAc
     }
     // Add Expected Cost
     if (mdp.non_moralTheoryIdx != -1) {
-        ExpectedUtility* cost = dynamic_cast<ExpectedUtility*>(pi.worth[0].expectations[mdp.non_moralTheoryIdx]);
+        ExpectedUtility* cost = dynamic_cast<ExpectedUtility*>(pi.worth[0].expectations[mdp.non_moralTheoryIdx].get());
         r[FIELD::EXPECTED_COST] = cost->value;
     }
 
@@ -148,13 +158,15 @@ json JSONBuilder::toJSON(vector<Successor*>& path) {
     return r;
 }
 
-json JSONBuilder::toJSON(long long plan, long long sols, long long outs, long long mehr) {
+json JSONBuilder::toJSON(Durations& dur) {
     json r;
-    r[FIELD::DURATION_PLAN] = plan;
-    r[FIELD::DURATION_SOLS] = sols;
-    r[FIELD::DURATION_OUTS] = outs;
-    r[FIELD::DURATION_MEHR] = mehr;
-    r[FIELD::DURATION_TOTAL] = plan + sols + outs + mehr;
+    r[FIELD::DURATION_HEURISTIC] = dur.heuristicTime;
+    r[FIELD::DURATION_PLAN] = dur.planTime;
+    r[FIELD::DURATION_SOLS] = dur.solutionExtractionTime;
+    r[FIELD::DURATION_SOLS_REDUCE] = dur.solutionReductionTime;
+    r[FIELD::DURATION_OUTS] = dur.historyExtractionTime;
+    r[FIELD::DURATION_MEHR] = dur.mehrTime;
+    r[FIELD::DURATION_TOTAL] = dur.Total();
     return r;
 }
 
@@ -162,7 +174,7 @@ json JSONBuilder::toJSON(Solver& solver) {
     json r;
     r[FIELD::EXPANDED] = solver.expanded_states;
     r[FIELD::BACKUPS] = solver.backups;
-    r[FIELD::ITERATIONS] = solver.iterations;
+    r[FIELD::ITERATIONS] = solver.expansions;
     return r;
 }
 

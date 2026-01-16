@@ -18,14 +18,14 @@ bool Solver::PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visite
         return true; // If not already on Explicit Graph, don't search!
     }
 
-    for(auto stateAction : mPi->at(stateIdx)) {
+    for(auto stateAction : mPi.at(stateIdx)) {
         auto scrs = mdp.getActionSuccessors(*mdp.states[stateIdx], stateAction);
         if (scrs==nullptr) { continue; }
 
         for (auto scr : *scrs) {
             int ttime = time+1;
             if (PostOrderDFSCall(scr->target, ttime, visited, foundStates)) {
-                mBackupOrder->emplace_back(scr->target);
+                mBackupOrder.emplace_back(scr->target);
             }
         }
     }
@@ -35,9 +35,9 @@ bool Solver::PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visite
 
 
 void Solver::setPostOrderDFS() {
-    mBackupOrder->clear();
+    mBackupOrder.clear();
     unordered_set<int> visited = unordered_set<int>();
 
     PostOrderDFSCall(0, 0, visited, mFoundStates);
-    mBackupOrder->emplace_back(0);
+    mBackupOrder.emplace_back(0);
 }

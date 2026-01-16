@@ -1,33 +1,41 @@
 from abc import ABC, abstractmethod 
 from copy import deepcopy
 
+class ConsiderationTypes():
+    UTILITY="Utility"
+    ABSOLUTISM="Absolutism"
+    MAXIMIN="Maximin"
+
+class State:
+    def __init__(self, _index=0, _props={}, _info={}):
+        self.id = _index
+        self.actions:list[str] = []
+        self.props:dict = _props
+        self.info:dict = _info
+        self.successors = {}
+        self.ancestors = []
+        
+class Successor:
+    def __init__(self, _sourceState:State, _targetState:State, _probability:float, _action:str):
+        self.sourceState:State = _sourceState
+        self.targetState:State = _targetState
+        self.probability:float = _probability
+        self.action:str = _action
 
 class MDP(ABC):
-    class State:
-        def __init__(self, _index=0, _props={}):
-            self.id = _index
-            self.actions = []
-            self.props = _props
-            self.successors = {}
-            self.ancestors = []
-            
-    class Successor:
-        def __init__(self, _sourceState, _targetState, _probability, _action):
-            self.sourceState = _sourceState
-            self.targetState = _targetState
-            self.probability = _probability
-            self.action = _action
-
     def __init__(self):
-        self.states = [] # List of explicit instantiated states
+        self.states:list[State] = [] # List of explicit instantiated states
         self.rules = [] # List of rule functions for state-action transitions
         self.__statePropIndex = {}
         self.__expandedStates = [] # State indices of fully expanded states (has State, successors)
-        self.infinite = False
+        self.infinite:bool = False
+        
         self.TheoryClasses = []
-        self.Theories=[]
-        self.actions = []
-        self.CostTheory=None
+        self.Considerations:list[Consideration]=[]
+        self.Theories:list[Theory]=[]
+
+        self.actions:list[str] = []
+        self.CostTheory:Consideration = None
 
 
     def EmptyValuation(self) -> dict:
@@ -48,17 +56,15 @@ class MDP(ABC):
             dict: dict: theory.tag -> estimated worth.
         """
         h = {}
-        for t in self.Theories:
-            h[t.tag] = t.StateHeuristic(state)
+        for c in self.Considerations:
+            h[c.tag] = c.StateHeuristic(state)
         return h
-
 
     def makeAllStatesExplicit(self):
         """Creates explicit graph representation for all states.
         Returns:
             bool: Whether it was successful. Fails if infinite flag is True.
         """
-
         self.actions = set()
         if self.infinite:
             return False
@@ -71,7 +77,7 @@ class MDP(ABC):
             idx+=1
         return True
     
-    def getActionSuccessors(self, state: State, action:str, readOnly=False) -> list:
+    def getActionSuccessors(self, state: State, action:str, readOnly=False) -> list[Successor]:
         """Returns (or generates if required) successor objects using mdp rules. 
 
         Args:
@@ -92,11 +98,26 @@ class MDP(ABC):
         return s
 
     def __buildSuccessors(self, state: State, action:str):
+        if (state.id==18 and action=='right'):
+            print()
         successorsValues = [(state.props, 1)]
         for ruleFunc in self.rules:
             ruleSuccessorsValues = []
             for existing in successorsValues:
-                new = ruleFunc(self, existing[0], existing[1], action)
+                props = deepcopy(existing[0])
+                new = ruleFunc(self, props, existing[1], action)
+                if (not isinstance(new, list)):
+                    raise Exception(f"Rule func {ruleFunc} does not return list of items from {props}, instead returns {new}")
+                if (len(new)==0):
+                    raise Exception(f"Rule func {ruleFunc} with properties {props} had no successors.")
+                for n in new:
+                    if (not isinstance(n, tuple)):
+                        raise Exception(f"Rule func {ruleFunc} does not return properties+probability tuple from {props}, instead returns {n}")
+                    if (not isinstance(n[0], dict)):
+                        raise Exception(f"Rule func {ruleFunc} does not return properties dict from {props}, instead returns {n[0]}")
+                    if (not (isinstance(n[1], float) or isinstance(n[1], int))):
+                        raise Exception(f"Rule func {ruleFunc} does not return probability from {props}, instead returns {n[1]}")
+
                 ruleSuccessorsValues.extend(new)
             successorsValues = ruleSuccessorsValues
         
@@ -108,7 +129,7 @@ class MDP(ABC):
         
         state.successors[action] = []
         for scrID, p in scrToProb.items():
-            successorState = MDP.Successor(state, self.states[scrID], p, action)
+            successorState = Successor(state, self.states[scrID], p, action)
             state.successors[action].append(successorState)
 
         return state.successors[action]
@@ -125,7 +146,7 @@ class MDP(ABC):
 
         index = len(self.states)
         self.__statePropIndex[propStr] = index
-        self.states.append(MDP.State(_index=index, _props = stateProps))
+        self.states.append(State(_index=index, _props = stateProps))
         return self.states[self.__statePropIndex[propStr]]
 
     def expandState(self, state:State):
@@ -143,20 +164,31 @@ class MDP(ABC):
             newStates.append(self.states[i])
         return newStates
 
-
-class MoralTheory(ABC):
-    @abstractmethod
-    def judge(self, successor:MDP.Successor):
-        pass
-    def heuristic(self, state:MDP.State):
-        pass
-
-class DefaultCost(MoralTheory):
+class Theory(ABC):
     def __init__(self):
+        super().__init__()
+        self.rank=0
+        self.name=""
+        self.type=""
+
+class Consideration(ABC):
+    def __init__(self):
+        super().__init__()
+        self.componentOf:list[str] = []
+
+    @abstractmethod
+    def judge(self, successor:Successor):
+        pass
+    def heuristic(self, state:State):
+        pass
+
+class DefaultCost(Consideration):
+    def __init__(self):
+        super().__init__()
         self.type='utility'
         self.rank=-1
         self.tag='cost'
-    def judge(self, successor:MDP.Successor):
+    def judge(self, successor:Successor):
         return 0
-    def heuristic(self, state:MDP.State):
+    def heuristic(self, state:State):
         return 0

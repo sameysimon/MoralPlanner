@@ -8,12 +8,16 @@
 #include <sstream>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
+#include <set>
 
 #include "Absolutism.hpp"
 #include "Maximin.hpp"
+#include "MEHR.hpp"
 #include "Utilitarianism.hpp"
-#include "Threshold.hpp"
+//#include "OrdinalCase.hpp"
+//#include "Threshold.hpp"
 #include "MoralTheory.hpp"
+#include "OrdinalCase.hpp"
 
 
 using json = nlohmann::json;
@@ -46,25 +50,25 @@ void throwStageOne(string msg) {
     throw std::runtime_error("MDP::buildFromJSON: " + msg);
 }
 void verifyJSON(nlohmann::json& data) {
-    if (data.contains("horizon") == false) {
+    if (data.contains("Horizon") == false) {
         throwStageOne("horizon not found.");
     }
-    if (data.contains("actions") == false) {
+    if (data.contains("Actions") == false) {
         throwStageOne("actions not found.");
     }
-    if (data.contains("total_states") == false) {
+    if (data.contains("Total_states") == false) {
         throwStageOne("total_states not found.");
     }
-    if (data.contains("goals") == false) {
+    if (data.contains("Goals") == false) {
         throwStageOne("goals not found.");
     }
-    if (data.contains("theories") == false) {
+    if (data.contains("Theories") == false) {
         throwStageOne("theories not found.");
     }
-    if (data.contains("state_transitions") == false) {
+    if (data.contains("State_transitions") == false) {
         throwStageOne("state_transitions not found.");
     }
-    for (auto theory : data["theories"]) {
+    for (auto theory : data["Theories"]) {
         if (theory.contains("Name") == false) {
             throwStageOne("theory name not found.");
         }
@@ -75,18 +79,32 @@ void verifyJSON(nlohmann::json& data) {
         if (theory.contains("Type") == false) {
             throwStageOne(theoryName + " Type not found.");
         }
-        if (theory.contains("Heuristic") == false) {
-            throwStageOne(theoryName + " Heuristic not found.");
+    }
+
+    for (auto &con : data["Considerations"]) {
+        if (con.contains("Name") == false) {
+            throwStageOne("A consideration has no name.");
+        }
+        string conName = con["Name"];
+        if (con.contains("Type") == false) {
+            throwStageOne(conName + " Type not found.");
+        }
+        if (con.contains("Heuristic") == false) {
+            throwStageOne(conName + " Heuristic not found.");
+        }
+        if (con.contains("Component_of") == false && con["Type"]!="Cost") {
+            throwStageOne(conName + " is not non-moral, but is not the component of any theory.");
         }
     }
 
 
-    int theories = data["theories"].size();
+
+    int theories = data["Considerations"].size();
     int stateID = 0;
-    for (auto stateTransitions : data["state_transitions"]) {
-        for (auto transition : stateTransitions.items()) {
+    for (auto stateTransitions : data["State_transitions"]) {
+        for (auto &transition : stateTransitions.items()) {
             string key = transition.key();
-            vector<string> actions = data["actions"];
+            vector<string> actions = data["Actions"];
             if (std::find(actions.begin(), actions.end(), key) == actions.end()) {
                 throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + " action " + key + " not found.");
             }
@@ -102,7 +120,7 @@ void verifyJSON(nlohmann::json& data) {
                 if (successor[0] > 1) {
                     throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "probability greater than 1.");
                 }
-                if (successor[1] >= data["total_states"] or successor[1] < 0) {
+                if (successor[1] >= data["Total_states"] or successor[1] < 0) {
                     throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "successor index not in state range.");
                 }
                 successor_count++;
@@ -112,22 +130,18 @@ void verifyJSON(nlohmann::json& data) {
         }
         stateID++;
     }
-    if (stateID != data["total_states"]) {
-        int totStates = data["total_states"];
+    if (stateID != data["Total_states"]) {
+        int totStates = data["Total_states"];
         throw std::runtime_error("MDP::buildFromJSON: There were " + std::to_string(stateID) + " state transition maps, but total_states is " + std::to_string(totStates));
     }
-
-
 }
-
-
 
 void MDP::buildFromJSON(nlohmann::json& data) {
     std::ostringstream oss;
     verifyJSON(data);
 
     // HORIZON
-    horizon = data["horizon"];
+    horizon = data["Horizon"];
 
     try {
         actionsFromJSON(data);
@@ -157,18 +171,12 @@ void MDP::buildFromJSON(nlohmann::json& data) {
         exit(1);
     }
 
-
-
-
-
-
 }
-
 
 
 void MDP::actionsFromJSON(nlohmann::json& data) {
     int actionId = 0;
-    for (std::string act : data["actions"]) {
+    for (std::string act : data["Actions"]) {
         actionMap[act] = make_unique<Action>(actionId, act);
         actionId++;
     }
@@ -176,69 +184,99 @@ void MDP::actionsFromJSON(nlohmann::json& data) {
 
 void MDP::theoriesFromJSON(nlohmann::json &data) {
     std::vector<int> ranks = std::vector<int>();
-    for (json t : data["theories"] ) {
+    for (json t : data["Theories"] ) {
         ranks.push_back(t["Rank"]);
     }
     // std sorts ranks uniquely
     std::set<int> unique_ordered_ranks(ranks.begin(), ranks.end());
     groupedTheoryIndices = std::vector<std::vector<size_t>>(unique_ordered_ranks.size());
-    for (auto& i : groupedTheoryIndices) {
-        i = vector<size_t>();
+
+    for (json &t : data["Theories"]) {
+        std::string name = t["Name"];
+        std::string type = t["Type"];
+        int rank = t["Rank"];
+        MEHRTheory *theory;
+
+        if (type == "Utility") {
+            theory = new MEHRUtilitarianism(t["Rank"], mehr_theories.size(), name);
+        }
+        else if (type == "Threshold") {
+            //theory = new MEHRThreshold(t["Rank"], mehr_theories.size(), t["Threshold"], name);
+        }
+        else if (type == "Absolutism") {
+            theory = new MEHRAbsolutism(t["Rank"], mehr_theories.size(), name);
+        }
+        else if (type == "Maximin") {
+            theory = new MEHRMaximin(t["Rank"], mehr_theories.size(), name);
+        }
+        else if (type == "Ordinal") {
+            theory = new MEHROrdinal(t["Rank"], mehr_theories.size(), name);
+        }
+        else {
+            std::cout << "MDP::theoriesFromJSON - Theory type " << type << " does not exist." << std::endl;
+            throw std::runtime_error(std::format(
+                "MDP::buildFromJSON: Theory {} has type '{}' that does not exist.",
+                name, type
+            ));
+        }
+        size_t index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(rank));
+        groupedTheoryIndices[index].push_back(mehr_theories.size());
+        mehr_theories.push_back(theory);
     }
 
     size_t conID = 0;
-    for (json t : data["theories"] ) {
+    for (json &t : data["Considerations"]) {
         std::string type = t["Type"];
         std::string name = t["Name"];
-        MEHRTheory *m;
+
+        std::vector<std::string> mehr_names;
+        if (t["Component_of"].type() == nlohmann::json::value_t::string) {
+            // Empty string implies attachment to no moral theory.
+            if (t["Component_of"] != "") {
+                mehr_names.push_back(t["Component_of"]);
+            }
+        }else {
+            mehr_names = t["Component_of"].get<std::vector<std::string>>();
+        }
+
         if (type == "Utility") {
+            if (t.contains("type") && t["Utility_type"] == "Maximum") {
+                this->considerations.push_back(new MaxiUtilitarianism(t, conID));
+            } else if (t.contains("type") && t["Utility_type"] == "Minimum") {
+                this->considerations.push_back(new MiniUtilitarianism(t, conID));
+            } else {
+                this->considerations.push_back(new Utilitarianism(t, conID));
+            }
+        }
+        else if (type == "Cost") {
             this->considerations.push_back(new Utilitarianism(t, conID));
-            AddMEHRTheory(new MEHRUtilitarianism(t["Rank"], conID, mehr_theories.size(), name), t["Rank"], unique_ordered_ranks);
-        } else if (type=="Cost") {
-            // Make Utiltarian theory
-            considerations.push_back(new Utilitarianism(t, conID));
             budget = t["Budget"];
             non_moralTheoryIdx = static_cast<int>(conID);
-        } else if (type=="Threshold") {
-            this->considerations.push_back(new Threshold(t, conID));
-            m = new MEHRThreshold(t["Rank"], conID, mehr_theories.size(), t["Threshold"], name);
-            AddMEHRTheory(m, t["Rank"], unique_ordered_ranks);
-        } else if (type=="Absolutism") {
-            this->considerations.push_back(new Absolutism(t, conID));
-            m = new MEHRAbsolutism(t["Rank"], mehr_theories.size(), conID, name);
-            AddMEHRTheory(m, t["Rank"], unique_ordered_ranks);
         }
-        else if (type=="PoDE") {
-            // TO IMPLEMENT...
-        } else if (type=="Maximin") {
-            std::string mehr_name = t["Component_Of"];
-            int mehr_id = findMEHRTheoryIdx(mehr_name);
-            MEHRMaximin* mehrMaximin;
-            if (mehr_id == -1) {
-                // no theory exists -> make one.
-                mehrMaximin = new MEHRMaximin(t["Rank"], mehr_theories.size(), mehr_name);
-                AddMEHRTheory(mehrMaximin, t["Rank"], unique_ordered_ranks);
-            } else {
-                mehrMaximin = dynamic_cast<MEHRMaximin*>(mehr_theories[mehr_id]);
-            }
-            considerations.push_back(new Maximin(t, conID));
-            mehrMaximin->addConsideration(conID);
+        else if (type == "Absolutism") {
+            this->considerations.push_back(new Absolutism(t, conID));
+        }
+        else if (type == "Ordinal") {
+            this->considerations.push_back(new Ordinal(t, conID));
         }
         else {
-            std::ostringstream oss;
-            oss << "MDP::buildFromJSON: unrecognized theory type, '" << type << "'";
-            throw runtime_error(oss.str());
+            throw std::runtime_error(std::format(
+                "MDP::buildFromJSON: Consideration {} has type '{}' that does not exist.",
+                name, type
+            ));
+        }
+
+        // Add consideration to all relevant theories.
+        for (std::string &mehrName : mehr_names) {
+            int mehrIdx = findMEHRTheoryIdx(mehrName);
+            if (mehrIdx < 0) {
+                throw runtime_error(std::format("MDP::buildFromJSON: Consideration '{}' references theory with name '{}' that has not been declared.", name, mehrName));
+            }
+            mehr_theories[mehrIdx]->AddConsideration(*this->considerations[conID]);
         }
         conID = considerations.size();
-        // TODO Other theories...
     }
-}
 
-size_t MDP::AddMEHRTheory(MEHRTheory *mehrTheory, int rank, std::set<int> &unique_ordered_ranks) {
-    size_t index = distance(unique_ordered_ranks.begin(), unique_ordered_ranks.find(rank));
-    groupedTheoryIndices[index].push_back(mehr_theories.size());
-    mehr_theories.push_back(mehrTheory);
-    return index;
 }
 
 int MDP::findMEHRTheoryIdx(string& theoryName) {
@@ -252,37 +290,38 @@ int MDP::findMEHRTheoryIdx(string& theoryName) {
 
 
 void MDP::statesFromJSON(nlohmann::json &data) {
-    total_states = data["total_states"];
+    total_states = data["Total_states"];
     states = std::vector<State*>(total_states);
     stateActions = std::vector<std::vector<shared_ptr<Action>>>(total_states);
     State* state;
-    auto s_t = data["state_transitions"];
+    auto s_t = data["State_transitions"];
     for (int i=0; i < this->total_states; ++i) {
         int number_of_actions = 0;
         if (s_t.is_array()) { number_of_actions = s_t[i].size(); }
         if (s_t.is_object()) { number_of_actions = s_t[to_string(i)].size(); }
-        state = new State(i,number_of_actions, data["state_time"][i]);
+        state = new State(i,number_of_actions, data["State_time"][i]);
         states[i] = state;
         stateActions[i] = vector<shared_ptr<Action>>();
     }
-    for (int gIdx : data["goals"]) {
+    for (int gIdx : data["Goals"]) {
         this->states[gIdx]->isGoal = true;
     }
     // May not be state tags, so skip final step if not.
-    if (!data.contains("state_tags")) {
+    if (!data.contains("State_tags")) {
         return;
     }
-    if (data.count("state_tags")) {
+    if (data.count("State_tags")) {
         for (int i=0; i <this->total_states; ++i) {
-            states[i]->tag = data["state_tags"][i];
+            states[i]->tag = data["State_tags"][i];
         }
     }
 
 
 
 }
+
 void MDP::successorsFromJSON(nlohmann::json &data) {
-    auto t = data["state_transitions"];
+    auto t = data["State_transitions"];
     Successor* successor;
     for (int sourceIdx=0; sourceIdx <total_states; ++sourceIdx) {
         json transitionDict;

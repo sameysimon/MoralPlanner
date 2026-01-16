@@ -39,6 +39,7 @@ cd MoralPlanner
 1. Create a build directory and run CMake:
 
    ```bash
+   cd MPlan
    mkdir build
    cd build
    cmake ..
@@ -74,35 +75,17 @@ You may need to make a virtual environment: `python3 -m venv myVEnvName` then `s
 MoralPlanner
 ├── Data/                   # Data storage for experiments, outputs, and MDPs
 ├── EnvironmentBuilder/     # Python scripts for MDP environment generation
+├── scripts/                # Python scripts to run domain experiments
 ├── MPlan/                  # Core C++ library and executable
 │   ├── MEHRPlan_lib/       # Library for planners and moral theories
-│   ├── Google_tests/       # Unit tests for C++ components
-├── AbstractExperiments.py      # Abstract moral theory experiment/test runner
-├── runInsulinExperiments.py    # The Lost Insulin Experiment runner
+│   ├── Google_tests/       # Unit tests for C++ planner
+
 
 ```
 
 ---
 
 ## Usage
-
-### Running the Python Environment Builder
-
-Set up or modify MDP environments:
-
-```bash
-cd EnvironmentBuilder
-python -m EnvironmentBuilder --config config.json
-```
-
-| **Argument**         | **Type**       | **Required** | **Description**                                                                                             |
-|-----------------------|----------------|--------------|-------------------------------------------------------------------------------------------------------------|
-| `--policy`           | `str`          | No           | File location for the policy to process. If not provided, the script defaults to building a new environment.|
-| `--domain`           | `str`          | Yes          | The environment domain to use. Options: `WindyDrone`, `LostInsulin`. Defaults to `WindyDrone`.              |
-| `--out`              | `str`          | No           | Path to save the output `.json` file. Defaults to `outputs/out.json` in the project directory.              |
-| `--explore`          | `flag`         | No           | Enables interactive exploration of the environment. If not provided, the script exits after processing.     |
-| `--theoryTags`       | `list of pairs`| No           | Any number of integer-string pairs representing custom theory tags. If not provided, defaults are used.     |
-
 
 ### Generating random Python Environments
 
@@ -132,14 +115,15 @@ This table sums it up!
 Execute the planner:
 
 ```bash
-cd build
+cd MPlan/build
 ./MPlan ../Data/your_fun_path/exampleMMMDP.json
 ```
 
-| **Argument**    | **Type** | **Required** | **Description**                                                                                       |
-|------------------|----------|--------------|-------------------------------------------------------------------------------------------------------|
-| `<input_file>`   | `string` | Yes          | Path to the environment input file. This file must be in JSON format and define the MDP structure.    |
-| `<output_file>`  | `string` | Yes          | Path to the output file where results will be saved. The output will include policies and MEHR data.  |
+| **Argument**   | **Type** | **Required** | **Description**                                                                                      |
+|----------------|----------|----------|------------------------------------------------------------------------------------------------------|
+| `--Debug  -D`  | `int`    | No       | Set Debug log level. Fatal=0, Error=1, Warn=2, Info=3, Debug=4, Trace=5, All=6. Default is Warn.     |
+| `<input_file>` | `string` | Yes      | Path to the environment input file. This file must be in JSON format and define the MDP structure.   |
+| `<output_file>` | `string` | Yes      | Path to the output file where results will be saved. The output will include policies and MEHR data. |
 
 
 ### Running Experiments from the paper
@@ -154,13 +138,45 @@ Results will be generated in directory `MoralPlanner/Data/Experiments/<YYYY-MM-D
 Run the included tests:
 
 ```bash
-# Assuming MPlan is built in directory 'build'
+# Assuming MPlan is built in directory 'MPlan/build'
 cd MPlan/build/
 ctest
 ```
-
-
 ---
+## MDP Environment Syntax
+All MMMDP/SSPs are stored as JSON files. The following is a guide to the various keys and how information is structured.
+
+| **Key**             | **Type**                        | **Required** | **Description**                                                                                                                                                                                                             |
+|---------------------|---------------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Horizon`           | `int`                           | Yes          | The number of state-time-state transitions until the MDP terminates.                                                                                                                                                        |
+| `State_transitions` | `object[str:list] / list[list]` | Yes          | For integer index i, specifies transitions at state i as object map from action 'a' to list of transitions. Each transition is a list `[probability:float, successor state:int, ...consideration judgments]` |
+| `Theories`          | `list[object]`                  | Yes          | Details below. A list of objects each specifying each moral theory.                                                                                                                                                         |
+| `Considerations`    | `list[object]`                  | Yes          | Details below. A list of objects each specifying each moral consideration.                                                                                                                                                  |
+| `State_time`        | `list[int]`                     | Yes          | For each state index, gives the state's time stamp.                                                                                                                                                                         |
+| `Actions`           | `list[string]`                  | Yes          | The full set of actions that can be used across states.                                                                                                                                                                     |
+| `State_tags`        | `list[string]`                  | Yes          | A description of each state.                                                                                                                                                                                                |
+| `Goals`             | `list[int]`                     | No           | List of states indices that are goal states; for MMSSPs.                                                                                                                                                                    |
+
+Each moral theory is an object with a few required fields.
+
+| **Key**          | **Type** | **Required** | **Description**                                                                      |
+|------------------|----------|--------------|--------------------------------------------------------------------------------------|
+| `Name`           | `str`    | Yes          | Domain identifier for the moral theory.                                              |
+| `Type`           | `str`    | Yes          | The particular moral theory. Currently types: `Utility, Absolute, Maximin, Ordinal`. |
+| `Rank`           | `int`    | Yes          | The weak-lexicographic rank states the stakeholder's preference for the theory.      |
+
+
+Each moral consideration is an object with a few required fields.
+
+| **Key**        | **Type** | **Required** | **Description**                                                                      |
+|----------------|----------|--------------|--------------------------------------------------------------------------------------|
+| `Name`         | `str`    | Yes          | The number of state-time-state transitions until the MDP terminates.                 |
+| `Component_of` | `str`    | Yes          | The particular moral theory. Currently types: `Utility, Absolute, Maximin, Ordinal`. |
+| `Default`      | `any`    | No           | The weak-lexicographic rank states the stakeholder's preference for the theory.      |
+| `Heuristic`    | `list`   | No           | The weak-lexicographic rank states the stakeholder's preference for the theory.      |
+
+
+
 
 ## Code Authors
 

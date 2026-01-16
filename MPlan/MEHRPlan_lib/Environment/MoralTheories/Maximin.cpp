@@ -16,8 +16,8 @@ int MEHRMaximin::attack(QValue& qv1, QValue& qv2) {
     ExpectedUtility* qv1_curr;
     ExpectedUtility* qv2_curr;
     for (size_t c_idx : considerations) {
-        qv1_curr = static_cast<ExpectedUtility*>(qv1.expectations[c_idx]);
-        qv2_curr = static_cast<ExpectedUtility*>(qv2.expectations[c_idx]);
+        qv1_curr = static_cast<ExpectedUtility*>(qv1.expectations[c_idx].get());
+        qv2_curr = static_cast<ExpectedUtility*>(qv2.expectations[c_idx].get());
         if (qv1_curr->value < qv1_min) {
             qv1_min = qv1_curr->value; // TODO Could weigh these by probability? Make it easier to switch.
         }
@@ -49,30 +49,29 @@ void MEHRMaximin::AddPoliciesForMEHR(std::vector<std::vector<History*>> &histori
 }
 
 // Minimax compares all histories.
-Attack MEHRMaximin::CriticalQuestionOne(size_t sourceSol, size_t targetSol, std::vector<std::vector<History*>> &histories) {
-    Attack a = Attack(sourceSol, targetSol, mId);
+Attack MEHRMaximin::CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>> &histories) {
     double targetNonAccept = 0;
-    for (int attIdx = 0; attIdx < histories.at(sourceSol).size(); ++attIdx) {
-        for (int defIdx = 0; defIdx < histories.at(targetSol).size(); ++defIdx) {
+    for (int attIdx = 0; attIdx < histories.at(a.sourcePolicyIdx).size(); ++attIdx) {
+        for (int defIdx = 0; defIdx < histories.at(a.targetPolicyIdx).size(); ++defIdx) {
             // If target argument is already attacked, don't try to add to it.
-            if (attacks[targetSol].contains(defIdx)) {
+            if (attacks[a.targetPolicyIdx].contains(defIdx)) {
                 continue;
             }
-            int result = attack(histories.at(sourceSol).at(attIdx)->worth, histories.at(targetSol).at(defIdx)->worth);
-            Log::writeFormatLog(Trace, "Attacker Policy {} @ Hist {} vs Defender Policy {} @ Hist {}. Result is {}", sourceSol, histories.at(sourceSol).at(attIdx)->worth.toString(), targetSol, histories.at(targetSol).at(defIdx)->worth.toString(), result);
+            int result = attack(histories.at(a.sourcePolicyIdx).at(attIdx)->worth, histories.at(a.targetPolicyIdx).at(defIdx)->worth);
+            Log::writeFormatLog(Trace, "Attacker Policy {} @ Hist {} vs Defender Policy {} @ Hist {}. Result is {}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->worth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->worth.toString(), result);
             if (result==1) {
                 // Store this attack.
-                size_t t = attacks[targetSol].size();
-                attacks[targetSol].insert(defIdx);
-                if (t!=attacks[targetSol].size()) {
-                    a.addEdge(static_cast<size_t>(attIdx), static_cast<size_t>(defIdx), histories.at(targetSol).at(defIdx)->probability);
+                size_t t = attacks[a.targetPolicyIdx].size();
+                attacks[a.targetPolicyIdx].insert(defIdx);
+                if (t!=attacks[a.targetPolicyIdx].size()) {
+                    a.addEdge(static_cast<size_t>(attIdx), static_cast<size_t>(defIdx), histories.at(a.targetPolicyIdx).at(defIdx)->probability);
                 } else {
                     a.addEdge((size_t)attIdx, (size_t)defIdx);
                 }
 
                 a.HistoryEdges.push_back({(size_t)attIdx, (size_t)defIdx});
                 // Add to non-accceptability.
-                Log::writeFormatLog(Debug, Green, "***Attacker Policy {} @ Hist {} ATTACKS Defender Policy {} @ Hist {} with Pr={}", sourceSol, histories.at(sourceSol).at(attIdx)->worth.toString(), targetSol, histories.at(targetSol).at(defIdx)->worth.toString(), histories.at(targetSol).at(defIdx)->probability);
+                Log::writeFormatLog(Debug, Green, "***Attacker Policy {} @ Hist {} ATTACKS Defender Policy {} @ Hist {} with Pr={}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->worth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->worth.toString(), histories.at(a.targetPolicyIdx).at(defIdx)->probability);
 
             }
         }

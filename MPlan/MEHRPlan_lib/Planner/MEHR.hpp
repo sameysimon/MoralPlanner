@@ -7,6 +7,7 @@
 #include "iostream"
 #include "MoralTheory.hpp"
 #include "ExtractHistories.hpp"
+#include <chrono>
 #include <numeric>
 #include "../Logger.hpp"
 #include <unordered_set>
@@ -54,24 +55,21 @@ struct NonAcceptability {
             n.push_back(0);
         }
     }
-
 };
 
 
 class MEHR {
-#ifdef DEBUG                
-    long long search_time = 0;
-    long long attack_time = 0;
-    long long total_comp_policy_exps = 0;
-    long long hist_exps = 0;
-    long long clear_time = 0;
-    long long total_CFA = 0;
-#endif
     bool doneMEHR=false;
     bool useAttackHash=true;
     MDP& mdp;
-    vector<Policy*>& policies;
+    vector<unique_ptr<Policy>>& policies;
     vector<vector<History*>>& histories;
+
+    vector<vector<size_t>> policyOrderByTheory;
+    vector<vector<size_t>> policyRanksByTheory;
+
+    vector<vector<size_t>> posBestOutcomeByTheory;
+    vector<vector<size_t>> accPosBestOutcomeByTheory;
 
     // Stores the best expected policies for each moral theory. Maps theory ID to vector of policy indices.
     unordered_map<size_t, vector<size_t>> bestExpectedPolicyByTheory;
@@ -79,18 +77,23 @@ class MEHR {
     unordered_map<size_t, size_t> invulnerablePolicies;
 
   public:
+    long long cq1_time=0;
+    long long cq2_time=0;
+    long long init_time=0;
     vector<vector<Attack>> attacks;
-    MEHR(MDP& mdp, vector<Policy*> &policies_, vector<vector<History*>> &histories_)
-    : mdp(mdp), policies(policies_), histories(histories_) {
-        attacks.resize(policies.size());
-        // Prepare each moral theory for MEHR based on these theories.
-        for (auto t : mdp.mehr_theories) {
-            t->InitMEHR(histories);
-        }
-    }
+    MEHR(MDP& mdp, vector<unique_ptr<Policy>> &policies_, vector<vector<History*>> &histories_);
 
     // Normal MEHR Functions
+    void SlowFindNonAccept(NonAcceptability &non_accept);
     void findNonAccept(NonAcceptability &non_accept);
+    void SortExpFindNonAccept(NonAcceptability& non_accept);
+    void RankPoliciesByTheory(size_t theoryIdx);
+    void BestPolicyOutcomeByTheory(size_t theoryIdx);
+    size_t getBestHistoryForPolicy(size_t theoryIdx, size_t policyIdx);
+
+
+    int CQ2CompareWithRank(QValue& qv1, QValue& qv2, size_t theoryIdx);
+
     int PolicyCompare(ushort theoryIdx, ushort rankIdx, const size_t &lhs, const size_t &rhs);
     int CheckAttackToRank(ushort toRank, const size_t& left, const size_t& right);
     vector<size_t> MaxPolicyForTheory(unsigned long& theoryIdx, size_t rank);
@@ -98,12 +101,13 @@ class MEHR {
                                    size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies);
 
     // Explainability functions
-    void addPolicyToMEHR(Policy *pi, vector<History*> &h, NonAcceptability &non_accept);
-    void addPoliciesToMEHR(NonAcceptability &non_accept, vector<Policy*> &newPolicies, vector<vector<History*>> &newHistories);
+    void addPolicyToMEHR(unique_ptr<Policy>& pi, vector<History*> &h, NonAcceptability &non_accept);
+    void CQ1AndAddAttack(size_t source_pi, size_t target_pi, size_t theoryIdx, NonAcceptability& non_accept);
+    void addPoliciesToMEHR(NonAcceptability &non_accept, vector<unique_ptr<Policy>> &newPolicies, vector<vector<History*>> &newHistories);
     void BestPoliciesAttackPi(NonAcceptability& non_accept, size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies, size_t pi_idx);
     void PiAttackBestPolicies(NonAcceptability& non_accept, size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies, size_t pi_idx);
 
-    // Intepretation
+    // For Testing
     bool containsAttack(size_t sourcePolicy, size_t targetPolicy) {
         return std::any_of(attacks[targetPolicy].begin(),attacks[targetPolicy].end(),
             [sourcePolicy](Attack& a) {return a.sourcePolicyIdx==sourcePolicy;});

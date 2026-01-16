@@ -1,6 +1,8 @@
 from EnvironmentBuilder.TutorProblem.TeacherProblem import TeacherProblem
 from EnvironmentBuilder.GridWorld.GridWorldProblem import GridWorldProblem
 from EnvironmentBuilder.LostInsulin.LostInsulinProblem import LostInsulin
+from EnvironmentBuilder.SearchRescue.SearchRescueProblem import SearchRescue
+from EnvironmentBuilder.Titanic.TitanicProblem import Titanic
 from EnvironmentBuilder.Elder.ElderProblem import Elder
 from EnvironmentBuilder.SaveEnvironment import SaveEnvToJSON
 from EnvironmentBuilder.Abstract.AbstractMDP import AbstractMDP
@@ -9,6 +11,16 @@ from collections import defaultdict
 import argparse
 import os
 
+
+domains = {
+    "WindyDrone": GridWorldProblem,
+    "Tutor": TeacherProblem,
+    "LostInsulin": LostInsulin,
+    "Random": AbstractMDP,
+    "Elder": Elder,
+    "SearchRescue": SearchRescue,
+    "Titanic": Titanic
+}
 
 # Make theories into desired format for MDP
 # Change from [0, theoryOne, 1, theoryTwo] --> [[theoryOne], [theoryTwo]]
@@ -34,26 +46,39 @@ def changeTagFormat(theoryTags):
         theoryTags.append(x)
     return theoryTags
 
-domains = {
-    "WindyDrone": GridWorldProblem,
-    "Tutor": TeacherProblem,
-    "LostInsulin": LostInsulin,
-    "Abstract": AbstractMDP,
-    "Elder": Elder
-}
 
-def makeMDP(domain, theories, **kwargs):
+
+def makeMDP(domain, **kwargs):
     if (not domain in domains.keys()):
         raise Exception(f"Sim: No MMMDP domain '{domain}'.") 
-    return domains[domain](theoryClasses=theories, **kwargs)
+    
+    # If theories/considerations specified in shorter list format, then convert.
+    for i in range (len(kwargs["Theories"])):
+        currThy = kwargs["Theories"][i]
+        if isinstance(currThy, list):
+            currThy = {"Name": currThy[0], "Type":currThy[1], "Rank":currThy[2]}
+        kwargs["Theories"][i] = currThy
+    
+    for i in range (len(kwargs["Considerations"])):
+        currCon = kwargs["Considerations"][i]
+        if isinstance(currCon, list):
+            if (len(currCon)==2):
+                currCon = {"Type": currCon[0], "Component_of":currCon[1]}
+            else:
+                currCon = {"Type": currCon[0], "Component_of":[]}
+        kwargs["Considerations"][i] = currCon
 
-def buildEnvToFile(domain:str, theories:list, fileOut:str, **kwargs):
-    theories = changeTagFormat(theories)
-    mdp = makeMDP(domain, theories, **kwargs)
+    return domains[domain](**kwargs)
+
+def buildEnvToFile(Domain:str, fileOut:str, **kwargs):
+    mdp = makeMDP(Domain, **kwargs)
     mdp.makeAllStatesExplicit()
-    SaveEnvToJSON(mdp, fileOut)
-    print(f"Written MDP to {fileOut} with domain {domain} and theories {theories}.")
+    SaveEnvToJSON(mdp, fileOut, Domain)
 
+    print(f"Written {Domain} MMMDP with {len(mdp.states)} states and theories {str(kwargs["Theories"])}.")
+    print(f"")
+    print(f"PATH  {fileOut}")
+    print(f"")
 
 
 def main():
@@ -135,7 +160,7 @@ def main():
         parser.error("--horizon must be greater than 1.")
 
     theoryTags = changeTagFormat(args.theories)
-    buildEnvToFile(domain=argparse.domain, theories=theoryTags, fileOut=args.out, kwargs={"horizon":args.horizon, "seed":args.seed, "goals":args.goals, "budget":args.budget, "actionFactor": args.actionFactor, "branchFactor": args.branchFactor} )
+    buildEnvToFile(Domain=argparse.domain, Theories=theoryTags, fileOut=args.out, kwargs={"horizon":args.horizon, "seed":args.seed, "goals":args.goals, "budget":args.budget, "actionFactor": args.actionFactor, "branchFactor": args.branchFactor} )
 
 if __name__ == "__main__":
     main()

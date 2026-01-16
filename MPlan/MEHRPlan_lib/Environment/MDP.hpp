@@ -5,9 +5,7 @@
 //  Created by e56834sk on 10/07/2024.
 //
 
-#ifndef MDP_hpp
-#define MDP_hpp
-
+#pragma once
 #include <vector>
 #include <list>
 #include <string>
@@ -18,8 +16,6 @@
 #include "Successor.hpp"
 #include "MoralTheory.hpp"
 #include <format>
-#include <set>
-#include "QValue.hpp"
 
 class QValue;
 class Policy;
@@ -36,7 +32,6 @@ class MDP {
     void successorsFromJSON(nlohmann::json& data);
 
     int compareQValueByRank(QValue& qv1, QValue& qv2, int rank);
-    size_t AddMEHRTheory(MEHRTheory *mehrTheory, int rank, std::set<int> &unique_ordered_ranks);
 public:
     std::vector<Action*> actions;
     std::vector<State*> states;
@@ -66,24 +61,28 @@ public:
         }
          return state.actionSuccessors[stateActionIndex];
     }
+
+    // Finds state-action index of action with matching label then returns pointer to successors.
     std::vector<Successor*>* getActionSuccessors(const State& state, const Action& action) {
-        // Finds state-action index of 'action' then returns its successors.
         int i = 0;
-        for (auto a : *getActions(state)) {
-            if (a->label == action.label) { //EW TODO Make whole thing better!!!!
+        for (const auto& a : *getActions(state)) {
+            if (a->label == action.label) {
                 return getActionSuccessors(state, i);
             }
             i++;
         }
-        throw std::runtime_error("No suitable action found.");
+        throw std::runtime_error(std::format("MDP::getActionSuccessors State with id {} has no action with label {}", state.id, action.label));
     }
     std::vector<std::shared_ptr<Action>>* getActions(const State& state) {
         return &(stateActions[state.id]);
     }
+
     void addCertainSuccessorToQValue(QValue& qval, Successor* scr);
     int CompareByTheories(QValue& qv1, QValue& qv2, bool useRanks=false);
     int CompareByConsiderations(QValue& qv1, QValue& qv2);
+    int ParetoCompare(QValue& qv1, QValue& qv2);
     int compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories);
+
 
     void blankQValue(QValue& qval);
     void getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval);
@@ -91,10 +90,7 @@ public:
     bool isQValueInBudget(QValue& qval) const;
 
     bool checkPoliciesEqual(Policy& p1, Policy& p2);
-    int checkPolicyInVector(const Policy& pi, const std::vector<Policy*>& pols);
-    std::vector<size_t> findPoliciesWithAction(std::vector<Policy*>& pols, State& state, int actIdx);
+    int checkPolicyInVector(Policy& pi, const std::vector<Policy*>& pols);
+    std::vector<size_t> findPoliciesWithAction(std::vector<std::unique_ptr<Policy>>& pols, State& state, int actIdx);
 
 };
-
-
-#endif /* MDP_hpp */

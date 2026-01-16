@@ -13,7 +13,7 @@ protected:
 TEST_F(MaximinTestFixture, OneOutcome) {
     Runner runner = Runner("Maximin_Tests/OneDepth_OneTheory_OneOutcome.json");
     //Log::setLogLevel(LogLevel::Trace);
-    runner.solve();
+    runner.FullSolve();
 
     vector<string> actions = {"A", "B"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
@@ -32,7 +32,7 @@ TEST_F(MaximinTestFixture, OneOutcome) {
 
 TEST_F(MaximinTestFixture, Bandit) {
     Runner runner = Runner("Maximin_Tests/OneDepth_OneTheory_ThreeOutcomes.json");
-    runner.solve();
+    runner.FullSolve();
 
     vector<string> actions = {"A", "B"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);

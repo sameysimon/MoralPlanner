@@ -1,34 +1,33 @@
 {
-    "horizon": 2,
-    "total_states": 2,
-    "actions": ["A", "B"],
-    "state_transitions": [
+    "Horizon": 2,
+    "Total_states": 2,
+    "Actions": ["A", "B"],
+    "State_transitions": [
       {
         "A": [[1.0,1, 5, 4]],
         "B": [[1.0,1, 100, 3]]
       }, {}
     ],
-    "notes": ["Action A wins because Person_B gets 4 and Person_A gets 3"],
-    "state_time":  [0,1],
-    "goals":[],
-    "theories": [
-      {
-        "Name": "Person_A",
-        "Rank": 6,
-        "Type": "Maximin",
-        "Component_Of": "Rawls",
-        "Heuristic":[0,0],
-        "default": 0
-      },
-      {
-        "Name": "Person_B",
-        "Rank": 6,
-        "Type": "Maximin",
-        "Component_Of": "Rawls",
-        "Heuristic":[0,0],
-        "default": 0
-      }
-  
-    ]
-  }
-  
+    "Notes": ["Action A wins because Person_B gets 4 and Person_A gets 3"],
+    "State_time":  [0,1],
+    "Goals":[],
+  "Theories": [
+    {
+      "Name": "Rawlsian",
+      "Type": "Maximin",
+      "Rank": 77
+    }],
+  "Considerations": [{
+    "Name": "Person_A",
+    "Type": "Utility",
+    "Component_of": "Rawlsian",
+    "Default": 0,
+    "Heuristic": [0,0]
+  }, {
+    "Name": "Person_B",
+    "Type": "Utility",
+    "Component_of": "Rawlsian",
+    "Default": 0,
+    "Heuristic": [0,0]
+  }]
+}

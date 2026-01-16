@@ -7,13 +7,15 @@ import json
 from datetime import datetime
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+import copy
 
 
 class ExperimentRunner:
+    time_columns = ['Total_time', "Heuristic_time", 'Plan_time', 'Mehr_time', 'CQ1_time', 'CQ2_time', 'Sol_time', 'Out_time', 'Sol_reduce_time']
     def __init__(self, domain, configs:list, outFolder=None) -> None:
         self.domain = domain
         self.configs = configs
-        self.planner = os.getcwd() + "/MPlan/cmake-build-release/MPlan"
+        self.planner = os.getcwd() + "/MPlan/cmake-build-release-clang/MPlan"
         self.horizon = 3
         self.budget = 18
 
@@ -41,76 +43,86 @@ class ExperimentRunner:
     def makePlanOutFileName(self, confName:str, confRep:int, envRep:int):
         return f"{self.rawOutFolder}/{confName}_con{confRep}_rep{envRep}.json"
 
-    def getTheoryTags(self):
-        # get all theory tags
-        theoryTags = set()
-        for con in self.configs:
-            for i in range(1, len(con['theories']), 2):
-                theoryTags.add(con['theories'][i])
-        print("Theory tags")
-        print(theoryTags)
-        return list(theoryTags)
-
     def buildEnvironments(self, configRepetitions:int=1):
         for i in range(configRepetitions):
             for conf in self.configs:
-                MDPFactory.buildEnvToFile(self.domain, fileOut=self.makeMdpFileName(conf['name'], i), **conf)
+                MDPFactory.buildEnvToFile(self.domain, fileOut=self.makeMdpFileName(conf['Name'], i), **conf)
                 
 
     def run(self, configRepetitions=1, envRepetitions=1):
         # Generate Environments.
-        print("****\nBuiling environments...\n****")
+        print("*********Builing environments...*********")
         self.buildEnvironments(configRepetitions)
-        print("****\nBuilt all environments.\n****")
+        print("*********Built all environments!*********")
 
 
         # Call planner on all envs
+        print("*********Planning...*********")
         for conf in self.configs:
             for conf_rep in range(configRepetitions):
-                inFile = self.makeMdpFileName(conf['name'], conf_rep)
+                inFile = self.makeMdpFileName(conf['Name'], conf_rep)
                 for env_rep in range(envRepetitions):
-                    print(f"Config Name: {conf["name"]}; Config Rep: {conf_rep}; Env Rep: {env_rep}")
-                    outFile = self.makePlanOutFileName(conf['name'], conf_rep, env_rep)
-                    result = subprocess.run([self.planner, inFile, outFile])
+                    print(f"Config Name: {conf["Name"]}; Env Repetition: {env_rep}")
+                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
+                    result = subprocess.run([self.planner, "--debug", "3", inFile, outFile])
                     result.check_returncode()
-            print(f"Finished env on {conf["name"]}, random config {conf_rep}.")
-        print("Finished MPlan!")
+            print(f"Finished env on {conf["Name"]}.")
+        print("*********Finished planning!*********")
 
-        # Collect the Data.
-        theoryTags = self.getTheoryTags()
+        # Extract all consideration tags from across output files
+        # (inefficient reading each file twice.)
+        self.con_tags = []
+        for conf_rep in range(configRepetitions):
+            for conf in self.configs:
+                for env_rep in range(envRepetitions):
+                    # open file
+                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
+                    with open(outFile, 'r') as file:
+                        json_data = json.load(file)
+                        for tag in json_data["Solutions"][0]["Expectation"].keys():
+                            if (not tag in self.con_tags):
+                                self.con_tags.append(tag)
+
+        # Open output file from planner and interpret
         self.data = []
         for conf_rep in range(configRepetitions):
             for conf in self.configs:
                 for env_rep in range(envRepetitions):
                     # open file
-                    outFile = self.makePlanOutFileName(conf['name'], conf_rep, env_rep)
+                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
                     with open(outFile, 'r') as file:
                         json_data = json.load(file)
                         entry = {
-                            "conf_rep": conf_rep,
-                            "env_rep": env_rep,
-                            "theories": str(conf['theories']),
-                            "total_time": json_data['duration_Total'],
-                            "plan_time": json_data['duration_Plan'],
-                            "mehr_time": json_data['duration_MEHR'],
-                            "sol_time": json_data['duration_Sols'],
-                            "out_time": json_data['duration_Outs'],
-                            "expanded_states": json_data['Expanded'],
-                            "average_histories": json_data['average_histories'],
-                            "max_histories": json_data['max_histories'],
-                            "min_histories": json_data['min_histories'],
-                            "total_states": json_data['total_states'],
-                            "backups": json_data['Backups'],
-                            "iterations": json_data['Iterations'],
-                            "horizon": json_data['horizon'],
-                            "min_non_accept": json_data["solutions"][0]["Non-Acceptability"],
-                            "num_of_sols": len(json_data["solutions"])
+                            "Config_name": conf['Name'],
+                            "Conf_rep": conf_rep,
+                            "Env_rep": env_rep,
+                            "Theories": str(conf['Theories']),
+                            "Considerations": str(conf['Considerations']),
+                            "Total_time": json_data['Duration_Total'],
+                            "Heuristic_time": json_data['Duration_Heuristic'],
+                            "Plan_time": json_data['Duration_Plan'],
+                            "Mehr_time": json_data['Duration_MEHR'],
+                            "CQ1_time": json_data['Duration_CQ1'],
+                            "CQ2_time": json_data['Duration_CQ2'],
+                            "Sol_time": json_data['Duration_Sols'],
+                            "Out_time": json_data['Duration_Outs'],
+                            "Sol_reduce_time": json_data['Duration_Sols_Reduce'],
+                            "Expanded_states": json_data['Expanded'],
+                            "Average_histories": json_data['Average_histories'],
+                            "Max_histories": json_data['Max_histories'],
+                            "Min_histories": json_data['Min_histories'],
+                            "Total_states": json_data['Total_states'],
+                            "Backups": json_data['Backups'],
+                            "Iterations": json_data['Iterations'],
+                            "Horizon": json_data['Horizon'],
+                            "Min_non_accept": json_data["Solutions"][json_data['Solutions_Order'][0]]["Acceptability"],
+                            "Num_of_min_non_accept": json_data['Num_Min_Non_Acceptability'],
+                            "Num_of_sols": len(json_data["Solutions"])
                         }
-                        
-                        for tag in theoryTags:
-                            if tag in json_data["solutions"][0]["Expectation"].keys():
-                                entry[tag] = json_data["solutions"][0]["Expectation"][tag]
-                            else: 
+                        for tag in self.con_tags:
+                            if (tag in json_data["Solutions"][0]["Expectation"].keys()):
+                                entry[tag] = json_data["Solutions"][0]["Expectation"][tag]
+                            else:
                                 entry[tag] = "N/A"
                         self.data.append(entry)
 
@@ -127,27 +139,38 @@ class ExperimentRunner:
         return self.outputFolder + "/theory_expectations.csv"
 
 
+
+
+
     def saveResults(self):
         # Save all data csv
         df = pd.DataFrame(self.data)
         df.to_csv(self.getAllDataFilePath())
+
         # Save durations csv
-        average_durations = df.groupby('horizon')[['total_time', 'plan_time', 'mehr_time', 'sol_time', 'out_time', 'num_of_sols']].mean().reset_index()
+        cols = ExperimentRunner.time_columns + ['Num_of_sols']
+        average_durations = df.groupby('Horizon')[cols].mean().reset_index()
         average_durations.to_csv(self.getDurationsFilePath())
+        
         # Save durations by theory csv
-        theoryTimes = df.groupby("theories", sort=False)[["total_time", "plan_time", "sol_time", "out_time", "mehr_time", "expanded_states", "iterations", "backups", "min_non_accept", "num_of_sols"]].mean()
+        theoryTimes = df.groupby(["Config_name", "Conf_rep"], sort=False)[['Total_time', "Heuristic_time", 'Plan_time', 'Mehr_time', 'Sol_time', 'Out_time', 'Sol_reduce_time', "Expanded_states", "Iterations", "Backups", "Min_non_accept", "Num_of_min_non_accept", "Num_of_sols"]].mean()
         theoryTimes.round(4)
         theoryTimes.to_csv(self.getDurationsByTheoryFilePath())
 
-        # Check theory worth is the same across configs.
-        cols = ["theories", "min_non_accept"]
-        cols.extend(self.getTheoryTags())
-        uniqueValues = df[cols].groupby('theories', sort=False).nunique()
+        # Check consideration worth is the same across same config.
+        cols = ["Config_name", "Conf_rep", "Env_rep", "Min_non_accept", "Num_of_min_non_accept"]
+        cols.extend(self.con_tags)
+        u = df[cols].groupby(["Config_name", "Conf_rep", "Env_rep"], sort=False)
+        print(u.head())
+        uniqueValues = u.nunique()
         if (not (uniqueValues==1).all().all()):
             raise Exception("Sim: Different iterations returned different expected worth!")
 
-        theoryResults = df[cols].groupby('theories', sort=False).first()
+        theoryResults = df[cols].groupby('Config_name', sort=False).first()
         theoryResults.to_csv(self.getTheoryExpectationsFilePath())
+
+
+        
 
 
     def loadResults(self, of):
@@ -156,20 +179,21 @@ class ExperimentRunner:
         self.data = df.to_dict()
 
 
-        
+       #TODO update strings below. 
     def plotTimeResults(self, df=None):
         if (df==None):
             df = pd.DataFrame(self.data)
-        average_durations = df.groupby('horizon')[['total_time', 'plan_time', 'mehr_time', 'sol_time', 'out_time']].mean().reset_index()
-        average_durations['mehr_time'] = average_durations['mehr_time'].replace(0, 0.0001)
+
+        average_durations = df.groupby('Horizon')[ExperimentRunner.time_columns].mean().reset_index()
+        average_durations['Mehr_time'] = average_durations['Mehr_time'].replace(0, 0.0001)
 
         plt.figure(figsize=(10, 6))
-        for column in ['total_time', 'plan_time', 'mehr_time', 'sol_time', 'out_time']:
-            plt.scatter(average_durations['horizon'], average_durations[column], label=column)
+        for column in ExperimentRunner.time_columns:
+            plt.scatter(average_durations['Horizon'], average_durations[column], label=column)
 
-            plt.plot(average_durations['horizon'], average_durations[column], linestyle='-', alpha=0.6)
+            plt.plot(average_durations['Horizon'], average_durations[column], linestyle='-', alpha=0.6)
             # Add a line of best fit
-            x = average_durations['horizon']
+            x = average_durations['Horizon']
             y = average_durations[column]
             slope, intercept, r_value, _, _ = linregress(x, np.log10(y))  # Fit line in log scale
             best_fit_line = 10 ** (slope * x + intercept)  # Transform back to original scale
@@ -178,8 +202,8 @@ class ExperimentRunner:
         plt.yscale('log')  # Set the y-axis to logarithmic scale
         plt.title("Time Metrics vs Horizon (Logarithmic Scale)")
         plt.xlabel("Horizon")
-        plt.ylabel("Time (seconds, log scale)")
-        plt.xticks(ticks=np.arange(min(average_durations['horizon']), max(average_durations['horizon']) + 1, 1))
+        plt.ylabel("Time (microseconds, log scale)")
+        plt.xticks(ticks=np.arange(min(average_durations['Horizon']), max(average_durations['Horizon']) + 1, 1))
         plt.legend()
         #plt.grid(True, which='both', linestyle='--', linewidth=0.5)   Adjust grid for log scale
         plt.savefig(self.outputFolder+ "timeVHorizon_LOG_SCALE.png")  # Save the plot
@@ -189,18 +213,21 @@ class ExperimentRunner:
     def plotPercentTimeResults(self, df=None):
         if (df==None):
             df = pd.DataFrame(self.data)
-        average_durations = df.groupby('horizon')[['total_time', 'plan_time', 'mehr_time', 'sol_time', 'out_time']].mean().reset_index()
-        for column in ['plan_time', 'mehr_time', 'sol_time', 'out_time']:
-            average_durations[f'{column}_percent'] = (average_durations[column] / average_durations['total_time']) * 100
+        average_durations = df.groupby('Horizon')[ExperimentRunner.time_columns].mean().reset_index()
+        cols = copy.deepcopy(ExperimentRunner.time_columns)
+        cols.remove('Total_time')
+        for column in cols:
+            average_durations[f'{column}_percent'] = (average_durations[column] / average_durations['Total_time']) * 100
 
         plt.figure(figsize=(10, 6))
-        for column in ['plan_time_percent', 'mehr_time_percent', 'sol_time_percent', 'out_time_percent']:
-            plt.plot(average_durations['horizon'], average_durations[column], marker='o', label=column.replace('_percent', ''))
+        cols_percent = [c + "_percent" for c in cols]
+        for column in cols_percent:
+            plt.plot(average_durations['Horizon'], average_durations[column], marker='o', label=column.replace('_percent', ''))
 
         plt.title("Time Components as Percentage of Total Time vs Horizon")
         plt.xlabel("Horizon")
         plt.ylabel("Percentage of Total Time (%)")
-        plt.xticks(ticks=np.arange(min(average_durations['horizon']), max(average_durations['horizon']) + 1, 1))
+        plt.xticks(ticks=np.arange(min(average_durations['Horizon']), max(average_durations['Horizon']) + 1, 1))
 
         plt.legend()
         plt.savefig(self.outputFolder + "time_components_percentage_vs_horizon.png")  # Save the plot

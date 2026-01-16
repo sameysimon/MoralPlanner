@@ -1,15 +1,16 @@
-from EnvironmentBuilder.BaseMDP import MDP, MoralTheory
+from EnvironmentBuilder.BaseMDP import MDP, Consideration, State, Successor
 
 
 
-class WellBeing(MoralTheory):
+class WellBeing(Consideration):
     def __init__(self):
+        super().__init__()
         self.type='utility'
         self.rank=0
         self.tag='wellbeing'
         self.default=0
     # Utility in decreasing stress.
-    def judge(self, successor: MDP.Successor):
+    def judge(self, successor: Successor):
         oldProps = successor.sourceState.props
         props = successor.targetState.props
         strDelta = 0
@@ -18,7 +19,7 @@ class WellBeing(MoralTheory):
             if d>0 or (d < 0 and props['stress'][i] >=3):    
                 strDelta+= d
         return strDelta
-    def StateHeuristic(self, state:MDP.State):
+    def StateHeuristic(self, state:State):
         # No possible stress relief if 0 sessions
         totalWeeks = state.props['totalWeeks'] - state.props['week']
         studentsThisWeek = (state.props['totalStudents']- state.props['student'])
@@ -35,14 +36,15 @@ class WellBeing(MoralTheory):
         h = util
         return h
     
-class Education(MoralTheory):
+class Education(Consideration):
     def __init__(self):
+        super().__init__()
         self.type='utility'
         self.rank=0
         self.tag='education'
         self.default=0
     # Utility in decreasing stress.
-    def judge(self, successor: MDP.Successor):
+    def judge(self, successor: Successor):
         oldProps = successor.sourceState.props
         props = successor.targetState.props
         avgGrade = 0
@@ -51,7 +53,7 @@ class Education(MoralTheory):
 
         return avgGrade
 
-    def StateHeuristic(self, state:MDP.State):
+    def StateHeuristic(self, state:State):
         # No possible Grade ups if 0 sessions
         totalWeeks = state.props['totalWeeks'] - state.props['week']
         studentsThisWeek = (state.props['totalStudents']- state.props['student'])
@@ -70,16 +72,17 @@ class Education(MoralTheory):
         return h
 
 
-class NoLies(MoralTheory):
+class NoLies(Consideration):
     def __init__(self):
+        super().__init__()
         self.type="utility"
         self.rank=0
         self.tag = "no_lies"
         self.default=False
-    def judge(self, successor: MDP.Successor):
+    def judge(self, successor: Successor):
         # if action is to lie compare, judge transition bad.
         if successor.action=='neg_lie' or successor.action=='pos_lie':
             return True
         return False
-    def StateHeuristic(self, state:MDP.State):
+    def StateHeuristic(self, state:State):
         return False

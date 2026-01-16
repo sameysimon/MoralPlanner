@@ -5,6 +5,7 @@
 #pragma once
 #include <iostream>
 #include <format>
+#include <list>
 #include "../time_config.hpp"
 
 enum LogLevel {

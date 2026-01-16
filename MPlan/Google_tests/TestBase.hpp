@@ -58,6 +58,17 @@ protected:
         }
         return actionToIdx;
     }
+
+    static QValue BuildUtilityQValue(std::initializer_list<double> values) {
+        auto qv = QValue(values.size());
+        auto v = values.begin();
+        for (int i = 0; i < values.size(); ++i) {
+            qv.expectations[i] = make_unique<ExpectedUtility>(*v);
+            ++v;
+        }
+        return qv;
+    }
+
 };
 
 

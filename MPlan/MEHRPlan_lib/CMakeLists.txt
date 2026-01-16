@@ -12,19 +12,24 @@ set(HEADER_FILES
         Planner/Solver.hpp
         Planner/QValue.hpp
         Environment/MoralTheories/Utilitarianism.hpp
-        Environment/MoralTheories/DoubleEffect.hpp
+        #Environment/MoralTheories/DoubleEffect.hpp
         Environment/MoralTheories/Absolutism.hpp
-        Environment/MoralTheories/Threshold.hpp
+        #Environment/MoralTheories/Threshold.hpp
         Environment/MoralTheories/Absolutism.hpp
         Planner/ExtractSolutions.hpp
         Planner/MEHR.hpp
         Logger.hpp
         Environment/MoralTheories/Maximin.hpp
+        Environment/MoralTheories/OrdinalCase.hpp
+        Environment/MoralTheories/HistoryHandler.cpp
+        Environment/MoralTheories/HistoryHandler.hpp
+        Planner/History.hpp
+        Environment/MoralTheories/OrdinalCase.hpp
 )
 
 set(SOURCE_FILES
         Environment/MoralTheories/Utilitarianism.cpp
-        Environment/MoralTheories/Threshold.cpp
+        #Environment/MoralTheories/Threshold.cpp
         Environment/Action.cpp
         Environment/MDP.cpp
         Environment/State.cpp
@@ -32,7 +37,6 @@ set(SOURCE_FILES
         Planner/QValue.cpp
         Planner/Solver.cpp
         Environment/MDPBuilder.cpp
-        Planner/MO_Solver.cpp
         Planner/MEHR.cpp
         Planner/AttackType.hpp
         Planner/MO_ILAO_STAR.cpp
@@ -40,16 +44,18 @@ set(SOURCE_FILES
         Planner/Policy.hpp
         Planner/PostOrderDFS.cpp
         Planner/ExtractHistories.cpp
-        Environment/MoralTheories/DoubleEffect.cpp
+        #Environment/MoralTheories/DoubleEffect.cpp
+        Environment/MoralTheories/OrdinalCase.cpp
         Environment/MoralTheories/Maximin.cpp
         Environment/MoralTheories/MoralTheory.cpp
         Planner/BuildHeuristic.cpp
+        Environment/MoralTheories/HistoryHandler.cpp
+        Environment/MoralTheories/HistoryHandler.hpp
+        Planner/Policy.cpp
 )
 
 
 add_library(MEHRPlan_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
-
-target_compile_definitions(MEHRPlan_lib PRIVATE TIME_METRIC_STR=milliseconds)
 
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/_deps/nlohmann_json-build" ${CMAKE_PREFIX_PATH})
 find_package(nlohmann_json CONFIG REQUIRED)

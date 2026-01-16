@@ -1,11 +1,11 @@
 {
-  "horizon": 6,
-  "total_states": 11,
-  "actions": ["Recommend", "Ignore", "Next"],
-  "notes": ["Two polices.", 
+  "Horizon": 6,
+  "Total_states": 11,
+  "Actions": ["Recommend", "Ignore", "Next"],
+  "Notes": ["Two polices.",
     "Recommend should get 1 non-accept (always loses by theory 2.",
     "Ignore should get 0.7 non-accept since 0.3 change student passes anyway."],
-  "state_transitions": {
+  "State_transitions": {
     "0": {
       "Recommend": [[0.4, 3, 0, true], [0.6, 4, 0, true]],
       "Ignore": [[0.3, 1, 1, false], [0.7, 2, -1, false]]
@@ -27,23 +27,29 @@
     },
     "10": {}}
   ,
-  "state_time": [0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4],
-  "goals":[],
-  "theories": [
+  "State_time": [0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4],
+  "Goals":[],
+  "Theories": [
     {
-      "Name": "Utilitarianism",
-      "Rank": 0,
+      "Name": "Theory_One",
       "Type": "Utility",
-      "Heuristic":[0,0,0,0,0,0,0,0,0,0,0],
-      "default": 0
-    },
-    {
-      "Name": "No Leaks",
-      "Rank": 0,
+      "Rank": 0
+    },{
+      "Name": "Theory_Two",
       "Type": "Absolutism",
-      "Heuristic":[false, false, false, false, false, false, false, false, false, false, false],
-      "default": false
-    }
-
-  ]
+      "Rank": 0
+    }],
+  "Considerations": [{
+    "Name": "Con_One",
+    "Type": "Utility",
+    "Component_of": "Theory_One",
+    "Default": 0,
+    "Heuristic": [0,0,0,0,0,0,0,0,0,0,0]
+  }, {
+    "Name": "Con_Two",
+    "Type": "Absolutism",
+    "Component_of": "Theory_Two",
+    "Default": false,
+    "Heuristic": [false, false, false, false, false, false, false, false, false, false, false]
+  }]
 }

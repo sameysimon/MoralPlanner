@@ -17,42 +17,19 @@ class REST_App {
     bool finishedSolving = false;
     unique_ptr<Runner> runner;
 public:
+    crow::response HandleMDP(const crow::request &req);
 
     REST_App() {
+        InitHandlers();
+    }
 
+
+    void InitHandlers() {
         // Give a json file address.
-        CROW_ROUTE(app, "/MDP").methods(crow::HTTPMethod::POST)([this](const crow::request &req){
-            std::cout << "MDP REQUEST \n";
-            finishedSolving = false;// prevent other requests
-            try {
-                auto json_req = crow::json::load(req.body);
-                if (!json_req) {
-                    return crow::response(400, "Invalid JSON request");
-                }
-                if (!json_req.has("file_in")) {
-                    return crow::response(400, "Invalid MDP Request: No file_in path.");
-                }
-                std::string inp = DATA_FOLDER_PATH;
-                std::string file_in = json_req["file_in"].s();
-                if (!json_req["from_root"]) {
-                    file_in = inp + file_in;
-                }
-                runner = make_unique<Runner>();
-                runner->setInputFile(file_in);
-                std::string of = OUTPUT_FOLDER_PATH;
-                std::string file_out = of + "ServerRequest.json";
-                runner->writeTo(file_out);
-                json resp;
-                resp["file_out"] = file_out;
-                finishedSolving = true;
-                return crow::response(resp.dump());
-        }
-        catch (runtime_error &e) {
-            std::cout << e.what() << "\n";
-            finishedSolving = true;
-            return crow::response(500);
-        }
-        });
+        CROW_ROUTE(app, "/MDP").methods(crow::HTTPMethod::POST)(
+            [this](const crow::request& req) {return this->HandleMDP(req);}
+            );
+
 
         // Request for the State-action for all actions at a given state.
         CROW_ROUTE(app, "/QValues").methods(crow::HTTPMethod::POST)([this](const crow::request &req){
@@ -95,7 +72,7 @@ public:
                 std::cout << ss.str() << "\n";
                 return crow::response(400, ss.str());
             }
-            if (policyIdx< runner->mehr->attacks.size()) {
+            if (policyIdx > runner->mehr->attacks.size()) {
                 return crow::response(400, std::format("Invalid request for MEHR attacks. Policy with index {} does not exist.", policyIdx));
             }
             json resp = JSONBuilder::toJSON(runner->mehr->attacks[policyIdx]);
@@ -135,7 +112,7 @@ public:
                 std::cout << ss.str() << "\n";
                 return crow::response(400, ss.str());
             }
-            explainResult er = runner->explain(state_id, actionIdx, runner->policies[factPolicy_id]);
+            explainResult er = runner->explain(state_id, actionIdx, runner->policies[factPolicy_id].get());
 
             json resp = JSONBuilder::toJSON(er, *runner);
             auto x = resp.dump();

@@ -4,6 +4,10 @@ project(MPlan)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
+
 # Enable debug definitions if building in Debug mode
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-DDEBUG)
@@ -21,6 +25,7 @@ add_executable(MPlan main.cpp
         REST_App.hpp
         JSONBuilder.hpp
         JSONBuilder.cpp
+        REST_App.cpp
 )
 
 # Google Test for unit tests

@@ -15,9 +15,9 @@ protected:
         auto policyHistories = run.histories[policyIdx];
         // Histories should be sorted into descending order.
         size_t largestHistoryIdx = orderedHistories[policyIdx][0];
-        auto lastUtil = dynamic_cast<ExpectedUtility*>(policyHistories[largestHistoryIdx]->worth.expectations[theoryIdx])->value;
+        auto lastUtil = dynamic_cast<ExpectedUtility*>(policyHistories[largestHistoryIdx]->worth.expectations[theoryIdx].get())->value;
         for (auto hIdx : orderedHistories[policyIdx]) {
-            auto currUtil = dynamic_cast<ExpectedUtility*>(policyHistories[hIdx]->worth.expectations[theoryIdx])->value;
+            auto currUtil = dynamic_cast<ExpectedUtility*>(policyHistories[hIdx]->worth.expectations[theoryIdx].get())->value;
             ASSERT_LE(currUtil, lastUtil) << "Histories out of order. Theory '" << theoryIdx <<"'. History Idx:" << hIdx << ", utility:" << currUtil << " is greater than previous History Idx:" << hIdx-1 << ", utility:" << lastUtil;
             lastUtil = currUtil;
         }
@@ -26,7 +26,7 @@ protected:
 
 TEST_F(MEHR_Tests, SimpleTest) {
     Runner runner = Runner("my_test.json");
-    runner.solve();
+    runner.FullSolve();
 
     // Each policy should have 1 non-acceptability--attacks from both theories
     ASSERT_EQ(runner.non_accept->getPolicyNonAccept(0), 1);
@@ -36,7 +36,7 @@ TEST_F(MEHR_Tests, SimpleTest) {
 
 TEST_F(MEHR_Tests, LibraryTest_EqualRanks) {
     Runner runner = Runner("Library/EqualRanks.json");
-    runner.solve();
+    runner.FullSolve();
 
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
@@ -47,7 +47,7 @@ TEST_F(MEHR_Tests, LibraryTest_EqualRanks) {
 }
 TEST_F(MEHR_Tests, LibraryTest_No_Leaks_Priority) {
     Runner runner = Runner("Library/NoLeaksPriority.json");
-    runner.solve();
+    runner.FullSolve();
 
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
@@ -58,7 +58,7 @@ TEST_F(MEHR_Tests, LibraryTest_No_Leaks_Priority) {
 }
 TEST_F(MEHR_Tests, LibraryTest_Utility_Priority) {
     Runner runner = Runner("Library/UtilityPriority.json");
-    runner.solve();
+    runner.FullSolve();
     vector<string> actions = {"Recommend", "Ignore"};
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
@@ -86,31 +86,6 @@ TEST_F(MEHR_Tests, SortHistories) {
     AssertOrder(run, piIdx["B"], 1);
 }
 
-bool checkForUtilityAttack(MEHR &m, size_t sourcePolicy, std::initializer_list<double> sourceUtility, size_t targetPolicy, std::initializer_list<double> targetUtility) {
-    vector<WorthBase*> expSourceUtility;
-    expSourceUtility.reserve(sourceUtility.size());
-    vector<WorthBase*> expTargetUtility;
-    expTargetUtility.reserve(targetUtility.size());
-    for (auto x : sourceUtility) {
-        expSourceUtility.push_back(new ExpectedUtility(x));
-    }
-    for (auto x : targetUtility) {
-        expTargetUtility.push_back(new ExpectedUtility(x));
-    }
-    bool b = m.containsAttack(sourcePolicy,
-        QValue(expSourceUtility),
-        targetPolicy,
-        QValue(expTargetUtility));
-
-    for (auto x : expSourceUtility) {
-        delete x;
-    }
-    for (auto x : expTargetUtility) {
-        delete x;
-    }
-
-    return b;
-}
 
 TEST_F(MEHR_Tests, CheckForAttack) {
     auto run = Runner("check_for_attack.json");
@@ -124,18 +99,17 @@ TEST_F(MEHR_Tests, CheckForAttack) {
 
     MEHR mehr = MEHR(*run.mdp, run.policies, run.histories);
     auto non_accept = NonAcceptability(run.mdp->mehr_theories.size(), run.policies.size());
-    mehr.findNonAccept(non_accept);
+    mehr.SlowFindNonAccept(non_accept);
     ASSERT_NEAR(non_accept.getPolicyNonAccept(piIdx["A"]), 1, tolerance);
     ASSERT_NEAR(non_accept.getPolicyNonAccept(piIdx["B"]), 0.75, tolerance);
 
-    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["A"], {3,0}, piIdx["B"], {-1,100}));
-    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["A"], {3,0}, piIdx["B"], {1,0}));
-    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["A"], {3,0}, piIdx["B"], {2,0}));
 
-    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["B"], {-1,100}, piIdx["A"], {0,0}));
-    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["B"], {-1,100}, piIdx["A"], {1,0}));
-    ASSERT_TRUE(checkForUtilityAttack(mehr, piIdx["B"], {-1,100}, piIdx["A"], {3,0}));
+    ASSERT_TRUE(mehr.containsAttack(piIdx["A"], BuildUtilityQValue({3,0}), piIdx["B"], BuildUtilityQValue({-1,100})));
+    ASSERT_TRUE(mehr.containsAttack(piIdx["A"], BuildUtilityQValue({3,0}), piIdx["B"], BuildUtilityQValue({1,0})));
+    ASSERT_TRUE(mehr.containsAttack(piIdx["A"], BuildUtilityQValue({3,0}), piIdx["B"], BuildUtilityQValue({2,0})));
 
-
+    ASSERT_TRUE(mehr.containsAttack(piIdx["B"], BuildUtilityQValue({-1,100}), piIdx["A"], BuildUtilityQValue({0,0})));
+    ASSERT_TRUE(mehr.containsAttack(piIdx["B"], BuildUtilityQValue({-1,100}), piIdx["A"], BuildUtilityQValue({1,0})));
+    ASSERT_TRUE(mehr.containsAttack(piIdx["B"], BuildUtilityQValue({-1,100}), piIdx["A"], BuildUtilityQValue({3,0})));
 
 }

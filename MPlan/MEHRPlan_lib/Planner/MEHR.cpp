@@ -6,41 +6,193 @@
 #include <chrono>
 #include <ranges>
 
+
+MEHR::MEHR(MDP& mdp, vector<unique_ptr<Policy>> &policies_, vector<vector<History*>> &histories_) : mdp(mdp), policies(policies_), histories(histories_) {
+    auto t1 = std::chrono::high_resolution_clock::now();
+    attacks.resize(policies.size());
+    // Prepare each moral theory for MEHR based on these theories.
+    for (auto t : mdp.mehr_theories) {
+        t->InitMEHR(histories);
+    }
+    auto t2 = std::chrono::high_resolution_clock::now();
+    init_time += std::chrono::duration_cast<time_metric>(t2 - t1).count();
+}
+
+
+void MEHR::RankPoliciesByTheory(size_t theoryIdx) {
+    // sortedIndices[rank] = pi_idx
+    vector<size_t>& sortedIndices = policyOrderByTheory[theoryIdx];
+    sortedIndices.resize(policies.size());
+    iota(sortedIndices.begin(), sortedIndices.end(), 0);
+    sort(sortedIndices.begin(), sortedIndices.end(),
+        [&](const size_t& lhs, const size_t& rhs) {
+            auto& lhsWorth = policies[lhs]->worth[0];
+            auto& rhsWorth = policies[rhs]->worth[0];
+            return 1 == CQ2CompareWithRank(lhsWorth, rhsWorth, theoryIdx);
+        });
+    // policyRanks[pi_Idx] = rank/pos in order
+    vector<size_t>& policyRanks = policyRanksByTheory[theoryIdx];
+    policyRanks.resize(policies.size());
+    size_t rank = 0;
+    policyRanks[sortedIndices[0]] = rank;
+    for (size_t pi_idx = 0; pi_idx < sortedIndices.size(); pi_idx++) {
+        policyRanks[pi_idx] = pi_idx;
+    }
+
+}
+
+void MEHR::BestPolicyOutcomeByTheory(size_t theoryIdx) {
+    // bestOutcomeIdxs[pi_idx] = index of history with best worth
+    vector<size_t>& bestOutcomeIdxs = posBestOutcomeByTheory[theoryIdx];
+    // bestOutcomeIdxs[pi_idx] = index of policy with the best history worth for this policy, equal and better.
+    vector<size_t>& bestAccOutcomeIdxs = accPosBestOutcomeByTheory[theoryIdx];
+    size_t maxHistory_piIDx = 0;
+    size_t maxHistory_hIDx = 0;
+    for (auto pi_idx : policyOrderByTheory[theoryIdx]) {
+        auto currBestIdx = getBestHistoryForPolicy(theoryIdx, pi_idx);
+        bestOutcomeIdxs[pi_idx] = currBestIdx;
+        if (mdp.mehr_theories[theoryIdx]->attack(histories[pi_idx][currBestIdx]->worth, histories[maxHistory_piIDx][maxHistory_hIDx]->worth)) {
+            maxHistory_piIDx = pi_idx;
+            maxHistory_hIDx = currBestIdx;
+        }
+        bestAccOutcomeIdxs[theoryIdx] = maxHistory_piIDx;
+    }
+
+}
+
+// Weak total order over outcome/action preferences.
+// Thus, for attacks from one action to another, need only best outcome from attacker.
+
 void MEHR::findNonAccept(NonAcceptability &non_accept) {
     non_accept = NonAcceptability(mdp.mehr_theories.size(), policies.size());
-    // Iterate across theories.
-    for (size_t rank = 0; rank < mdp.groupedTheoryIndices.size(); ++rank) {
-        auto currTheories = mdp.groupedTheoryIndices[rank];
+    // Iterate over moral theories in lexi-descending.
+    // Sort policies by expected worth in ascending worth; store in policyOrderByTheory[theoryIdx].
+    // Descend policyOrderByTheory[theoryIdx]; collect policy with the best history so far as accPosBestOutcomeByTheory[theoryIdx].
+    // Compare
+    for (auto & currTheories : mdp.groupedTheoryIndices) {
         for (auto &theoryIdx : currTheories) {
-
-            // Find the maximally preferred policies by expected worth for this theory.
-            vector<size_t> bestPolicies = MaxPolicyForTheory(theoryIdx, rank);
-            bestExpectedPolicyByTheory[theoryIdx] = bestPolicies;
-
-            // Mark the rank at which these policies are dominant.
-            for (size_t pi_idx : bestPolicies) {
-                if (invulnerablePolicies.find(pi_idx) == invulnerablePolicies.end()) {
-                    invulnerablePolicies[pi_idx] = rank;
+            RankPoliciesByTheory(theoryIdx);
+            BestPolicyOutcomeByTheory(theoryIdx);
+            for (size_t pi_idx : policyOrderByTheory[theoryIdx]) {
+                // Find the worst policy that is better than current.
+                size_t worstBetter_piIdx = policyRanksByTheory[theoryIdx][pi_idx];
+                QValue& currAttackWorth = *policies[policyOrderByTheory[theoryIdx][pi_idx]]->getExpectationPtr();
+                bool found = false;
+                do {
+                    worstBetter_piIdx--;
+                    auto& firstAttWorth = *policies[policyOrderByTheory[theoryIdx][worstBetter_piIdx]]->getExpectationPtr();
+                    if (1 == mdp.mehr_theories[theoryIdx]->CriticalQuestionTwo(firstAttWorth, currAttackWorth)) {
+                        found = true;
+                    }
                 }
-            }
-
-            // Launch attacks on less preferred theories, unless they are invulnerable
-            for (size_t pi_idx=0; pi_idx < policies.size(); ++pi_idx) {
-                // Skip if best policy by this rank (we are doing this check anyway after)
-                if (std::find(bestPolicies.begin(), bestPolicies.end(), pi_idx) != bestPolicies.end()) { continue; }
-                // Attack if target policy not invulnerable, or only invulnerable at lower/equal rank then launch attack.
-                if (invulnerablePolicies.find(pi_idx) == invulnerablePolicies.end() || invulnerablePolicies[pi_idx] >= rank) {
-                    auto a = mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(bestPolicies[0], pi_idx, histories);
-                    non_accept.addNonAccept(theoryIdx, pi_idx, a.p);
-                    if (!a.isUndefined()) { attacks[pi_idx].push_back(a); }
+                while (worstBetter_piIdx != 0 and !found);
+                // If no better policy expectation, then no valid attack on this policy.
+                if (!found) {
+                    continue;
                 }
+                // Get policy with the best history equal/preferred to the worst better policy and attack with it.
+                size_t bestAttacker_piIdx = accPosBestOutcomeByTheory[theoryIdx][worstBetter_piIdx];
+                Attack att(bestAttacker_piIdx, pi_idx, theoryIdx);
+                mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(att, histories);
+                if (!att.isUndefined()) { attacks[pi_idx].push_back(att); }
+                non_accept.addNonAccept(theoryIdx, pi_idx, att.p);
+
             }
-            // IF CQ2 launches attacks when expectations are equal: (Remove otherwise!!!)
-            attackBetweenBestPolicies(non_accept, rank, theoryIdx, bestPolicies);
         }
     }
     doneMEHR=true;
 }
+
+void MEHR::SortExpFindNonAccept(NonAcceptability &non_accept) {
+    for (size_t theoryIdx=0; theoryIdx < mdp.mehr_theories.size(); theoryIdx++) {
+        for (size_t pi_idx1 = 0; pi_idx1 < policies.size(); pi_idx1++) {
+            auto& pi1QV = *policies[pi_idx1]->getExpectationPtr();
+            bool found_attacker = false;
+            size_t best_pi_Idx = 0;
+            size_t best_h_Idx = 0;
+            for (size_t pi_idx2 = 0; pi_idx2 < policies.size(); pi_idx2++) {
+                if (pi_idx1==pi_idx2) { continue; }
+                auto &currQV = *policies[pi_idx2]->getExpectationPtr();
+                auto r = mdp.mehr_theories[theoryIdx]->CriticalQuestionTwo(currQV, pi1QV);
+                if (r!=1) { continue; }
+                auto currBestIdx = getBestHistoryForPolicy(theoryIdx, pi_idx2);
+                if (1==mdp.mehr_theories[theoryIdx]->attack(histories[pi_idx2][currBestIdx]->worth, histories[best_pi_Idx][best_h_Idx]->worth)) {
+                    best_pi_Idx = pi_idx2;
+                    best_h_Idx = currBestIdx;
+                    found_attacker = true;
+                }
+            }
+            if (found_attacker) {
+                CQ1AndAddAttack(best_pi_Idx, pi_idx1, theoryIdx, non_accept);
+            }
+        }
+    }
+}
+
+
+void MEHR::SlowFindNonAccept(NonAcceptability &non_accept) {
+    for (size_t theoryIdx=0; theoryIdx < mdp.mehr_theories.size(); theoryIdx++) {
+        for (size_t pi_idx1 = 0; pi_idx1 < policies.size(); pi_idx1++) {
+            QValue* qv1 = policies[pi_idx1]->getExpectationPtr();
+            QValue* qv2;
+            for (size_t pi_idx2 = pi_idx1+1; pi_idx2 < policies.size(); pi_idx2++) {
+                qv2 = policies[pi_idx2]->getExpectationPtr();
+                auto cq2 = CQ2CompareWithRank(*qv1, *qv2, theoryIdx);
+                if (cq2==1) {
+                    CQ1AndAddAttack(pi_idx1, pi_idx2, theoryIdx, non_accept);
+                } else if (cq2==-1) {
+                    CQ1AndAddAttack(pi_idx2, pi_idx1, theoryIdx, non_accept);
+                }
+            }
+        }
+    }
+    doneMEHR=true;
+}
+// If cq1 attacks cq2 at this theory by CQ2, and no preferred theory attacks in the other direction, then cq1 attacks cq2 (return 1).
+// Reverse returns -1; neither returns 0.
+int MEHR::CQ2CompareWithRank(QValue& qv1, QValue& qv2, size_t theoryIdx) {
+    //auto t1 = std::chrono::high_resolution_clock::now();
+    // Get the inputted theory's valuation.
+    auto r = mdp.mehr_theories[theoryIdx]->CriticalQuestionTwo(qv1, qv2);
+    // Compare from the best theory to the current rank.
+    for (size_t rankIdx = 0; rankIdx < mdp.groupedTheoryIndices.size(); rankIdx++) {
+        for (auto &currTheoryIdx : mdp.groupedTheoryIndices[rankIdx]) {
+            if (mdp.mehr_theories[currTheoryIdx]->mRank >= mdp.mehr_theories[theoryIdx]->mRank) {
+                break;// If found inputted theory's rank, theory defences are ignored.
+            }
+            auto def = mdp.mehr_theories[currTheoryIdx]->CriticalQuestionTwo(qv1, qv2);
+            if (r != def && r!= 0) {
+                return 0;
+            }
+        }
+    }
+    //auto t2 = std::chrono::high_resolution_clock::now();
+    //cq2_time += std::chrono::duration_cast<time_metric>(t2 - t1).count();
+    return r;
+}
+void MEHR::CQ1AndAddAttack(size_t source_pi, size_t target_pi, size_t theoryIdx, NonAcceptability &non_accept) {
+    //auto t1 = std::chrono::high_resolution_clock::now();
+    Attack att = Attack(source_pi, target_pi, theoryIdx);
+    mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(att, histories);
+    if (att.p != 0) { attacks[target_pi].push_back(std::move(att)); }
+    non_accept.addNonAccept(theoryIdx, target_pi, att.p);
+    //auto t2 = std::chrono::high_resolution_clock::now();
+    //cq1_time += std::chrono::duration_cast<time_metric>(t2 - t1).count();
+}
+
+
+size_t MEHR::getBestHistoryForPolicy(size_t theoryIdx, size_t policyIdx) {
+    size_t bestIdx = 0;
+    for (size_t i = 1; i < histories[policyIdx].size(); ++i) {
+        auto a = mdp.mehr_theories[theoryIdx]->attack(histories[policyIdx][i]->worth, histories[policyIdx][bestIdx]->worth);
+        if (a==1) {
+            bestIdx = i;
+        }
+    }
+    return bestIdx;
+}
+
+
 // Finds the maximally preferred policy for moral theory with index theoryIdx.
 vector<size_t> MEHR::MaxPolicyForTheory(unsigned long& theoryIdx, size_t rank) {
     vector<size_t> bestPolicies;
@@ -84,6 +236,7 @@ int MEHR::PolicyCompare(const ushort theoryIdx, const ushort rankIdx, const size
 
     return (*bestLeftHistory.base())->worth.expectations[theoryIdx]->compare(*(*bestRightHistory.base())->worth.expectations[theoryIdx]);
 }
+
 // Checks if policy at index left expected to beat policy at index right for ranks less than or equal to toRank.
 int MEHR::CheckAttackToRank(const ushort toRank, const size_t& left, const size_t& right) {
     int oldRes=0;
@@ -111,7 +264,8 @@ void MEHR::attackBetweenBestPolicies(NonAcceptability& non_accept, size_t rank, 
             if (pi_one_idx == pi_two_idx) { continue; }
             // Do not attack if target's expectation is invulnerable at a greater rank.
             if (invulnerablePolicies[pi_two_idx] < rank) { continue; }
-            auto a = mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(pi_one_idx, pi_two_idx, histories);
+            Attack a(pi_one_idx, pi_two_idx, theoryIdx);
+            mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(a, histories);
             if (!a.isUndefined()) { attacks[pi_two_idx].push_back(a); }
             non_accept.addNonAccept(theoryIdx, pi_one_idx, a.p);
         }
@@ -123,7 +277,7 @@ void MEHR::attackBetweenBestPolicies(NonAcceptability& non_accept, size_t rank, 
  * Below used in Explainability bit.
  */
 
-void MEHR::addPoliciesToMEHR(NonAcceptability &non_accept, vector<Policy*> &newPolicies, vector<vector<History*>> &newHistories) {
+void MEHR::addPoliciesToMEHR(NonAcceptability &non_accept, vector<unique_ptr<Policy>> &newPolicies, vector<vector<History*>> &newHistories) {
     if (!doneMEHR) { return; }
     for (auto t : mdp.mehr_theories) {
         t->AddPoliciesForMEHR(newHistories);
@@ -133,47 +287,26 @@ void MEHR::addPoliciesToMEHR(NonAcceptability &non_accept, vector<Policy*> &newP
     }
 }
 
-void MEHR::addPolicyToMEHR(Policy *pi, vector<History*> &h, NonAcceptability &non_accept) {
+void MEHR::addPolicyToMEHR(unique_ptr<Policy>& pi, vector<History*> &h, NonAcceptability &non_accept) {
     size_t newPolicyIdx = policies.size();
     // TODO this is updating the runner's policy/histories which seems wrong. The runner should update them. But also, MEHR needs to know which policies are new. Hmm.
-    policies.push_back(pi);
+    policies.push_back(std::move(pi));
     histories.push_back(h);
     attacks.emplace_back();
-
+    non_accept.appendPolicy();
+    auto& newQv = policies[newPolicyIdx]->worth[0];
     if (histories.size() != policies.size()) {
         throw runtime_error("MEHR::addPolicyToMEHR: Histories and policies size desync.");
     }
-    non_accept.appendPolicy();
-
-    // Iterate across moral theories in decreasing preference order.
-    for (size_t rank = 0; rank < mdp.groupedTheoryIndices.size(); ++rank) {
-        auto currTheories = mdp.groupedTheoryIndices[rank];
-        for (auto &theoryIdx : currTheories) {
-            // Compare with old best policy
-            size_t oldBestExpPi = bestExpectedPolicyByTheory[theoryIdx][0];
-            int comp = PolicyCompare(theoryIdx, rank, newPolicyIdx, oldBestExpPi);
-
-            if (comp == 1) {
-                // Remove mark that said old policies are invulnerable. Add mark to new policy
-                for (size_t x : bestExpectedPolicyByTheory[theoryIdx]) {
-                    invulnerablePolicies.erase(x);
-                }
-                invulnerablePolicies[newPolicyIdx] = rank;
-
-                // Add the new, dominant policy.
-                bestExpectedPolicyByTheory[theoryIdx].clear();
-                bestExpectedPolicyByTheory[theoryIdx].push_back(newPolicyIdx);
-            } else if (comp == 0) {
-                // Same policy as old policy
-                invulnerablePolicies[newPolicyIdx] = rank;
-                bestExpectedPolicyByTheory[theoryIdx].push_back(newPolicyIdx);
-                BestPoliciesAttackPi(non_accept, rank, theoryIdx, bestExpectedPolicyByTheory[theoryIdx], newPolicyIdx);
-                PiAttackBestPolicies(non_accept, rank, theoryIdx, bestExpectedPolicyByTheory[theoryIdx], newPolicyIdx);
-            } else if (comp == -1) {
-                // New policy is worse.
-                BestPoliciesAttackPi(non_accept, rank, theoryIdx, bestExpectedPolicyByTheory[theoryIdx], newPolicyIdx);
+    for (size_t theoryIdx=0; theoryIdx < mdp.mehr_theories.size(); theoryIdx++) {
+        for (size_t pi_idx = 0; pi_idx < policies.size(); pi_idx++) {
+            auto& qv = policies[pi_idx]->worth[0];
+            auto cq2 = CQ2CompareWithRank(newQv, qv, theoryIdx);
+            if (cq2==1) {
+                CQ1AndAddAttack(newPolicyIdx, pi_idx, theoryIdx, non_accept);
+            } else if (cq2==-1) {
+                CQ1AndAddAttack(pi_idx, newPolicyIdx, theoryIdx, non_accept);
             }
-
         }
     }
 }
@@ -183,7 +316,8 @@ void MEHR::BestPoliciesAttackPi(NonAcceptability& non_accept, size_t rank, unsig
     for (size_t bestIdx : bestPolicies) {
         if (pi_idx == bestIdx) { continue; }
         if (invulnerablePolicies[pi_idx] < rank) { continue; }
-        auto a = mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(bestIdx, pi_idx, histories);
+        Attack a(bestIdx, pi_idx, theoryIdx);
+        mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(a, histories);
         non_accept.addNonAccept(theoryIdx, pi_idx, a.p);
         if (!a.isUndefined()) { attacks[pi_idx].push_back(a); }
     }
@@ -195,114 +329,11 @@ void MEHR::PiAttackBestPolicies(NonAcceptability& non_accept, size_t rank, unsig
     for (size_t bestIdx : bestPolicies) {
         if (pi_idx == bestIdx) { continue; }
         if (invulnerablePolicies[pi_idx] < rank) { continue; }
-        auto a = mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(pi_idx, bestIdx, histories);
+        Attack a(bestIdx, pi_idx, theoryIdx);
+        mdp.mehr_theories[theoryIdx]->CriticalQuestionOne(a, histories);
         non_accept.addNonAccept(theoryIdx, bestIdx, a.p);
         if (!a.isUndefined()) { attacks[bestIdx].push_back(a); }
     }
 }
 
-
-//
-// MAIN START POINT
-//
-
-/*
-/*
-void MEHR::oldFindNonAccept(vector<double> &non_accept) {
-    const ushort totalPolicies = policyWorths.size();
-    // Initialise Non-acceptability vec.
-    non_accept.resize(totalPolicies);
-    std::fill(non_accept.begin(), non_accept.end(), 0);
-
-    vector<int> attackingTheories = vector<int>(); // Init theories where pi_one attacks pi_two
-    vector<int> reverseTheories = vector<int>(); // Init theories where pi_two attacks pi_one
-    int r = 0;
-
-    // Compares all policies' expectations. If any 2 policies unequal, checks for attack.
-    // TODO: Find all (pi, pi', t_idx) where pi CQ2 beats pi' (AND no pi'' beats pi) under t_idx. Then only do those attacks.
-    for (int oneIdx=0; oneIdx<totalPolicies; ++oneIdx) {
-        // The expected worth of pi_one
-        QValue& oneExp = policyWorths[oneIdx];
-        for (int twoIdx=oneIdx+1; twoIdx<policyWorths.size(); ++twoIdx) {
-            QValue& twoExp = policyWorths[twoIdx];
-            // Values that will be used.
-            attackingTheories.clear();
-            reverseTheories.clear();
-            r = mdp.compareExpectations(oneExp, twoExp, attackingTheories, reverseTheories);
-
-            // No greater expectations -> no attacks can be formed.
-            if (r == 0) {
-                continue;
-            }
-            // Check for attacks from policy one to policy two by attackingTheories
-            if (r==1 or r==2) {
-                non_accept[twoIdx] += checkForAttack(oneIdx, twoIdx, attackingTheories);
-            }
-            // Check for attacks from policy two to policy one by reverseTheories
-            if (r==-1 or r==2) {
-                non_accept[oneIdx] += checkForAttack(twoIdx, oneIdx, reverseTheories);
-            }
-
-        }
-    }
-}
-
-// Generates attacks from source pi to target pi, using theories. Updates non_accept accordingly.
-// Compares all sourceSol histories against all targetSol histories, for each theory.
-// Once target history attacked by argument, it is skipped on future.
-// Check using hash set if this.useAttackHash=true
-double MEHR::checkForAttack(int sourceSol, int targetSol, vector<int>& mehrTheories) {
-    double targetNonAccept=0;
-    for (int tIdx : mehrTheories) {
-        targetNonAccept += mdp.mehr_theories[tIdx]->CriticalQuestionOne(sourceSol, targetSol, histories);
-    }
-    return targetNonAccept;
-}
-
-
-
-/*
-// Generates attacks from source pi to target pi, using theories. Updates non_accept accordingly.
-// Compares worst history from source to best history from target.
-// Increments source history to its best, then resets and decrements best.
-// If attack, makes attack from all source's better histories to all target's worse histories.
-// Once target history attacked by argument, it is skipped on future.
-// Checks using hash set if this->useAttackHash=true
-double MEHR::checkForAttack(int sourceSol, int targetSol, vector<int>& theories, vector<vector<vector<int>>> &hRT) {
-    Log::writeLog(std::format("Source Pi {} attacks Target Pi {}", sourceSol, targetSol), LogLevel::Trace);
-    double targetNacc=0;
-    for (auto tIdx : theories) {
-        bool findAttack = false;
-        auto& attHistories = hRT[tIdx][sourceSol];
-        auto& defHistories = hRT[tIdx][targetSol];
-
-        for (size_t def_place = 0; def_place < defHistories.size(); ++def_place) {
-            int defIdx = defHistories[def_place];
-            for (auto attIt = attHistories.rbegin(); attIt != attHistories.rend(); ++attIt) {
-                // Use the best defender history and worst attacker history.
-                auto attackerHistoryW = histories.at(sourceSol).at(*attIt)->worth;
-                auto defenderHistoryW = histories.at(targetSol).at(defIdx)->worth;
-                int result = mdp.mehr_theories[tIdx]->attack(attackerHistoryW, defenderHistoryW);
-                Log::writeLog(std::format("Attacker Worth {} vs Defender Worth {}. Result is {}", attackerHistoryW.toString(), defenderHistoryW.toString(), result), LogLevel::Trace);
-                // There is an attack!
-                if (result==1) {
-                    findAttack=true;
-                    for (auto i = def_place; i < defHistories.size(); ++i) {
-                        targetNacc += histories.at(targetSol).at(defHistories[i])->probability;
-                        Log::writeLog(std::format("   History {} beats {} w/ probability {}, theory {}", *attIt, defHistories[i], histories.at(targetSol).at(i)->probability, tIdx), LogLevel::Trace);
-
-                    }
-                    if (mdp.mehr_theories[tIdx]->orderHistories) {
-                        // We can prune arguments from future considerations if histories for this theory are orderd.
-                        defHistories.resize(def_place);
-                    }
-                    break;
-                }
-            }
-            if (findAttack) { break; }
-        }
-    }
-    return targetNacc;
-}
-*/
 

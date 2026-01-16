@@ -1,23 +1,27 @@
 {
-    "horizon": 3,
-    "total_states": 2,
-    "actions": ["A", "B", "C"],
-    "state_transitions": [
+    "Horizon": 3,
+    "Total_states": 2,
+    "Actions": ["A", "B", "C"],
+    "State_transitions": [
         {
             "A": [[0.5, 1, 10], [0.5, 1, 5]],
             "B": [[1, 1, 1]]
         },
         {}
     ],
-    "state_time" : [0,1],
-    "goals":[1],
-    "theories": [
+    "State_time" : [0,1],
+    "Goals":[1],
+    "Theories": [
         {
-            "Name": "Utilitarianism",
-            "Rank": 1,
+            "Name": "Theory_One",
             "Type": "Utility",
-            "Heuristic":[0, 0],
-            "default": 0
-        }
-    ]
+            "Rank": 0
+        }],
+    "Considerations": [{
+        "Name": "Con_One",
+        "Type": "Utility",
+        "Component_of": "Theory_One",
+        "Default": 0,
+        "Heuristic": [0, 0]
+    }]
 }

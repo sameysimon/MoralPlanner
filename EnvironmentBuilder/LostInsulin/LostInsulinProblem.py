@@ -1,25 +1,25 @@
 from copy import deepcopy
-from EnvironmentBuilder.BaseMDP import MDP
+from EnvironmentBuilder.BaseMDP import MDP, Theory
 from EnvironmentBuilder.LostInsulin.InsulinTheories import *
 import random
 
 
 class LostInsulin(MDP):
 
-    def __init__(self, initialProps=None, horizon=20, budget=18.5, theoryClasses=[['time']], **kwargs):
+    def __init__(self, Theories, Considerations, InitialProps=None, Horizon=20, Budget=18.5, **kwargs):
         super().__init__()
-        if initialProps==None:
-            initialProps=LostInsulin.defaultProps
-        if not horizon==None:
-            initialProps['horizon'] = horizon
-        self.horizon=horizon
+        if InitialProps==None:
+            InitialProps=LostInsulin.defaultProps
+        if not Horizon==None:
+            InitialProps['horizon'] = Horizon
+        self.horizon=Horizon
         
-        self.stateFactory(initialProps) # Create at least one initial state
+        self.stateFactory(InitialProps) # Create at least one initial state
         self.rules = [LostInsulin.ToGive, LostInsulin.ToSteal, LostInsulin.LeaveOrWait, LostInsulin.DeathChance] 
         self.Theories = []
-        self.theorySetup(theoryClasses)
+        self.theorySetup(Theories, Considerations)
         self.CostTheory = Time(self.horizon)
-        self.budget = budget
+        self.budget = Budget
         self.isNonMoral = False
 
     defaultProps = {
@@ -196,39 +196,44 @@ class LostInsulin(MDP):
         return [(props_,prob*1)]
 
 
-
-
     # Setup stuff.
     def stateString(self, state) -> str:
         return str(state.props)
         
-    def theorySetup(self, theoryClasses):
+    def theorySetup(self, theories, considerations):
+        for t in theories:
+            mc = Theory()
+            mc.name = t["Name"]
+            mc.rank = t["Rank"]
+            mc.type = t["Type"]
+            self.Theories.append(mc)
+        
         rank = 0
-        mt = 0
-        for theoryGroup in theoryClasses:
-            for tag in theoryGroup:
-                if 'time'==tag:
-                    mt = Time(self.horizon)
-                elif 'overall'==tag:
-                    mt = OverallUtility()
-                elif 'LifeAndDeath'==tag:
-                    mt = LifeAndDeath()
-                elif 'ToSteal'==tag:
-                    mt = ToSteal()
-                elif 'StealWithComp'==tag:
-                    mt = StealWithComp()
-                elif 'HalLife'==tag:
-                    mt = HalLife()
-                elif 'CarlaLife'==tag:
-                    mt = CarlaLife()
-                elif 'Cost'==tag:
-                    self.isNonMoral=True
-                    mt = Time(self.horizon)
-                else:
-                    raise Exception('Moral theory with tag ' + tag + ' at rank ' + str(rank) + ' invalid.')
-                mt.rank = rank
-                self.Theories.append(mt)
-            rank+=1
+        mc = 0
+        for c in considerations:
+            tag = c["Type"]
+            if 'time'==tag:
+                mc = Time(self.horizon)
+            elif 'overall'==tag:
+                mc = OverallUtility()
+            elif 'LifeAndDeath'==tag:
+                mc = LifeAndDeath()
+            elif 'ToSteal'==tag:
+                mc = ToSteal()
+            elif 'StealWithComp'==tag:
+                mc = StealWithComp()
+            elif 'HalLife'==tag:
+                mc = HalLife()
+            elif 'CarlaLife'==tag:
+                mc = CarlaLife()
+            elif 'Cost'==tag:
+                self.isNonMoral=True
+                mc = Time(self.horizon)
+            else:
+                raise Exception('Moral theory with tag ' + tag + ' at rank ' + str(rank) + ' invalid.')
+            mc.componentOf=c["Component_of"]
+            self.Considerations.append(mc)
+
     def optionsString():
         s = "Initial property options are \n{`xy`: [int], `max_xy`: [int], `walls`:`max_xy`: [[int,int]], `playgrounds`:`max_xy`: [[int,int]], `goals`:`max_xy`: [[int,int]]} \n"
         return s + "Theory options are `time`, `avoid_playgrounds`, `avoid_checkpoints`."

@@ -1,17 +1,18 @@
-from EnvironmentBuilder.BaseMDP import MDP, MoralTheory
+from EnvironmentBuilder.BaseMDP import MDP, Consideration, State, Successor
 
-class Time(MoralTheory):
+class Time(Consideration):
     def __init__(self):
+        super().__init__()
         self.type='Cost'
         self.rank=1
         self.tag='time'
         self.default = 0
 
-    def judge(self, successor: MDP.Successor):
+    def judge(self, successor: Successor):
         return -1
 
     # Simple hamming distance heuristic.
-    def StateHeuristic(self, state:MDP.State):
+    def StateHeuristic(self, state:State):
         minDist = 99999
         xy = state.props['xy']
         for g in state.props['goals']:
@@ -21,14 +22,15 @@ class Time(MoralTheory):
 
         return -1 * minDist
 
-class MoralTime(MoralTheory):
+class MoralTime(Consideration):
     def __init__(self):
+        super().__init__()
         self.type='Utility'
         self.rank=1
         self.tag='time'
         self.default = 0
 
-    def judge(self, successor: MDP.Successor):
+    def judge(self, successor: Successor):
         xy = successor.targetState.props['xy']
         for g in successor.targetState.props['goals']:
             if g[0]==xy[0] and g[1]==xy[1]:
@@ -36,7 +38,7 @@ class MoralTime(MoralTheory):
         return -1
 
     # Simple hamming distance heuristic.
-    def StateHeuristic(self, state:MDP.State):
+    def StateHeuristic(self, state:State):
         minDist = 99999
         xy = state.props['xy']
         for g in state.props['goals']:
@@ -46,15 +48,16 @@ class MoralTime(MoralTheory):
 
         return -1 * minDist
 
-class AvoidPlaygrounds(MoralTheory):
+class AvoidPlaygrounds(Consideration):
     def __init__(self):
+        super().__init__()
         self.type='Threshold'
         self.rank=1
         self.tag='avoid_playgrounds'
         self.threshold=0.95
         self.default = 0
 
-    def judge(self, successor: MDP.Successor):
+    def judge(self, successor: Successor):
         xy = successor.targetState.props['xy']
         for pl in successor.targetState.props['playgrounds']:
             if (pl[0]==xy[0] and pl[1]==xy[1]):
@@ -63,7 +66,7 @@ class AvoidPlaygrounds(MoralTheory):
 
 
     # Simple hamming distance heuristic.
-    def StateHeuristic(self, state:MDP.State):
+    def StateHeuristic(self, state:State):
         if len(state.props['playgrounds'])==0:
             return 0
 
@@ -81,15 +84,16 @@ class AvoidPlaygrounds(MoralTheory):
         # Turned negative.
         return h*-1
 
-class AvoidCheckpoints(MoralTheory):
+class AvoidCheckpoints(Consideration):
     def __init__(self):
+        super().__init__()
         self.type='Threshold'
         self.rank=1
         self.tag='avoid_checkpoints'
         self.threshold=0.9
         self.default = 0
 
-    def judge(self, successor: MDP.Successor):
+    def judge(self, successor: Successor):
         xy = successor.targetState.props['xy']
         for pl in successor.targetState.props['checkpoints']:
             if (pl[0]==xy[0] and pl[1]==xy[1]):
@@ -98,7 +102,7 @@ class AvoidCheckpoints(MoralTheory):
 
 
     # Simple hamming distance heuristic.
-    def StateHeuristic(self, state:MDP.State):
+    def StateHeuristic(self, state:State):
         maxDist = 0
         xy = state.props['xy']
         for ch in state.props['checkpoints']:
@@ -112,16 +116,17 @@ class AvoidCheckpoints(MoralTheory):
         return -0.3 * maxDist
 
 
-class Time(MoralTheory):
+class Time(Consideration):
     def __init__(self):
+        super().__init__()
         self.type='Cost'
         self.rank=1
         self.tag='time'
         self.default = 0
 
-    def judge(self, successor: MDP.Successor):
+    def judge(self, successor: Successor):
         return -1
 
     # Simple hamming distance heuristic.
-    def StateHeuristic(self, state:MDP.State):
+    def StateHeuristic(self, state:State):
         return -10

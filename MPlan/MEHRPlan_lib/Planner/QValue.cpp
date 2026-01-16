@@ -9,9 +9,10 @@ template <>
 struct hash<QValue> {
     std::size_t operator()(const QValue& qval) const {
         std::size_t seed = 0;
-        for (WorthBase* wb : qval.expectations) {
+        for (auto &wb : qval.expectations) {
             std::size_t wbHashed = wb->hash();
             QValue::hash_combine(seed, wbHashed);
+
         }
         return seed;
     }

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from EnvironmentBuilder.BaseMDP import MDP
+from EnvironmentBuilder.BaseMDP import MDP, Theory, Consideration, State
 from EnvironmentBuilder.Abstract.AbstractTheories import *
 import numpy as np
 import random
@@ -7,30 +7,30 @@ import random
 
 class AbstractMDP(MDP):
 
-    def __init__(self, initialProps=None, horizon=20, budget=6, goalOdds=0, branchFactor=2, actionFactor=2, theoryClasses=[['utility', 'law']], **kwargs):
+    def __init__(self, Theories, Considerations, initialProps=None, Horizon=20, Budget=6, GoalP=0, BranchF=2, ActionF=2, **kwargs):
         super().__init__()
-        random.seed(kwargs['seed'])
-        np.random.seed(kwargs['seed'])
+        random.seed(kwargs['Seed'])
+        np.random.seed(kwargs['Seed'])
         if initialProps==None:
             initialProps=AbstractMDP.defaultProps
-        if not horizon==None:
-            initialProps['horizon'] = horizon
+        if not Horizon==None:
+            initialProps['horizon'] = Horizon
         self.stateFactory(initialProps) # Create at least one initial state
         self.rules = [AbstractMDP.Next] 
         #self.CostTheory = Time()
-        self.Theories = []
-        self.theorySetup(theoryClasses)
-        
-        self.budget = budget
-        self.goalOdds = goalOdds
-        self.isNonMoral = goalOdds>0
 
-        self.horizon=horizon
-        self.branchFactor=branchFactor
-        self.actionFactor=actionFactor
+        self.theorySetup(Theories, Considerations)
+        
+        self.budget = Budget
+        self.goalOdds = GoalP
+        self.isNonMoral = GoalP>0
+
+        self.horizon=Horizon
+        self.branchFactor=BranchF
+        self.actionFactor=ActionF
 
         self.myActions = []
-        for i in range(actionFactor):
+        for i in range(ActionF):
             self.myActions.append('a_' + str(i))
     defaultProps = {
             'time':0,
@@ -62,7 +62,7 @@ class AbstractMDP(MDP):
             props_['time']+=1
             props_['utility0'] = random.uniform(-10, 10)
             props_['utility1'] = random.uniform(-10, 10)
-            props_['law'] = random.random() < 0.001
+            props_['law'] = random.random() < 0.5
             if (props_['time']>=self.horizon/2):
                 props_['isGoal']=random.random()>self.goalOdds
             outs.append((props_, prob * probDist[i]))
@@ -74,22 +74,30 @@ class AbstractMDP(MDP):
     def stateString(self, state) -> str:
         return str(state.props)
         
-    def theorySetup(self, theoryClasses):
+    def theorySetup(self, theories:list[Theory], considerations):
+        for t in theories:
+            mt = Theory()
+            mt.name = t["Name"]
+            mt.rank = t["Rank"]
+            mt.type = t["Type"]
+            self.Theories.append(mt)
+
         rank = 0
-        mt = 0
-        theoryid = 0
-        for theoryGroup in theoryClasses:
-            for tag in theoryGroup:
-                if 'utility'==tag:
-                    mt = Utility(theoryid)
-                elif 'law'==tag:
-                    mt = TheLaw(theoryid)
-                else:
-                    raise Exception('Moral theory with tag ' + tag + ' at rank ' + str(rank) + ' invalid.')
-                mt.rank = rank
-                self.Theories.append(mt)
-                theoryid+=1
+        mc = 0
+        conId = 0
+        for c in considerations:
+            if 'utility' in c["Type"]:
+                mc = Utility(conId)
+            elif 'law' in c["Type"]:
+                mc = TheLaw(conId)
+            else:
+                raise Exception('Moral consideration with type ' + c["Type"] + ' at rank ' + str(rank) + ' invalid.')
+            
+            mc.componentOf=c["Component_of"]
+            self.Considerations.append(mc)
+            conId+=1
             rank+=1
+
     def optionsString():
         s = ""
         return s + "Theory options are `utility`, `law`."
