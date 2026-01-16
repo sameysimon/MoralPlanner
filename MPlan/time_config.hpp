@@ -4,6 +4,7 @@
 #pragma once
 #include <chrono>
 #include <ctime>
+#include <functional>
 
 #define TIME_METRIC_STR "microseconds"
 typedef std::chrono::microseconds time_metric;
@@ -23,7 +24,6 @@ static inline long long now_process_cpu_ns() {
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
     return (long long)ts.tv_sec * 1'000'000'000LL + ts.tv_nsec;
 }
-
 template <class F, class... Args>
 long long CPUTime(F&& f, Args&&... args) {
     auto t1 = now_process_cpu_ns();

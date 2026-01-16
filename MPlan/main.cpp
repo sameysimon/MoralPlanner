@@ -29,6 +29,11 @@ int main(int argc, const char * argv[]) {
     std::string fileOut = outputFolder + "MPlan-Out.json";
     Log::setLogLevel(LogLevel::Warn);
 
+    if (argc==1) {
+        std::cout << "Call with a Multi-Moral Markov Decision Process/Stochastic Shortest Path JSON file!" << std::endl;
+        return 0;
+    }
+
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--server") == 0 || strcmp(argv[i], "-S") == 0) {
             run_as_server = true;

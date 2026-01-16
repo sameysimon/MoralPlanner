@@ -7,6 +7,7 @@
 #include "HistoryHandler.hpp"
 #include "State.hpp"
 #include <sstream>
+#include <format>
 
 class OrdinalWorth : public WorthBase {
 public:
