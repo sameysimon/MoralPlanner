@@ -143,9 +143,11 @@ cd MPlan/build/
 ctest
 ```
 ---
-## MDP Environment Syntax
+## MDP Environment JSON Fields
 All MMMDP/SSPs are stored as JSON files. The following is a guide to the various keys and how information is structured.
 
+
+### Main Fields
 | **Key**             | **Type**                        | **Required** | **Description**                                                                                                                                                                                                             |
 |---------------------|---------------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `Horizon`           | `int`                           | Yes          | The number of state-time-state transitions until the MDP terminates.                                                                                                                                                        |
@@ -157,6 +159,7 @@ All MMMDP/SSPs are stored as JSON files. The following is a guide to the various
 | `State_tags`        | `list[string]`                  | Yes          | A description of each state.                                                                                                                                                                                                |
 | `Goals`             | `list[int]`                     | No           | List of states indices that are goal states; for MMSSPs.                                                                                                                                                                    |
 
+### Moral Theory Fields
 Each moral theory is an object with a few required fields.
 
 | **Key**          | **Type** | **Required** | **Description**                                                                      |
@@ -166,17 +169,16 @@ Each moral theory is an object with a few required fields.
 | `Rank`           | `int`    | Yes          | The weak-lexicographic rank states the stakeholder's preference for the theory.      |
 
 
+### Moral Consideration Fields
 Each moral consideration is an object with a few required fields.
 
-| **Key**        | **Type** | **Required** | **Description**                                                                      |
-|----------------|----------|--------------|--------------------------------------------------------------------------------------|
-| `Name`         | `str`    | Yes          | The number of state-time-state transitions until the MDP terminates.                 |
-| `Component_of` | `str`    | Yes          | The particular moral theory. Currently types: `Utility, Absolute, Maximin, Ordinal`. |
-| `Default`      | `any`    | No           | The weak-lexicographic rank states the stakeholder's preference for the theory.      |
-| `Heuristic`    | `list`   | No           | The weak-lexicographic rank states the stakeholder's preference for the theory.      |
-
-
-
+| **Key**        | **Type** | **Required** | **Description**                                                                            |
+|----------------|----------|--------------|--------------------------------------------------------------------------------------------|
+| `Name`         | `str`    | Yes          | The number of state-time-state transitions until the MDP terminates.                       |
+| `Component_of` | `str`    | Yes          | The moral theories that use this moral consideration.                                      |
+| `Type`           | `str`    | Yes          | The particular type of moral consideration. Currently types: `Utility, Absolute, Ordinal`. |
+| `Default`      | `any`    | No           | A default/null value. Represents morally irrelevent information.                           |
+| `Heuristic`    | `list`   | No           | A domain-dependent heuristic for every state.                                              |
 
 ## Code Authors
 

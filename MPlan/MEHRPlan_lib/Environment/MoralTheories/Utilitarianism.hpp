@@ -98,14 +98,13 @@ public:
         }
         auto res = make_unique<ExpectedUtility>(utility);
         return res;
-    };
+    }
     std::unique_ptr<WorthBase> newHeuristic(State& s) override {
-
-        if (s.id > mHeuristicList.size()) {
-            throw std::runtime_error("Heuristic list is too small");
+        if (s.id > mHeuristicList.size() || mHeuristicList.empty()) {
+            return UniqueWorth();
         }
         return make_unique<ExpectedUtility>(mHeuristicList[s.id]);
-    };
+    }
     WorthBase* newWorth() override {
         return new ExpectedUtility();
     }

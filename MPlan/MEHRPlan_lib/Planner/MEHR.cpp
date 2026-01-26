@@ -128,15 +128,49 @@ void MEHR::SortExpFindNonAccept(NonAcceptability &non_accept) {
         }
     }
 }
+uint64_t PackPair(size_t a, size_t b) {
+    return (uint64_t(a) << 31) | uint64_t(b);
+}
+void CachePair(size_t piIdx_src, size_t piIdx_tar, unordered_set<uint64_t> &policy_pairs) {
+    policy_pairs.insert(PackPair(piIdx_src, piIdx_tar));
+}
+bool CheckPair(size_t piIdx_src, size_t piIdx_tar, unordered_set<uint64_t> &policy_pairs) {
+    return policy_pairs.find(PackPair(piIdx_src, piIdx_tar)) != policy_pairs.end();
+}
+void MEHR::HashPolicyPairs_FindNonAccept(NonAcceptability &non_accept) {
+    unordered_set<uint64_t> policy_pairs;
+    for (size_t theoryIdx=0; theoryIdx < mdp.mehr_theories.size(); theoryIdx++) {
+        for (size_t pi_idx1 = 0; pi_idx1 < policies.size(); pi_idx1++) {
+            QValue* qv1 = policies[pi_idx1]->getExpectationPtr();
+            QValue* qv2;
+            for (size_t pi_idx2 = pi_idx1+1; pi_idx2 < policies.size(); pi_idx2++) {
+                if (CheckPair(pi_idx1, pi_idx2, policy_pairs) && CheckPair(pi_idx2, pi_idx1, policy_pairs)) {
+                    continue;
+                }
+                qv2 = policies[pi_idx2]->getExpectationPtr();
+                // 'Slow' because this function compares all preferred moral theories
+                auto cq2 = mdp.mehr_theories[theoryIdx]->CriticalQuestionTwo(*qv1, *qv2);
+                if (cq2==1) {
+                    CQ1AndAddAttack(pi_idx1, pi_idx2, theoryIdx, non_accept);
+                    CachePair(pi_idx1, pi_idx2, policy_pairs);
+                } else if (cq2==-1) {
+                    CQ1AndAddAttack(pi_idx2, pi_idx1, theoryIdx, non_accept);
+                    CachePair(pi_idx1, pi_idx2, policy_pairs);
+                }
+            }
+        }
+    }
+    doneMEHR=true;
+}
 
-
-void MEHR::SlowFindNonAccept(NonAcceptability &non_accept) {
+void MEHR::Slow_FindNonAccept(NonAcceptability &non_accept) {
     for (size_t theoryIdx=0; theoryIdx < mdp.mehr_theories.size(); theoryIdx++) {
         for (size_t pi_idx1 = 0; pi_idx1 < policies.size(); pi_idx1++) {
             QValue* qv1 = policies[pi_idx1]->getExpectationPtr();
             QValue* qv2;
             for (size_t pi_idx2 = pi_idx1+1; pi_idx2 < policies.size(); pi_idx2++) {
                 qv2 = policies[pi_idx2]->getExpectationPtr();
+                // 'Slow' because this function compares all preferred moral theories
                 auto cq2 = CQ2CompareWithRank(*qv1, *qv2, theoryIdx);
                 if (cq2==1) {
                     CQ1AndAddAttack(pi_idx1, pi_idx2, theoryIdx, non_accept);

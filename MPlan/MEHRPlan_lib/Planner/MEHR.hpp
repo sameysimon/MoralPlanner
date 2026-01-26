@@ -47,6 +47,31 @@ struct NonAcceptability {
     [[nodiscard]] size_t getTotalTheories() const {
         return non_accept.size();
     }
+    [[nodiscard]] double getMinimumNonAccept() {
+        if (cachedMinNacc) {
+            return minNacc;
+        }
+        minNacc = getPolicyNonAccept(0);
+        for (auto i = 1; i < getTotalPolicies(); ++i) {
+            auto x = getPolicyNonAccept(i);
+            if (x < minNacc)
+                minNacc = x;
+        }
+        cachedMinNacc = true;
+        return minNacc;
+
+    }
+    [[nodiscard]] vector<size_t> getMinimumNonAcceptPolicyIdxs() {
+        vector<size_t> minPolicies;
+        minNacc = getMinimumNonAccept();
+        for (auto i = 1; i < getTotalPolicies(); ++i) {
+            if (getPolicyNonAccept(i) == minNacc) {
+                minPolicies.push_back(i);
+            }
+        }
+        return minPolicies;
+
+    }
     void addNonAccept(size_t theoryIdx, size_t policyIdx, double value) {
         non_accept[theoryIdx][policyIdx] += value;
     }
@@ -55,6 +80,9 @@ struct NonAcceptability {
             n.push_back(0);
         }
     }
+private:
+    bool cachedMinNacc = false;
+    double minNacc = 0;
 };
 
 
@@ -84,7 +112,8 @@ class MEHR {
     MEHR(MDP& mdp, vector<unique_ptr<Policy>> &policies_, vector<vector<History*>> &histories_);
 
     // Normal MEHR Functions
-    void SlowFindNonAccept(NonAcceptability &non_accept);
+    void Slow_FindNonAccept(NonAcceptability &non_accept);
+    void HashPolicyPairs_FindNonAccept(NonAcceptability &non_accept);
     void findNonAccept(NonAcceptability &non_accept);
     void SortExpFindNonAccept(NonAcceptability& non_accept);
     void RankPoliciesByTheory(size_t theoryIdx);
@@ -139,12 +168,12 @@ class MEHR {
         }
         return false;
     }
-    string ToString(vector<QValue>& policyWorths, vector<vector<History*>>& histories, NonAcceptability& non_accept) {
+    string ToString(NonAcceptability& non_accept) {
         stringstream ss;
         for (int tarIdx=0; tarIdx < attacks.size(); tarIdx++) {
-            ss << "Non-acceptability on policy " << tarIdx << " with expected worth " << policyWorths[tarIdx].toString() << " has non-accept " << non_accept.getPolicyNonAccept(tarIdx) << ":" << endl;
+            ss << "Non-acceptability on policy " << tarIdx << " with expected worth " << policies[tarIdx]->getExpectationPtr()->toString() << " has non-accept " << non_accept.getPolicyNonAccept(tarIdx) << ":" << endl;
             for (Attack& att : attacks[tarIdx]) {
-                ss << "   * From Policy " << att.sourcePolicyIdx << " (" << policyWorths[att.sourcePolicyIdx].toString() << ") by theory " << mdp.mehr_theories[att.theoryIdx]->mName << " P=" << att.p << endl;
+                ss << "   * From Policy " << att.sourcePolicyIdx << " (" << policies[att.sourcePolicyIdx]->getExpectationPtr()->toString() << ") by theory " << mdp.mehr_theories[att.theoryIdx]->mName << " P=" << att.p << endl;
                 for (auto edge : att.HistoryEdges) {
                     ss << "     - History " << edge.first << "(" << histories[att.sourcePolicyIdx][edge.first]->worth.toString() << ") --> " << edge.second << " (" << histories[att.targetPolicyIdx][edge.second]->worth.toString() << ")" << " for P=" << histories[att.targetPolicyIdx][edge.second]->probability << endl;
                 }

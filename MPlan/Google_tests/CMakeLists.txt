@@ -11,6 +11,7 @@ add_executable(Google_Tests_run
         TestBase.hpp
         test_maximin.cpp
         test_explain.cpp
+        test_FromSourceFile.cpp
 )
 
 # linking Google_Tests_run with DateConverter_lib which will be tested

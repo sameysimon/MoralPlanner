@@ -56,18 +56,47 @@ public:
     explicit Runner(const std::string& fileIn) {
         SetInputFile(fileIn);
     }
-    int SetInputFile(const std::string& fileIn) {
-        std::ifstream file(fileIn);
-        if (!file.is_open()) {
-            this->fileIn = DATA_FOLDER_PATH;
-            this->fileIn += "/" + fileIn;
-            file.open(this->fileIn);
-            if (!file.is_open()) {
-                throw std::runtime_error("Could not open " + fileIn);
-            }
-        } else {
-            this->fileIn = fileIn;
+    std::ifstream static OpenFile(const std::string& fileIn) {
+        string fn = fileIn;
+        string tries;
+        // Try as it comes
+        std::ifstream file(fn);
+        file.open(fn);
+        if (file.is_open()) {
+            return file;
         }
+        tries = fn;
+        // Try with slash
+        fn = "/" + fn;
+        file.open(fn);
+        if (file.is_open()) {
+            return file;
+        }
+        tries += "\n" + fn;
+        // Try with data folder path
+        fn = DATA_FOLDER_PATH;
+        fn += "/" + fileIn;
+        file.open(fn);
+        if (file.is_open()) {
+            return file;
+        }
+        tries += "\n" + fn;
+
+        fn = DATA_FOLDER_PATH;
+        fn += fileIn;
+        file.open(fn);
+        if (file.is_open()) {
+            return file;
+        }
+        tries += "\n" + fn;
+
+        if (!file.is_open()) {
+            throw std::runtime_error("Could not open file. Tried:\n" + tries + "\n");
+        }
+        return file;
+    }
+    int SetInputFile(const std::string& fileIn) {
+        auto file = OpenFile(fileIn);
         json data;
         try {
             data  = json::parse(file);
@@ -135,18 +164,13 @@ public:
 
     long long timeMEHR() {
         if (stage < 4) { throw std::runtime_error("Not ready for MEHR."); }
-        // Extract just the expectations of each policy
-        polExpectations.reserve(policies.size());
-        for (auto &pi : policies) {
-            polExpectations.push_back(pi->worth.at(0));
-        }
         // Create MEHR object
         mehr = make_unique<MEHR>(*mdp, policies, histories);
         non_accept = make_shared<NonAcceptability>(mdp->mehr_theories.size(), policies.size());
         // Time and start MEHR:
-        long long d = WallTime(&MEHR::SlowFindNonAccept, *mehr, *non_accept);
+        long long d = WallTime(&MEHR::Slow_FindNonAccept, *mehr, *non_accept);
 
-        Log::writeLog(mehr->ToString(polExpectations, histories, *non_accept), LogLevel::Debug);
+        Log::writeLog(mehr->ToString(*non_accept), LogLevel::Debug);
         Log::writeLog(std::format("Finished MEHR in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
         stage = 5;
         return d;

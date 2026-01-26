@@ -29,7 +29,7 @@ void SortHistories::AddPolicyHistories(std::vector<std::vector<History*>> &histo
 Attack SortHistories::CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>>& histories) {
     bool findAttack = false;
     auto& attHistories = orderedHistories[a.sourcePolicyIdx];
-    auto& defHistories =orderedHistories[a.targetPolicyIdx];
+    auto& defHistories = orderedHistories[a.targetPolicyIdx];
 
     // Grab defender histories from the front to get the best defender first.
     for (size_t def_place = 0; def_place < defHistories.size(); ++def_place) {

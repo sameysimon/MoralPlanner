@@ -59,9 +59,6 @@ void verifyJSON(nlohmann::json& data) {
     if (data.contains("Total_states") == false) {
         throwStageOne("total_states not found.");
     }
-    if (data.contains("Goals") == false) {
-        throwStageOne("goals not found.");
-    }
     if (data.contains("Theories") == false) {
         throwStageOne("theories not found.");
     }
@@ -88,9 +85,6 @@ void verifyJSON(nlohmann::json& data) {
         string conName = con["Name"];
         if (con.contains("Type") == false) {
             throwStageOne(conName + " Type not found.");
-        }
-        if (con.contains("Heuristic") == false) {
-            throwStageOne(conName + " Heuristic not found.");
         }
         if (con.contains("Component_of") == false && con["Type"]!="Cost") {
             throwStageOne(conName + " is not non-moral, but is not the component of any theory.");
@@ -303,8 +297,10 @@ void MDP::statesFromJSON(nlohmann::json &data) {
         states[i] = state;
         stateActions[i] = vector<shared_ptr<Action>>();
     }
-    for (int gIdx : data["Goals"]) {
-        this->states[gIdx]->isGoal = true;
+    if (data.contains("Goals")) {
+        for (int gIdx : data["Goals"]) {
+            this->states[gIdx]->isGoal = true;
+        }
     }
     // May not be state tags, so skip final step if not.
     if (!data.contains("State_tags")) {

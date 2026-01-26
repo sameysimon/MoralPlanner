@@ -99,10 +99,9 @@ TEST_F(MEHR_Tests, CheckForAttack) {
 
     MEHR mehr = MEHR(*run.mdp, run.policies, run.histories);
     auto non_accept = NonAcceptability(run.mdp->mehr_theories.size(), run.policies.size());
-    mehr.SlowFindNonAccept(non_accept);
+    mehr.Slow_FindNonAccept(non_accept);
     ASSERT_NEAR(non_accept.getPolicyNonAccept(piIdx["A"]), 1, tolerance);
     ASSERT_NEAR(non_accept.getPolicyNonAccept(piIdx["B"]), 0.75, tolerance);
-
 
     ASSERT_TRUE(mehr.containsAttack(piIdx["A"], BuildUtilityQValue({3,0}), piIdx["B"], BuildUtilityQValue({-1,100})));
     ASSERT_TRUE(mehr.containsAttack(piIdx["A"], BuildUtilityQValue({3,0}), piIdx["B"], BuildUtilityQValue({1,0})));
@@ -111,5 +110,4 @@ TEST_F(MEHR_Tests, CheckForAttack) {
     ASSERT_TRUE(mehr.containsAttack(piIdx["B"], BuildUtilityQValue({-1,100}), piIdx["A"], BuildUtilityQValue({0,0})));
     ASSERT_TRUE(mehr.containsAttack(piIdx["B"], BuildUtilityQValue({-1,100}), piIdx["A"], BuildUtilityQValue({1,0})));
     ASSERT_TRUE(mehr.containsAttack(piIdx["B"], BuildUtilityQValue({-1,100}), piIdx["A"], BuildUtilityQValue({3,0})));
-
 }
