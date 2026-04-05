@@ -35,6 +35,7 @@ struct Attack {
 };
 
 class History;
+typedef std::vector<std::vector<std::unique_ptr<History>>> policy_hists;
 using json = nlohmann::json;
 
 class Expecter;
@@ -61,13 +62,16 @@ public:
     explicit Consideration(size_t id_) : id(id_) {}
     virtual ~Consideration() = default;
 
-    virtual std::unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) = 0;
+    virtual WorthBase* judge(Successor& scr) = 0;
+    virtual std::unique_ptr<WorthBase> gather(const std::vector<WorthBase*>& worth, const std::vector<double>& probs, const std::vector<WorthBase*>& baselines, bool ignoreProbability) = 0;
     // Setup
     virtual WorthBase* newWorth() = 0;
     virtual std::unique_ptr<WorthBase> UniqueWorth() = 0;
     virtual std::unique_ptr<WorthBase> newHeuristic(State& s) = 0;
     virtual void processSuccessor(Successor* successor, nlohmann::json successorData) = 0;
     virtual void addComponent(Consideration* m) {};
+    virtual std::vector<double> normalise(std::vector<WorthBase*>& worth_vec) = 0;
+
 
     // Functional
     Expecter* makeExpecter(int size, int horizon);
@@ -97,13 +101,13 @@ public:
     // Handles removal of duplicate attacks on arguments.
     // Assumes sourceSol attacks targetSol by CQ2 -- expectations not used.
     // Method depends on Moral Theory. Some variant of comparing histories though.
-    virtual Attack CriticalQuestionOne(Attack& att, std::vector<std::vector<History*>> &histories) = 0;
+    virtual Attack CriticalQuestionOne(Attack& att, policy_hists &histories) = 0;
 
     virtual int CriticalQuestionTwo(QValue& qv1, QValue& qv2) = 0;
 
     virtual int attack(QValue& qv1, QValue& qv2) = 0;
-    virtual void InitMEHR(std::vector<std::vector<History*>> &histories) = 0;
-    virtual void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) = 0;
+    virtual void InitMEHR(policy_hists &histories) = 0;
+    virtual void AddPoliciesForMEHR(policy_hists &histories) = 0;
     virtual void AddConsideration(Consideration &con) = 0;
 };
 

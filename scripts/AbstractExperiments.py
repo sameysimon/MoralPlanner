@@ -8,6 +8,10 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 import copy
+import time
+import requests
+import atexit
+
 
 
 class ExperimentRunner:
@@ -24,7 +28,10 @@ class ExperimentRunner:
 
         self.goalP = 0.7
         self.seed = 123
+        
+        self.ServerProcess = None
 
+        self.loglevel = 1
         if not outFolder is None:
             self.outputFolder = outFolder
         else:
@@ -36,8 +43,11 @@ class ExperimentRunner:
         os.makedirs(self.mdpFolder, exist_ok=True)
         os.makedirs(self.rawOutFolder, exist_ok=True)
 
+    def log(self, msg:str, level:int):
+        if level > self.loglevel:
+            print(msg)
 
-    def makeMdpFileName(self, confName:str, confRep:int):
+    def makeMdpFileName(self, confName:str, confRep:int=None):
         return f"{self.mdpFolder}/{confName}_con{confRep}.json"
 
     def makePlanOutFileName(self, confName:str, confRep:int, envRep:int):
@@ -51,23 +61,23 @@ class ExperimentRunner:
 
     def run(self, configRepetitions=1, envRepetitions=1):
         # Generate Environments.
-        print("*********Builing environments...*********")
+        self.log("*********Builing environments...*********",0)
         self.buildEnvironments(configRepetitions)
-        print("*********Built all environments!*********")
+        self.log("*********Built all environments!*********",0)
 
 
         # Call planner on all envs
-        print("*********Planning...*********")
+        self.log("*********Planning...*********",0)
         for conf in self.configs:
             for conf_rep in range(configRepetitions):
                 inFile = self.makeMdpFileName(conf['Name'], conf_rep)
                 for env_rep in range(envRepetitions):
-                    print(f"Config Name: {conf["Name"]}; Env Repetition: {env_rep}")
+                    self.log(f"Config Name: {conf["Name"]}; Env Repetition: {env_rep}",0)
                     outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
                     result = subprocess.run([self.planner, "--debug", "3", inFile, outFile])
                     result.check_returncode()
-            print(f"Finished env on {conf["Name"]}.")
-        print("*********Finished planning!*********")
+            self.log(f"Finished env on {conf["Name"]}.",0)
+        self.log("*********Finished planning!*********",0)
 
         # Extract all consideration tags from across output files
         # (inefficient reading each file twice.)
@@ -126,6 +136,54 @@ class ExperimentRunner:
                                 entry[tag] = "N/A"
                         self.data.append(entry)
 
+
+
+
+    def StartServerAndPost(self, fileName):
+        self.StartServer()
+        time.sleep(1)
+        self.PostMDPToServer(fileName)
+
+    def StartServer(self):
+        self.ServerProcess = subprocess.Popen([self.planner, "--server", "--debug", "0"])
+        atexit.register(self.ServerProcess.terminate)
+
+    def PostMDPToServer(self, fileName, fileOut=None):
+        req = {'file_in': fileName, 'from_data_folder':False}
+        if fileOut:
+            req['file_out'] = fileOut
+        self.buildEnvironments(1)
+        resp = requests.post("http://localhost:18080/MDP", json=req)
+        if (resp.status_code!=200):
+            self.log(f"MPlan Server Error: {resp.reason}",0)
+            self.ServerProcess.terminate()
+            return
+        dat = resp.json
+        resp.close()
+        return dat
+
+    def CacheSuccessorsOnServer(self, scrs, actions):
+        scr_states = [0] + [s[1] for s in scrs]
+        req = {'states_index': scr_states, 'actions':actions}
+        resp = requests.post("http://localhost:18080/CacheSuccessors", json=req)
+    
+    def GetCachedSuccessorsFromServer(self):
+        return requests.post("http://localhost:18080/AggregateCachedSuccessors")
+        
+
+    def PostNextMDPToServer(self, fileName, policy_idx, history_idx):
+        self.buildEnvironments(1)
+        resp = requests.post("http://localhost:18080/PlanFromHistory", json={'policyIdx': fileName, 'from_data_folder':False})
+        if (resp.status_code!=200):
+            self.log(f"MPlan Server Error: {resp.reason}",0)
+            self.ServerProcess.terminate()
+            return
+        dat = resp.json
+        resp.close()
+        return dat
+
+    
+
     def getAllDataFilePath(self) -> str:
         return self.outputFolder + "/all_data.csv"
 
@@ -137,10 +195,6 @@ class ExperimentRunner:
     
     def getTheoryExpectationsFilePath(self) -> str:
         return self.outputFolder + "/theory_expectations.csv"
-
-
-
-
 
     def saveResults(self):
         # Save all data csv
@@ -161,17 +215,13 @@ class ExperimentRunner:
         cols = ["Config_name", "Conf_rep", "Env_rep", "Min_non_accept", "Num_of_min_non_accept"]
         cols.extend(self.con_tags)
         u = df[cols].groupby(["Config_name", "Conf_rep", "Env_rep"], sort=False)
-        print(u.head())
+        self.log(u.head(),0)
         uniqueValues = u.nunique()
         if (not (uniqueValues==1).all().all()):
             raise Exception("Sim: Different iterations returned different expected worth!")
 
         theoryResults = df[cols].groupby('Config_name', sort=False).first()
         theoryResults.to_csv(self.getTheoryExpectationsFilePath())
-
-
-        
-
 
     def loadResults(self, of):
         self.outputFolder = of

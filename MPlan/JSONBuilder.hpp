@@ -55,15 +55,15 @@ class JSONBuilder {
 public:
     static json toJSON(Runner& run);
     static json toJSON(const std::vector<Attack>& attackVector);
-    static json toJSON(explainResult &er, Runner& runner);
+    static json toJSON(explainResult &er, Runner& runner, bool addMEHR);
 
     static json toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcceptability &non_accept, bool includeActions=true);
     static json toJSON(Policy &pi, MDP &mdp, double non_accept, bool includeActions=true);
 
-    static json toJSON(vector<vector<History*>>& histories, bool includePaths=false);
+    static json toJSON(policy_hists& histories, bool includePaths=false);
     // JSON {probability: double, worth: string, path: [[sourceStateID, targetStateID], ...]}
     static json toJSON(History& h);
-    static json toJSON(vector<Successor*>& path);
+    static json toJSON(vector<size_t>& path);
     static json toJSON(Durations& dur);
     static json toJSON(vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction, MDP& mdp, State& s);
     static json toJSON(Solver& solver);
@@ -71,11 +71,11 @@ private:
     static void buildPolicyMap(json &action_map, Policy& pi, MDP& mdp) {
       for (auto map : pi.policy) {
           int stateID = map.first;
-          int actionID = pi.getAction(map.first);
-          if (actionID==-1) {
+          auto actionID = pi.getAction(map.first);
+          if (!actionID) {
               continue;
           }
-          action_map[std::to_string(stateID)] = mdp.getActions(*mdp.states[stateID])->at(actionID)->label;
+          action_map[std::to_string(stateID)] = mdp.getActions(*mdp.states[stateID])->at(actionID.value())->label;
       }
     }
     std::vector<size_t> static sort_indices(NonAcceptability& non_accept) {

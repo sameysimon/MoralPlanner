@@ -45,7 +45,7 @@ json JSONBuilder::toJSON(const std::vector<Attack>& attackVector) {
     return r;
 }
 
-json JSONBuilder::toJSON(explainResult &er, Runner& runner) {
+json JSONBuilder::toJSON(explainResult &er, Runner& runner, bool addMEHR) {
     json r = json::object();
     // Add durations
     r.merge_patch(toJSON(runner.durations));
@@ -55,9 +55,13 @@ json JSONBuilder::toJSON(explainResult &er, Runner& runner) {
     r[FIELD::HISTORIES] = json::object();
     r[FIELD::ATTACKS] = json::object();
     for (size_t i : er.newPolicyIndices) {
-        r[FIELD::FOILSOLUTIONS][std::to_string(i)] = toJSON(*runner.policies[i], *(runner.mdp), runner.non_accept->getPolicyNonAccept(i));
+        double nacc = -1;
+        if (addMEHR) {
+            nacc = runner.non_accept->getPolicyNonAccept(i);;
+        }
+        r[FIELD::FOILSOLUTIONS][std::to_string(i)] = toJSON(*runner.policies[i], *(runner.mdp), nacc);
         r[FIELD::HISTORIES][std::to_string(i)] = json::array();
-        for (auto h : runner.histories[i]) {
+        for (auto &h : runner.histories[i]) {
             r[FIELD::HISTORIES][std::to_string(i)].push_back(toJSON(*h));
         }
         r[FIELD::ATTACKS][std::to_string(i)] = toJSON(runner.mehr->attacks[i]);
@@ -112,7 +116,7 @@ json JSONBuilder::toJSON(Policy &pi, MDP &mdp, double non_accept, bool includeAc
     return r;
 }
 
-json JSONBuilder::toJSON(vector<vector<History*>>& histories, bool includePaths) {
+json JSONBuilder::toJSON(policy_hists& histories, bool includePaths) {
     json r = json::object();
     size_t max=0;
     size_t min=histories[0].size();
@@ -131,7 +135,7 @@ json JSONBuilder::toJSON(vector<vector<History*>>& histories, bool includePaths)
     if (includePaths) {
         for (auto &piHists : histories) {
             json policyHistories = json::array();
-            for (auto h : piHists) {
+            for (auto &h : piHists) {
                 policyHistories.push_back(toJSON(*h));
             }
             r[FIELD::HISTORIES][piIdx] = policyHistories;
@@ -144,18 +148,18 @@ json JSONBuilder::toJSON(History& h) {
     // {probability: float, worth: string, path: [s_1, s_2, ... s_H]
     json r = json::object();
     r[FIELD::PROBABILITY] = h.probability;
-    r[FIELD::WORTH] = h.worth.toString();
+    r[FIELD::WORTH] = h.mWorth.toString();
     r[FIELD::PATH] = toJSON(*h.path);
     return r;
 }
 
-json JSONBuilder::toJSON(vector<Successor*>& path) {
-    json r = json::array();
-    for (auto *succ : path) {
-        r.push_back(succ->source);
+json JSONBuilder::toJSON(vector<size_t>& path) {
+    vector<size_t> path_(path.size()+1, 0);
+    for (size_t i=0; i < path.size(); i++) {
+        path_[i+1] = path[path.size() - 1 - i];
     }
-    r.push_back(path.back()->target);
-    return r;
+    path_[0] = 0;
+    return path_;
 }
 
 json JSONBuilder::toJSON(Durations& dur) {

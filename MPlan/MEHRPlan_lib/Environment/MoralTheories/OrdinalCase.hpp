@@ -80,30 +80,46 @@ public:
     //
     // Getters
     //
-    OrdinalWorth* judge(Successor& successor) {
+    WorthBase* judge(Successor& successor) override {
         return mJudgementMap[&successor];
     }
-    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
-        OrdinalWorth* optimal = judge(*successors[0]);
-        OrdinalWorth* j;
+    unique_ptr<WorthBase> gather(const std::vector<WorthBase*>& worth, const std::vector<double>& probs, const std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
+        OrdinalWorth& optimal = quickCast(*worth[0]);
+        OrdinalWorth& j = quickCast(*baselines[0]);
 
-        for (int i = 0; i < successors.size(); i++) {
-            j = judge(*successors[i]);
-            if (mOptimalityType==0 && j->compare(*optimal) == -1) {
+        for (int i = 0; i < worth.size(); i++) {
+            j = quickCast(*worth[i]);
+            if (mOptimalityType==0 && j.compare(optimal) == -1) {
                 optimal = j;
             }
-            if (mOptimalityType==1 && j->compare(*optimal) == 1) {
+            if (mOptimalityType==1 && j.compare(optimal) == 1) {
                 optimal = j;
             }
-            j = static_cast<OrdinalWorth*>(baselines[i]);
-            if (mOptimalityType==0 && j->compare(*optimal) == 1) {
+            j = quickCast(*baselines[i]);
+            if (mOptimalityType==0 && j.compare(optimal) == 1) {
                 optimal = j;
             }
-            if (mOptimalityType==1 && j->compare(*optimal) == -1) {
+            if (mOptimalityType==1 && j.compare(optimal) == -1) {
                 optimal = j;
             }
         }
-        return make_unique<OrdinalWorth>(*optimal);
+        return make_unique<OrdinalWorth>(optimal);
+    }
+    std::vector<double> normalise(std::vector<WorthBase*> &worth_vec) override {
+        std::vector<double> r;
+        auto max_worth = std::max_element(worth_vec.begin(), worth_vec.end(), [](auto a, auto b) {
+            return a->compare(*b) == 1;
+        });
+        auto min_worth = std::min_element(worth_vec.begin(), worth_vec.end(), [&](auto a, auto b) {
+            return a->compare(*b) == 1;
+        });
+        auto max_util = quickCast(**max_worth.base()).mValue;
+        auto min_util = quickCast(**min_worth.base()).mValue;
+        r.reserve(worth_vec.size());
+        for (auto wb : worth_vec) {
+            r.push_back( (quickCast(*wb).mValue - min_util) / (max_util - min_util + 0.0) );
+        }
+        return r;
     }
 
     std::unique_ptr<WorthBase> UniqueWorth() override {
@@ -129,13 +145,13 @@ public:
         delete pSortedHistories;
     }*/
     int attack(QValue& qv1, QValue& qv2) override;
-    Attack CriticalQuestionOne(Attack& att, std::vector<std::vector<History*>>& histories) override;
+    Attack CriticalQuestionOne(Attack& att, policy_hists& histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
-    void InitMEHR(std::vector<std::vector<History*>> &histories) override {
+    void InitMEHR(std::vector<std::vector<std::unique_ptr<History>>> &histories) override {
         pSortedHistories->InitMEHR(histories);
 
     }
-    void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override {
+    void AddPoliciesForMEHR(policy_hists &histories) override {
         pSortedHistories->AddPolicyHistories(histories);
     }
     SortHistories* getSortedHistories() {

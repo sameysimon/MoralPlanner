@@ -6,7 +6,9 @@
 #include "AttackType.hpp"
 #include "iostream"
 #include "MoralTheory.hpp"
-#include "ExtractHistories.hpp"
+#include "Policy.hpp"
+#include "History.hpp"
+#include "MDP.hpp"
 #include <chrono>
 #include <numeric>
 #include "../Logger.hpp"
@@ -91,7 +93,7 @@ class MEHR {
     bool useAttackHash=true;
     MDP& mdp;
     vector<unique_ptr<Policy>>& policies;
-    vector<vector<History*>>& histories;
+    vector<vector<unique_ptr<History>>>& histories;
 
     vector<vector<size_t>> policyOrderByTheory;
     vector<vector<size_t>> policyRanksByTheory;
@@ -109,7 +111,7 @@ class MEHR {
     long long cq2_time=0;
     long long init_time=0;
     vector<vector<Attack>> attacks;
-    MEHR(MDP& mdp, vector<unique_ptr<Policy>> &policies_, vector<vector<History*>> &histories_);
+    MEHR(MDP& mdp, vector<unique_ptr<Policy>> &policies_, vector<vector<unique_ptr<History>>> &histories_);
 
     // Normal MEHR Functions
     void Slow_FindNonAccept(NonAcceptability &non_accept);
@@ -130,9 +132,9 @@ class MEHR {
                                    size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies);
 
     // Explainability functions
-    void addPolicyToMEHR(unique_ptr<Policy>& pi, vector<History*> &h, NonAcceptability &non_accept);
+    void addPolicyToMEHR(size_t policy_idx, NonAcceptability &non_accept);
     void CQ1AndAddAttack(size_t source_pi, size_t target_pi, size_t theoryIdx, NonAcceptability& non_accept);
-    void addPoliciesToMEHR(NonAcceptability &non_accept, vector<unique_ptr<Policy>> &newPolicies, vector<vector<History*>> &newHistories);
+    void addPoliciesToMEHR(NonAcceptability &non_accept, vector<size_t> &newPolicies);
     void BestPoliciesAttackPi(NonAcceptability& non_accept, size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies, size_t pi_idx);
     void PiAttackBestPolicies(NonAcceptability& non_accept, size_t rank, unsigned long& theoryIdx, vector<size_t>& bestPolicies, size_t pi_idx);
 
@@ -145,7 +147,7 @@ class MEHR {
         for (auto &a : attacks[targetPolicy]) {
             if (a.sourcePolicyIdx==sourcePolicy) {
                 for (std::pair<size_t,size_t> &ed : a.HistoryEdges) {
-                    auto& tarWorth = histories[targetPolicy][ed.second]->worth;
+                    auto& tarWorth = histories[targetPolicy][ed.second]->mWorth;
                     if (tarWorth==targetHistoryWorth) {
                         return true;
                     }
@@ -158,8 +160,8 @@ class MEHR {
         for (auto &a : attacks[targetPolicy]) {
             if (a.sourcePolicyIdx==sourcePolicy) {
                 for (std::pair<size_t,size_t> &ed : a.HistoryEdges) {
-                    auto& srcWorth = histories[sourcePolicy][ed.first]->worth;
-                    auto& tarWorth = histories[targetPolicy][ed.second]->worth;
+                    auto& srcWorth = histories[sourcePolicy][ed.first]->mWorth;
+                    auto& tarWorth = histories[targetPolicy][ed.second]->mWorth;
                     if (srcWorth==sourceHistoryWorth && tarWorth==targetHistoryWorth) {
                         return true;
                     }
@@ -175,7 +177,7 @@ class MEHR {
             for (Attack& att : attacks[tarIdx]) {
                 ss << "   * From Policy " << att.sourcePolicyIdx << " (" << policies[att.sourcePolicyIdx]->getExpectationPtr()->toString() << ") by theory " << mdp.mehr_theories[att.theoryIdx]->mName << " P=" << att.p << endl;
                 for (auto edge : att.HistoryEdges) {
-                    ss << "     - History " << edge.first << "(" << histories[att.sourcePolicyIdx][edge.first]->worth.toString() << ") --> " << edge.second << " (" << histories[att.targetPolicyIdx][edge.second]->worth.toString() << ")" << " for P=" << histories[att.targetPolicyIdx][edge.second]->probability << endl;
+                    ss << "     - History " << edge.first << "(" << histories[att.sourcePolicyIdx][edge.first]->mWorth.toString() << ") --> " << edge.second << " (" << histories[att.targetPolicyIdx][edge.second]->mWorth.toString() << ")" << " for P=" << histories[att.targetPolicyIdx][edge.second]->probability << endl;
                 }
             }
         }

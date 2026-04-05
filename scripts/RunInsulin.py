@@ -1,7 +1,7 @@
 from scripts.AbstractExperiments import ExperimentRunner
 from copy import deepcopy
 
-defaultConfig = {"Name": "HalCarlaEqual", "theories":["0", "utility", "0", "law"], "Budget": 6, "Horizon": 8}
+defaultConfig = {"Name": "HalCarlaEqual", "Budget": 6, "Horizon": 8}
 
 halTheory={"Name":"Hal", "Type":"Utility", "Rank":0}
 
@@ -41,7 +41,9 @@ for name, dat in theoriesConfigs.items():
     configs.append(c)
 
 er = ExperimentRunner("LostInsulin", configs)
-er.run(configRepetitions=1, envRepetitions=1)
-er.saveResults()
+#er.run(configRepetitions=1, envRepetitions=1)
+#er.saveResults()
 
+er.StartServerAndPost(er.makeMdpFileName(configs[2]["Name"], 0))
+input("Enter to exit...")
 

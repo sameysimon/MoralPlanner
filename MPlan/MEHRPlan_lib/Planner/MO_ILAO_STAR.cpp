@@ -12,24 +12,37 @@ using namespace std;
 
 // Setup Data to store Domain-Dependent Heuristic QValues
 // Data structure is d[state_idx] = {QValue : for each undominated solution}
-void Solver::build_blank_data(vector<vector<QValue>> &d) {
-    d.reserve(mdp.states.size());
-    for (auto & state : mdp.states) {
-        auto us = vector<QValue>(1);
-        // New QValue, fill with heuristics
-        QValue qv = QValue(mdp.considerations.size());
-        for (auto c : mdp.considerations) {
-            qv.expectations.push_back(c->newHeuristic(*state));
-        }
-        us[0] = qv;
-        d.push_back(std::move(us));
+vector<vector<QValue>> Solver::build_blank_data(bool use_domain_heuristic, size_t time) {
+    auto d = vector(mdp.states.size(), vector(2, QValue(mdp)));
+
+    for (size_t i = 0; i < mdp.states.size(); i++) {
+        d[i] = vector<QValue>(1);
     }
+    for (size_t i = 0; i < mdp.states.size(); i++) {
+        auto state = mdp.states[i];
+        if (state->time > time && time != 0) {
+            continue;
+        }
+        // New QValue, fill with heuristics
+        d[i][0] = QValue(mdp.considerations.size());
+        for (size_t c_idx = 0; c_idx < mdp.considerations.size(); c_idx++) {
+            auto c = mdp.considerations[c_idx];
+            if (use_domain_heuristic) {
+                d[i][0].expectations[c_idx] = c->newHeuristic(*state);
+            } else {
+                d[i][0].expectations[c_idx] = c->UniqueWorth();
+            }
+        }
+    }
+    return d;
 }
 
 //
 // MAIN ALGORITHM.
 //
 void Solver::MC_iAO_Star() {
+    mBackupOrder.clear();
+    mExpanded.clear();
     do {
         expansions++;
         for (const int stateIdx : mBackupOrder) {
@@ -106,24 +119,14 @@ void Solver::getUnDomCandidates(State& state, vector<QValue>& candidates, vector
 
 
 void Solver::gatherActionSuccessors(vector<QValue>& candidates, vector<int>& qValueIdxToAction, int aIdx, vector<Successor*>* successors) {
-    unordered_set<QValue, QValueHash, QValueEqual> uniqueCandidates;
     // Generate all combinations of Successor's QValues
     vector<vector<QValue*>> combos = GetSuccessorQValueCombinations(successors);
 
+    unordered_set<QValue, QValueHash, QValueEqual> uniqueCandidates;
    // Aggergate/gather for each consideration, for each combination.
     for (auto& elem : combos) {
         // TODO can make new_qv a pointer to save copies...
-        QValue new_qv = QValue(mdp);
-        for (int cIdx = 0; cIdx < mdp.considerations.size(); ++cIdx) {
-            // Build successor's expectations -- comboExpects[i] is expected worth for successors[i].
-            std::vector<WorthBase*> comboExpects = std::vector<WorthBase*>(successors->size());
-            for (int scrIdx=0; scrIdx < successors->size(); ++scrIdx) {
-                comboExpects[scrIdx] = elem[scrIdx]->expectations[cIdx].get();
-            }
-            new_qv.expectations[cIdx] = mdp.considerations[cIdx]->gather(*successors, comboExpects, false);
-        }
-        // Store Candidate QValue and push back.
-        uniqueCandidates.insert(new_qv);
+        uniqueCandidates.insert(mdp.MultiGather(*successors, elem));
     }
     // Convert unique set to vector
     for (auto& new_qv : uniqueCandidates) {
@@ -189,7 +192,6 @@ bool Solver::checkForUnexpandedStates(unordered_set<int>& expanded, vector<int>&
     if (expanded.size()==0 or bpsg.size()==0) {
         return true;
     }
-    bool unexpanded = false;
     for (const auto elem : bpsg) {
         if (mdp.non_moralTheoryIdx!= -1 && mdp.states[elem]->isGoal) {
             continue;
@@ -198,7 +200,7 @@ bool Solver::checkForUnexpandedStates(unordered_set<int>& expanded, vector<int>&
             return true;
         }
     }
-    return unexpanded;
+    return false;
 }
 
 // Termination Condition
@@ -235,10 +237,4 @@ bool Solver::checkConverged(vector<vector<QValue>>& d, vector<vector<QValue>>& d
     }Log::writeFormatLog(Debug, "Data converged!");
     return true;
 
-}
-
-
-void Solver::getSolutions(vector<unique_ptr<Policy>> &policies){
-    auto se = SolutionExtracter(mdp);
-    se.Extract(policies, mPi, mBackupOrder);
 }

@@ -8,7 +8,7 @@
 int MEHROrdinal::attack(QValue& qv1, QValue& qv2) {
     return qv1.expectations[considerationIdx]->compare(*qv2.expectations[considerationIdx]);
 }
-Attack MEHROrdinal::CriticalQuestionOne(Attack& att, std::vector<std::vector<History*>>& histories) {
+Attack MEHROrdinal::CriticalQuestionOne(Attack& att, policy_hists& histories) {
     att.theoryIdx = mId;
     return pSortedHistories->CriticalQuestionOne(att, histories);
 }

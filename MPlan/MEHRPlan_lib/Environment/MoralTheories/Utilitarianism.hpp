@@ -60,6 +60,7 @@ public:
 
 
 class Utilitarianism : public Consideration {
+protected:
     std::unordered_map<Successor*, ExpectedUtility*> mJudgementMap;
     std::vector<double> mHeuristicList;
 
@@ -81,24 +82,41 @@ public:
     //
     // Getters
     //
-    ExpectedUtility* judge(Successor& successor) {
+    WorthBase* judge(Successor& successor) override {
         return mJudgementMap[&successor];
     }
-    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
+    unique_ptr<WorthBase> gather(const std::vector<WorthBase*>& worth, const std::vector<double>& probs, const std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
         double utility = 0;
         ExpectedUtility* ex;
-        for (int i = 0; i < successors.size(); i++) {
-            ExpectedUtility* j = judge(*successors[i]);
+        for (int i = 0; i < worth.size(); i++) {
+            auto j = static_cast<ExpectedUtility*>(worth[i]);
             ex = static_cast<ExpectedUtility*>(baselines[i]);
             double newVal = j->value + ex->value;
             if (!ignoreProbability) {
-                newVal *= successors[i]->probability;
+                newVal *= probs[i];
             }
             utility+=newVal;
         }
         auto res = make_unique<ExpectedUtility>(utility);
         return res;
     }
+
+    std::vector<double> normalise(std::vector<WorthBase*> &worth_vec) override {
+        std::vector<double> r;
+        auto max_worth = std::max_element(worth_vec.begin(), worth_vec.end(), [](auto a, auto b) {
+            return a->compare(*b) == 1;
+        });
+        auto min_worth = std::min_element(worth_vec.begin(), worth_vec.end(), [&](auto a, auto b) {
+            return a->compare(*b) == 1;
+        });
+        auto max_util = quickCast(**max_worth.base()).value;
+        auto min_util = quickCast(**min_worth.base()).value;
+        for (auto wb : worth_vec) {
+            r.push_back( (quickCast(*wb).value - min_util) / (max_util - min_util) );
+        }
+        return r;
+    }
+
     std::unique_ptr<WorthBase> newHeuristic(State& s) override {
         if (s.id > mHeuristicList.size() || mHeuristicList.empty()) {
             return UniqueWorth();
@@ -123,30 +141,26 @@ public:
 };
 
 class MEHRUtilitarianism : public MEHRTheory {
-    size_t considerationIdx=0;
-    SortHistories *pSortedHistories;
+    vector<size_t> considerationIndex;
+    unique_ptr<SortHistories> pSortedHistories;
 public:
     MEHRUtilitarianism(size_t rank_, size_t theory_id, std::string &name_) : MEHRTheory(rank_, theory_id, name_) {
-        pSortedHistories = new SortHistories(*this);
+        pSortedHistories = make_unique<SortHistories>(*this);
     }
-    /*~MEHRUtilitarianism() override {
-     *Not sure if I need this to get rid of pSortedHistories, if it will deal with base class stuff
-        delete pSortedHistories;
-    }*/
     int attack(QValue& qv1, QValue& qv2) override;
-    Attack CriticalQuestionOne(Attack& att, std::vector<std::vector<History*>>& histories) override;
+    Attack CriticalQuestionOne(Attack& att, policy_hists& histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
-    void InitMEHR(std::vector<std::vector<History*>> &histories) override {
+    void InitMEHR(policy_hists &histories) override {
         pSortedHistories->InitMEHR(histories);
     }
-    void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override {
+    void AddPoliciesForMEHR(policy_hists &histories) override {
         pSortedHistories->AddPolicyHistories(histories);
     }
     SortHistories* getSortedHistories() {
-        return pSortedHistories;
+        return pSortedHistories.get();
     }
     void AddConsideration(Consideration& con) override {
-        considerationIdx = con.id;
+        considerationIndex.push_back(con.id);
     };
 };
 
@@ -154,12 +168,12 @@ class MiniUtilitarianism: public Utilitarianism {
 public:
     MiniUtilitarianism() = default;
     MiniUtilitarianism(json &t, size_t id) : Utilitarianism(t, id) {}
-    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
+    unique_ptr<WorthBase> gather(const std::vector<WorthBase*>& worth, const std::vector<double>& probs, const std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
         double utility = 0;
         double minUtility = 0;
         ExpectedUtility* ex;
-        for (int i = 0; i < successors.size(); i++) {
-            ExpectedUtility* j = judge(*successors[i]);
+        for (int i = 0; i < worth.size(); i++) {
+            auto j = static_cast<ExpectedUtility*>(worth[i]);
             ex = static_cast<ExpectedUtility*>(baselines[i]);
             double newVal = j->value + ex->value;
             utility+=newVal;
@@ -173,12 +187,12 @@ class MaxiUtilitarianism: public Utilitarianism {
 public:
     MaxiUtilitarianism() = default;
     MaxiUtilitarianism(json &t, size_t id) : Utilitarianism(t, id) {}
-    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
+    unique_ptr<WorthBase> gather(const std::vector<WorthBase*>& worth, const std::vector<double>& probs, const std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
         double utility = 0;
         double maxUtility = 0;
         ExpectedUtility* ex;
-        for (int i = 0; i < successors.size(); i++) {
-            ExpectedUtility* j = judge(*successors[i]);
+        for (int i = 0; i < worth.size(); i++) {
+            auto j = static_cast<ExpectedUtility*>(worth[i]);
             ex = static_cast<ExpectedUtility*>(baselines[i]);
             double newVal = j->value + ex->value;
             utility+=newVal;

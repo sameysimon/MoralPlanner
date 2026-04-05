@@ -65,6 +65,9 @@ public:
         }
         return true;
     }
+    bool operator!=(const QValue& other) const {
+        return !(*this == other);
+    }
 
     static void hash_combine(std::size_t& seed, const std::size_t& hash) {
         seed ^= hash + 0x9e3779b9 + (seed << 6) + (seed >> 2);  // A common hash combine technique. Check this out.

@@ -2,8 +2,8 @@
 // Created by Simon Kolker on 29/04/2025.
 //
 #include "Maximin.hpp"
+#include "History.hpp"
 #include "QValue.hpp"
-#include "ExtractHistories.hpp"
 #include "Logger.hpp"
 
 // From this theory's Moral Considerations, finds the minimum utility for each QValue.
@@ -41,15 +41,15 @@ int MEHRMaximin::CriticalQuestionTwo(QValue& qv1, QValue& qv2) {
     return attack(qv1, qv2);
 }
 
-void MEHRMaximin::InitMEHR(std::vector<std::vector<History*>> &histories) {
+void MEHRMaximin::InitMEHR(policy_hists &histories) {
     attacks = std::vector<std::unordered_set<size_t>>(histories.size());
 }
-void MEHRMaximin::AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) {
+void MEHRMaximin::AddPoliciesForMEHR(policy_hists &histories) {
     throw std::runtime_error("MEHRMaximin::AddPoliciesForMEHR: Not implemented");
 }
 
 // Minimax compares all histories.
-Attack MEHRMaximin::CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>> &histories) {
+Attack MEHRMaximin::CriticalQuestionOne(Attack& a, policy_hists &histories) {
     double targetNonAccept = 0;
     for (int attIdx = 0; attIdx < histories.at(a.sourcePolicyIdx).size(); ++attIdx) {
         for (int defIdx = 0; defIdx < histories.at(a.targetPolicyIdx).size(); ++defIdx) {
@@ -57,8 +57,8 @@ Attack MEHRMaximin::CriticalQuestionOne(Attack& a, std::vector<std::vector<Histo
             if (attacks[a.targetPolicyIdx].contains(defIdx)) {
                 continue;
             }
-            int result = attack(histories.at(a.sourcePolicyIdx).at(attIdx)->worth, histories.at(a.targetPolicyIdx).at(defIdx)->worth);
-            Log::writeFormatLog(Trace, "Attacker Policy {} @ Hist {} vs Defender Policy {} @ Hist {}. Result is {}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->worth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->worth.toString(), result);
+            int result = attack(histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth);
+            Log::writeFormatLog(Trace, "Attacker Policy {} @ Hist {} vs Defender Policy {} @ Hist {}. Result is {}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth.toString(), result);
             if (result==1) {
                 // Store this attack.
                 size_t t = attacks[a.targetPolicyIdx].size();
@@ -69,9 +69,9 @@ Attack MEHRMaximin::CriticalQuestionOne(Attack& a, std::vector<std::vector<Histo
                     a.addEdge((size_t)attIdx, (size_t)defIdx);
                 }
 
-                a.HistoryEdges.push_back({(size_t)attIdx, (size_t)defIdx});
+                a.HistoryEdges.emplace_back((size_t)attIdx, (size_t)defIdx);
                 // Add to non-accceptability.
-                Log::writeFormatLog(Debug, Green, "***Attacker Policy {} @ Hist {} ATTACKS Defender Policy {} @ Hist {} with Pr={}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->worth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->worth.toString(), histories.at(a.targetPolicyIdx).at(defIdx)->probability);
+                Log::writeFormatLog(Debug, Green, "***Attacker Policy {} @ Hist {} ATTACKS Defender Policy {} @ Hist {} with Pr={}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth.toString(), histories.at(a.targetPolicyIdx).at(defIdx)->probability);
 
             }
         }

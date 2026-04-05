@@ -8,7 +8,7 @@ using namespace std;
 
 class ExtractHistoriesTest : public TestBase {
 protected:
-    vector<vector<History*>> histories;
+    vector<vector<unique_ptr<History>>> histories;
     void loadHistoriesFrom(const std::string& fileName) {
         // Make MDP
         MDP* mdp = getMDP(fileName);
@@ -17,24 +17,22 @@ protected:
         solver.MC_iAO_Star();
         // Extract Policies.
         vector<unique_ptr<Policy>> policies;
-        solver.getSolutions(policies);
-        // Extract Histories
-        auto eh = new ExtractHistories(*mdp);
-        eh->extract(histories, policies);
-        delete eh;
+        auto soln_extractor = SolutionExtracter(*mdp);
+        soln_extractor.Extract(policies, histories, solver.mPi);
+
         delete mdp;
     }
 
 
     static bool compareHistories(const History& h1, const History& h2) {
-        return h1.probability == h2.probability && h1.worth==h2.worth;
+        return h1.probability == h2.probability && h1.mWorth==h2.mWorth;
     }
-    static bool searchHistories(vector<History*>& piHistories, History& h) {
+    static bool searchHistories(vector<unique_ptr<History>>& piHistories, History& h) {
         return std::any_of(piHistories.begin(), piHistories.end(),
-            [&h](History* h_) { return compareHistories(h, *h_); }
+            [&h](unique_ptr<History>& h_) { return compareHistories(h, *h_); }
         );
     }
-    static bool findPolicyWithExpectedHistories(std::vector<int> &policies, vector<vector<History*>> &histories, vector<History> &expectedHistories) {
+    static bool findPolicyWithExpectedHistories(std::vector<int> &policies, policy_hists &histories, vector<History> &expectedHistories) {
         bool found;
         for (auto it = policies.begin(); it != policies.end();) {
             found = true;

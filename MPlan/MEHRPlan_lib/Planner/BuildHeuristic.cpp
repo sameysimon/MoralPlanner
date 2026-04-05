@@ -26,17 +26,22 @@ void Solver::SCVI(size_t con_idx, vector<size_t> &statesByTime) {
         // 2. Collect aggregated worth each action
         // Aggregated worth of each action
         vector<unique_ptr<WorthBase>> actionWorths;
-        vector<WorthBase*> successorWorths;
+        vector<WorthBase*> successorW;
+        vector<double> probs;
+        vector<WorthBase*> baselineW;
         for (int a_idx = 0; a_idx < actions->size(); ++a_idx) {
-            successorWorths.clear();
+            successorW.clear();
+            probs.clear();
+            baselineW.clear();
             vector<Successor*>* successors = MDP::getActionSuccessors(*mdp.states[i], a_idx);
             for (auto scr : *successors) {
                 // Get first worth of each successor. First since this algorithm is single-objective/no multi-worth per state.
-                //WorthBase* w = mData->at(scr->target)[0].expectations[con_idx];
+                successorW.push_back(mdp.considerations[con_idx]->judge(*scr));
+                probs.push_back(scr->probability);
                 auto* w = mData[scr->target][0].expectations[con_idx].get();
-                successorWorths.push_back(w);
+                baselineW.push_back(w);
             }
-            actionWorths.push_back(mdp.considerations[con_idx]->gather(*successors, successorWorths, false));
+            actionWorths.push_back(mdp.considerations[con_idx]->gather(successorW, probs, baselineW, false));
         }
         //
         // 3. Find action with most preferable aggregated worth

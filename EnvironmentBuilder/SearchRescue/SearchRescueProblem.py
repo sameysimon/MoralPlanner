@@ -1,12 +1,12 @@
 from copy import deepcopy
 from EnvironmentBuilder.BaseMDP import *
-
-
+import numpy as np
 class Cost(Consideration):
-    def __init__(self):
+    def __init__(self, deadline):
         super().__init__()
         self.type='Cost'
         self.tag='Cost'
+        self.deadline = deadline
         self.rank=0
         self.default = 0
 
@@ -14,9 +14,11 @@ class Cost(Consideration):
         src_props = successor.sourceState.props
         tar_props = successor.targetState.props
 
-        for i in range(len(src_props["tile_state"])):
-            if src_props["tile_state"][i] ==  f"hunger{self.groupTag}":
-                u -= 1 + (0.1 * src_props["tile_time"][i])
+        # Must be back at base at the deadline.
+        if (tar_props["time"]==self.deadline and tar_props['tile_state'][tar_props["curr_tile"]] != "base"):
+            return -999999999
+        
+        return -1
         
         
     def StateHeuristic(self, state:State):
@@ -42,7 +44,6 @@ class FindInfo(Consideration):
         
     def StateHeuristic(self, state:State):
         return 0
-
 
 class NeverIgnore(Consideration):
     def __init__(self):
@@ -105,67 +106,95 @@ class Wellbeing(Consideration):
         return 0
 
 
+class Odds:
+    Pr_Treat_Success = 0.5
+
+    Pr_Find_Hunger = 0.5
+    Pr_Find_Disease = 0.5
+
 class SearchRescue(MDP):
-    events = [
-        {
-            "time":0,
-            "tile":1,
-            "type": "hunger:red",
-            "probability":1,
-            "context_prob": "0.5"
-         },
-         {
-            "time":0,
-            "tile":4,
-            "type": "injured:blue",
-            "probability":1,
-            "context_prob": "0.5"
-            
-         }
-    ]
+
+    AdjEdge = {}
+    Community = []
+
 
     defaultProps = {
         "time":0,
-        #"tile_state": ["base","hunger:red","blank","blank","injured:blue"], # status of current tile
-        "tile_state": ["base","?","?","?","?"], # status of current tile
+        "tile_state": [], # status of current tile
         "holding": 'None',
-        "surgery_result": 'None',
-        "tile_time": [-1, -1, -1, -1, -1], # time tile has had this status
         "curr_tile": 0,
-        "battery": 4,
-        "adjEdge": {
-            "0": [1,3], #tile 0 can go to tile 1 or tile 3.   
-            "1": [2],
-            "2": [3,0],
-            "3": [4],
-            "4": [0],
-        },
     }
 
-    def __init__(self, Theories, Considerations, initialProps=None, horizon=5, **kwargs):
+    def GenerateGraph(nodes=5):
+        MaxOutLinks = 3
+        SearchRescue.AdjEdge = {}
+        if nodes <= 0:
+            return
+        for i in range(nodes):
+            SearchRescue.AdjEdge.setdefault(str(i), [])
+
+        # Start with a directed cycle to guarantee strong connectivity
+        cycle = list(range(nodes))
+        np.random.shuffle(cycle)
+        for i in range(nodes):
+            src = cycle[i]
+            dst = cycle[(i + 1) % nodes]
+            SearchRescue.AdjEdge[str(src)].append(dst)
+
+        # Add some extra random edges while keeping strong connectivity
+        for i in range(nodes):
+            existing = set(SearchRescue.AdjEdge[str(i)])
+            potential = [j for j in range(nodes) if j != i and j not in existing]
+            if not potential:
+                continue
+            # Randomly choose number of extra links (0..len(potential))
+            extra_count = np.random.randint(0, min(MaxOutLinks - 1, len(potential) + 1))
+            if extra_count > 0:
+                extras = list(np.random.choice(potential, size=extra_count, replace=False))
+                SearchRescue.AdjEdge[str(i)].extend(extras)
+
+        SearchRescue.initialProps["tile_state"] = ["?" for i in range(len(SearchRescue.AdjEdge))]
+        SearchRescue.initialProps["tile_state"][0] = "base"
+
+    def BuildMyGraph():
+        SearchRescue.AdjEdge = {
+            0:[1,6],
+            1:[0,2,7],
+            2:[1,3],
+            3:[2],
+            4:[3,5,6],
+            5:[4,6],
+            6:[0,4],
+            7:[1],
+        }
+        SearchRescue.Community = ["red","red","red","red","blue","blue","blue", ""]
+        SearchRescue.initialProps["tile_state"] = ["?","?","?","?","?","?","?","base"]
+
+
+    def __init__(self, Theories, Considerations, initialProps=None, Horizon=5, Budget=5, **kwargs):
         super().__init__()
         if initialProps==None:
             initialProps=SearchRescue.defaultProps
-            pass
-        if not horizon==None:
-            initialProps['horizon'] = horizon
+
+        if not Horizon==None:
+            initialProps['horizon'] = Horizon
         self.stateFactory(initialProps) # Create at least one initial state
 
         self.rules = [SearchRescue.Move, 
                       SearchRescue.InteractBase, 
                       SearchRescue.InteractInjured, 
                       SearchRescue.InteractUnknown, 
-                      SearchRescue.AdvanceTime, 
-                      #SearchRescue.AddEvents
+                      SearchRescue.AdvanceTime
                       ] 
 
-        #self.CostTheory = Time()
+        self.budget = Budget
+        self.MaxOutsideTime = 3
+        self.horizon=Horizon
+
         self.Theories = []
         self.theorySetup(Theories, Considerations)
         
-        #self.budget = budget
-        self.MaxOutsideTime = 3
-        self.horizon=horizon
+        
 
 
     def isGoal(self, state:State) -> bool:
@@ -177,18 +206,30 @@ class SearchRescue(MDP):
         acts = []
         if (state.props['time'] >= self.horizon):
             return acts
-        
-        # Cannot move when battery is empty
-        if state.props["battery"] == 0:
-            return ["wait"]
+
             
-        for next_tile in state.props["adjEdge"][str(state.props["curr_tile"])]:
+        for next_tile in SearchRescue.AdjEdge[str(state.props["curr_tile"])]:
             acts.append(f"go_to:{next_tile}")
         acts.append("wait")
         currTile = state.props["tile_state"][state.props["curr_tile"]]
-        if currTile != "blank" and currTile != "helped":
+        holding =  state.props["holding"]
+        if currTile == "base":
+            if state.props['holding'] == "None":
+                acts.append("get_medicine")
+                acts.append("get_food")
+
+        elif "hunger" in currTile and holding == "food":
+            acts.append("feed")
+
+        elif "disease" in currTile and holding == "medicine":
+            acts.append("medicate")
+        
+        elif "disease" in currTile and holding != "medicine":
+            acts.append("treat")
+
+        elif currTile != "blank" and currTile != "helped":
             acts.append("interact")
-            
+        
         return acts
 
     def Move(self, props, prob, action:str):
@@ -201,63 +242,38 @@ class SearchRescue(MDP):
     # Charging results and surgery results
     def InteractBase(self, props, prob, action:str):
         tileIdx = props["curr_tile"]
-        if (action != "interact" or props["tile_state"][tileIdx] != "base"):
+        if (props["tile_state"][tileIdx] != "base"):
             return [(props, prob)]
         
-        outcomes = []
-        props["battery"] += 2
-        props["battery"] = 4 if props["battery"] > 4 else props["battery"]
-        if (props["holding"] == "None"):
-            return [(props, prob)]
+        if action=="get_food":
+            props["holding"] = "food"
+
+        if action=="get_medicine":
+            props["holding"] = "medicine"
+            
+        return [(props, prob)]
+    
+
+    def InteractHunger(self, props, prob, action:str):
+        if action=="feed":
+            props["tile_state"][props["curr_tile"]] = "None"
         
-        props_ = deepcopy(props)
-        props_["surgery_result"] = f"success:{props_["holding"]}"
-        outcomes.append((props_, prob * 0.5))
-
-        props_ = deepcopy(props)
-        props_["surgery_result"] = f"fail:{props_["holding"]}"
-        outcomes.append((props_, prob * 0.5))
-        return outcomes
-
-
-    def InteractInjured(self, props, prob, action:str):
-        tileIdx = props["curr_tile"]
-        if (action != "interact"):
-            return [(props, prob)]
-        
-        info = props["tile_state"][tileIdx].split(":")
-        team, curr_tile_state = "", ""
-        if len(info)>1:
-            team = info[0]
-            curr_tile_state = info[1]
-
-        if (curr_tile_state != "injured" and curr_tile_state != "severe"):
+        return [(props, prob)]
+    
+    def InteractDisease(self, props, prob, action:str):
+        if action=="medicate":
+            props["tile_state"][props["curr_tile"]] = "None"
             return [(props, prob)]
 
+        if action=="treat":
+            o = []
+            props["tile_state"][props["curr_tile"]] = "None"
+            o.append((props, prob*Odds.Pr_Treat_Success))
 
-        outcomes = []
+            props["tile_state"][props["curr_tile"]] = "disease"
+            o.append((props, prob*(1 - Odds.Pr_Treat_Success)))
         
-        curr_tile_timing = props["tile_time"][tileIdx]
-
-        pr_helped = 0.5
-        # lower chance to help if severe injury
-        if (curr_tile_state=="severe"):
-            pr_helped = 0.3
-        
-        
-        props_ = deepcopy(props)
-        props_["tile_state"][tileIdx] = "helped"
-        props_["tile_time"][tileIdx] = -1
-        outcomes.append((props_, prob * 0.5))
-
-        props_ = deepcopy(props)
-        props_["tile_state"][tileIdx] = "blank"
-        props_["tile_time"][tileIdx] = -1
-        outcomes.append((props_, prob * (1 - pr_helped)))
-
-        return outcomes
-
-
+    
     def InteractUnknown(self, props, prob, action:str):
         tileIdx = props["curr_tile"]
         if (action != "interact" or props["tile_state"][tileIdx] != "?"):
@@ -267,12 +283,13 @@ class SearchRescue(MDP):
         props["tile_state"][tileIdx] = "None"
         outcomes.append((props, prob * 0.4))
 
+        com = SearchRescue.Community[tileIdx]
         props_ = deepcopy(props)
-        props_["tile_state"][tileIdx] = "red:injured"
+        props_["tile_state"][tileIdx] = f"{com}:injured"
         outcomes.append((props_, prob * 0.3))
 
         props_ = deepcopy(props)
-        props_["tile_state"][tileIdx] = "red:severe"
+        props_["tile_state"][tileIdx] = f"{com}:severe"
         outcomes.append((props_, prob * 0.3))
 
         return outcomes
@@ -287,7 +304,7 @@ class SearchRescue(MDP):
 
         return [(props_, prob)]
 
-    def AddEvents(self, props, prob, action):
+    
         outcomes = [(props, prob)]
         for e in SearchRescue.events:
             if e["time"]==props["time"]: # Because after AdvanceTime rule
@@ -340,7 +357,7 @@ class SearchRescue(MDP):
             elif 'wellbeing'==tag:
                 mc = Wellbeing(tag=tag)
             elif 'Cost'==tag:
-                mc = Cost()
+                mc = Cost(deadline=self.horizon)
             elif 'FindInfo'==tag:
                 mc = FindInfo()
             elif 'NeverIgnore'==tag:

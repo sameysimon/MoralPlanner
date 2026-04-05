@@ -9,7 +9,7 @@
 #include "Successor.hpp"
 #include "State.hpp"
 #include <cmath>
-#include <sstream>
+#include <sstream>x
 
 #include "Utilitarianism.hpp"
 
@@ -104,7 +104,7 @@ public:
     FactoredUtility* judge(Successor& successor) {
         return judgementMap[&successor];
     }
-    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
+    unique_ptr<WorthBase>  gather(std::vector<WorthBase*>& worth, std::vector<double>& probs, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
         auto agg = make_unique<FactoredUtility>();
         return agg;
         /*
@@ -165,7 +165,7 @@ public:
     int attack(QValue& qv1, QValue& qv2) override;
     Attack CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>> &histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
-    void InitMEHR(std::vector<std::vector<History*>> &histories) override {
+    void InitMEHR(std::vector<std::vector<std::unique_ptr<History>>> &histories) override {
         pSortedHistories->InitMEHR(histories);
     }
     void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override {

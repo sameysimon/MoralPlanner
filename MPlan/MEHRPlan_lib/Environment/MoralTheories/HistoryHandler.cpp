@@ -3,13 +3,14 @@
 //
 #include "HistoryHandler.hpp"
 #include "QValue.hpp"
-#include "ExtractHistories.hpp"
+#include "History.hpp"
 
 // Sorts histories for each policy with attack relation.
 // Stores history indices in descending order in orderedHistories
 // This is used copied for Absolutism, Utilitarianism.
 
-void SortHistories::AddPolicyHistories(std::vector<std::vector<History*>> &histories) {
+void SortHistories::AddPolicyHistories(policy_hists &histories) {
+    orderedHistories.clear();
     for (const auto & policyHistories : histories) {
         std::vector<size_t> ordered(policyHistories.size(),0);
         std::iota(ordered.begin(), ordered.end(), 0);
@@ -18,7 +19,7 @@ void SortHistories::AddPolicyHistories(std::vector<std::vector<History*>> &histo
         std::sort(ordered.begin(), ordered.end(),
             [&policyHistories, this](const int& lhs, const int& rhs) {
                 // Use attack relation to check order.
-                int r = rMehrTheory.attack(policyHistories[lhs]->worth, policyHistories[rhs]->worth);
+                int r = rMehrTheory.attack(policyHistories[lhs]->mWorth, policyHistories[rhs]->mWorth);
                 bool final = r==1;
                 return final; // descending order. r=-1 means rhs beats lhs. Means rhs goes before.
         });
@@ -26,7 +27,7 @@ void SortHistories::AddPolicyHistories(std::vector<std::vector<History*>> &histo
     }
 }
 
-Attack SortHistories::CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>>& histories) {
+Attack SortHistories::CriticalQuestionOne(Attack& a, policy_hists& histories) {
     bool findAttack = false;
     auto& attHistories = orderedHistories[a.sourcePolicyIdx];
     auto& defHistories = orderedHistories[a.targetPolicyIdx];
@@ -39,8 +40,8 @@ Attack SortHistories::CriticalQuestionOne(Attack& a, std::vector<std::vector<His
         for (int att_place = attHistories.size()-1; att_place >= 0; --att_place) {
             size_t attIdx = attHistories[att_place];
             // Use the best defender history and worst attacker history.
-            auto& attackerHistoryW = histories.at(a.sourcePolicyIdx).at(attIdx)->worth;
-            auto& defenderHistoryW = histories.at(a.targetPolicyIdx).at(defIdx)->worth;
+            auto& attackerHistoryW = histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth;
+            auto& defenderHistoryW = histories.at(a.targetPolicyIdx).at(defIdx)->mWorth;
             int result = rMehrTheory.attack(attackerHistoryW, defenderHistoryW);
             if (result==1) {
                 findAttack=true;
@@ -56,7 +57,7 @@ Attack SortHistories::CriticalQuestionOne(Attack& a, std::vector<std::vector<His
     return a;
 }
 
-void SortHistories::InitMEHR(std::vector<std::vector<History*>> &histories) {
+void SortHistories::InitMEHR(policy_hists &histories) {
     orderedHistories.clear();
     orderedHistories.reserve(histories.size());
     AddPolicyHistories(histories);

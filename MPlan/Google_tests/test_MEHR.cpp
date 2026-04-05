@@ -11,13 +11,13 @@ protected:
     // Assumes Utilitarianism for now
     static void AssertOrder(Runner &run, size_t policyIdx, size_t theoryIdx) {
         auto mehrUtil = dynamic_cast<MEHRUtilitarianism*>(run.mdp->mehr_theories[theoryIdx]);
-        auto orderedHistories = mehrUtil->getSortedHistories()->orderedHistories;
-        auto policyHistories = run.histories[policyIdx];
+        auto &orderedHistories = mehrUtil->getSortedHistories()->orderedHistories;
+        auto &policyHistories = run.histories[policyIdx];
         // Histories should be sorted into descending order.
         size_t largestHistoryIdx = orderedHistories[policyIdx][0];
-        auto lastUtil = dynamic_cast<ExpectedUtility*>(policyHistories[largestHistoryIdx]->worth.expectations[theoryIdx].get())->value;
+        auto lastUtil = dynamic_cast<ExpectedUtility*>(policyHistories[largestHistoryIdx]->mWorth.expectations[theoryIdx].get())->value;
         for (auto hIdx : orderedHistories[policyIdx]) {
-            auto currUtil = dynamic_cast<ExpectedUtility*>(policyHistories[hIdx]->worth.expectations[theoryIdx].get())->value;
+            auto currUtil = dynamic_cast<ExpectedUtility*>(policyHistories[hIdx]->mWorth.expectations[theoryIdx].get())->value;
             ASSERT_LE(currUtil, lastUtil) << "Histories out of order. Theory '" << theoryIdx <<"'. History Idx:" << hIdx << ", utility:" << currUtil << " is greater than previous History Idx:" << hIdx-1 << ", utility:" << lastUtil;
             lastUtil = currUtil;
         }
@@ -71,7 +71,6 @@ TEST_F(MEHR_Tests, SortHistories) {
     auto run = Runner("check_for_attack.json");
     run.timePlan();
     run.timeExtractSols();
-    run.timeExtractHists();
 
     vector<string> actions = {"A", "B"};
     auto piIdx = getPolicyIdsByStateAction(run, 0, actions);
@@ -91,14 +90,27 @@ TEST_F(MEHR_Tests, CheckForAttack) {
     auto run = Runner("check_for_attack.json");
     run.timePlan();
     run.timeExtractSols();
-    run.timeExtractHists();
 
     vector<string> actions = {"A", "B"};
     auto piIdx = getPolicyIdsByStateAction(run, 0, actions);
     vector theories = {0};
 
+    for (const auto & policie : run.policies) {
+        string s = "\n New histories: \n";
+        double t = 0;
+        for (auto &h : policie->history_set) {
+            s+= format("  worth {} with P={}\n",h->mWorth.toString(), h->probability);
+            t+= h->probability;
+        }
+        s+= format("Total prob {}\n", t);
+        t=0;
+        cout << s << endl;
+    }
+
+
     MEHR mehr = MEHR(*run.mdp, run.policies, run.histories);
     auto non_accept = NonAcceptability(run.mdp->mehr_theories.size(), run.policies.size());
+    //mehr.Slow_FindNonAccept(non_accept);
     mehr.Slow_FindNonAccept(non_accept);
     ASSERT_NEAR(non_accept.getPolicyNonAccept(piIdx["A"]), 1, tolerance);
     ASSERT_NEAR(non_accept.getPolicyNonAccept(piIdx["B"]), 0.75, tolerance);

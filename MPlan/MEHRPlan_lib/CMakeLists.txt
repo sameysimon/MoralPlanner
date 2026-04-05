@@ -6,7 +6,6 @@ set(HEADER_FILES
         Environment/Successor.hpp
         Environment/Action.hpp
         Environment/State.hpp
-        Planner/ExtractHistories.hpp
         Environment/MoralTheories/MoralTheory.hpp
         Environment/MDP.hpp
         Planner/Solver.hpp
@@ -43,7 +42,6 @@ set(SOURCE_FILES
         Environment/MoralTheories/Absolutism.cpp
         Planner/Policy.hpp
         Planner/PostOrderDFS.cpp
-        Planner/ExtractHistories.cpp
         #Environment/MoralTheories/DoubleEffect.cpp
         Environment/MoralTheories/OrdinalCase.cpp
         Environment/MoralTheories/Maximin.cpp
@@ -52,6 +50,7 @@ set(SOURCE_FILES
         Environment/MoralTheories/HistoryHandler.cpp
         Environment/MoralTheories/HistoryHandler.hpp
         Planner/Policy.cpp
+        Planner/PolicyEvaluate.cpp
 )
 
 

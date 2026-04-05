@@ -13,8 +13,7 @@ class Solver {
     MDP& mdp;
     // Worth vector set Function. It maps state to a list of solutions' possible QValues.
     vector<vector<QValue>> mData;
-    // Multi-policy. Maps state
-    vector<vector<int>> mPi;
+
     vector<int> mBackupOrder;
     unique_ptr<unordered_set<int>> mFoundStates;// Explicitly encountered states
     unordered_set<int> mExpanded;
@@ -27,11 +26,14 @@ class Solver {
     vector<int> indicesOfUndominated = vector<int>();// Indices of candidate QValues that are undominated.
     vector<int> qValueIdxToAction = vector<int>();// Maps QValue index to action index.
 
-    void build_blank_data(vector<vector<QValue>>& d);
+
     bool checkForUnexpandedStates(unordered_set<int>& expanded, vector<int>& bpsg);
     bool PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unique_ptr<unordered_set<int>>& foundStates);
 
 public:
+    // Multi-policy. Maps state
+    vector<vector<int>> mPi;
+
     size_t expanded_states=0;
     long explicit_states=0;
     int expansions=0;
@@ -39,8 +41,7 @@ public:
 
     explicit Solver(MDP& _mdp) : mdp(_mdp) {
         // Initialise Solver data structures
-        mData = vector(mdp.states.size(), vector(2, QValue(mdp)));
-        build_blank_data(mData);
+        mData = build_blank_data();
 
         mPi = vector(mdp.states.size(), vector<int>());
 
@@ -82,11 +83,13 @@ public:
         }
         return true;
     }
+    vector<vector<QValue>> build_blank_data(bool use_domain_heuristic=true, size_t time=0);
 
     // Single-Objective VI (for heuristics)
     void BuildIndependentHeuristic();
     void SCVI(size_t con_idx, vector<size_t> &statesByTime);
 
+    vector<QValue> EvaluatePolicy(Policy& pi, size_t until_time);
     // Multi-objective IAO*
     void setPostOrderDFS();
     void MC_iAO_Star();
@@ -97,8 +100,18 @@ public:
     vector<vector<QValue*>> GetSuccessorQValueCombinations(vector<Successor*>* successors);
     void getUnDomCandidates(State& state, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction);
     static bool checkConverged(vector<vector<QValue>>& d, vector<vector<QValue>>& d_clone);
-    void getSolutions(vector<unique_ptr<Policy>>& policies);
 
+    void ResetExpansion() {
+        mExpanded.clear();
+        mPi = vector(mdp.states.size(), vector<int>());
+
+    }
+    void lockPolicy(Policy& policy) {
+        mIsActionLock = true;
+        for (auto x : policy.policy ) {
+            mLockedActions[x.first] = x.second;
+        }
+    }
     void lockAction(State& state, size_t aIdx, Policy& factPolicy) {
         // Bool tells solver that locked actions should not be optimised/actions should not change.
         mIsActionLock = true;
@@ -107,7 +120,10 @@ public:
         // Lock all ancestors (with time less than passed state)
         for (auto* s : mdp.states) {
             if (s->time < state.time) {
-                mLockedActions[s->id] = factPolicy.getAction(s->id);
+                if (auto state_actIdx = factPolicy.getAction(s->id)) {
+                    mLockedActions[s->id] = state_actIdx.value();
+                }
+
             }
         }
     }

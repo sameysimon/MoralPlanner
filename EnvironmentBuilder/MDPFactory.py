@@ -1,6 +1,7 @@
 from EnvironmentBuilder.TutorProblem.TeacherProblem import TeacherProblem
 from EnvironmentBuilder.GridWorld.GridWorldProblem import GridWorldProblem
-from EnvironmentBuilder.LostInsulin.LostInsulinProblem import LostInsulin
+from EnvironmentBuilder.LostInsulin.Main import LostInsulin
+from EnvironmentBuilder.LostInsulin.Basic import BasicLostInsulin
 from EnvironmentBuilder.SearchRescue.SearchRescueProblem import SearchRescue
 from EnvironmentBuilder.Titanic.TitanicProblem import Titanic
 from EnvironmentBuilder.Elder.ElderProblem import Elder
@@ -8,14 +9,26 @@ from EnvironmentBuilder.SaveEnvironment import SaveEnvToJSON
 from EnvironmentBuilder.Abstract.AbstractMDP import AbstractMDP
 
 from collections import defaultdict
+from enum import Enum
 import argparse
 import os
 
+
+class Domains(str, Enum):
+    WindyDrone = "WindyDrone"
+    Tutor = "Tutor"
+    LostInsulin = "LostInsulin"
+    BasicLostInsulin = "BasicLostInsulin"
+    Random = "Random"
+    Elder = "Elder"
+    SearchRescue = "SearchRescue"
+    Titanic = "Titanic"
 
 domains = {
     "WindyDrone": GridWorldProblem,
     "Tutor": TeacherProblem,
     "LostInsulin": LostInsulin,
+    "BasicLostInsulin": BasicLostInsulin,
     "Random": AbstractMDP,
     "Elder": Elder,
     "SearchRescue": SearchRescue,

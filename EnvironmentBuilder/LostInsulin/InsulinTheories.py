@@ -9,9 +9,11 @@ class Time(Consideration):
         self.horizon = horizon_
 
     def judge(self, successor: Successor):
-        if successor.targetState.props['Hal_has_insulin']:
+        if not successor.targetState.props['Hal_alive']:
+            return -1
+        if (successor.targetState.props['Hal_has_insulin']):
             return 0
-        return -1
+        return -0.1
     
     def StateHeuristic(self, state:State):
         return 0
@@ -34,6 +36,21 @@ class ToSteal(Consideration):
     def StateHeuristic(self, state:State):
         return False
     
+class Trespass(Consideration):
+    def __init__(self):
+        self.type='Absolutism'
+        self.rank=3
+        self.tag='Trespass'
+        self.default = False
+
+    def judge(self, successor: Successor):
+        if (successor.targetState.props['Hal_at']=='Carla_house'):
+            return True
+        return False
+    
+    def StateHeuristic(self, state:State):
+        return False
+    
 class StealWithComp(Consideration):
     def __init__(self):
         super().__init__()
@@ -50,7 +67,39 @@ class StealWithComp(Consideration):
     
     def StateHeuristic(self, state:State):
         return False
-    
+
+
+class Relationship(Consideration):
+    def __init__(self):
+        super().__init__()
+        self.type='Utility'
+        self.rank=0
+        self.tag='Relationship'
+        self.default = 0
+
+    def judge(self, successor: Successor):
+        r = 0
+        # betrayal/lied
+        if (successor.targetState.props['Carla_reply']=='refused' and successor.action=='steal'):
+            r += -10 * successor.targetState.props['friendship']
+        
+        # stealing without betrayal/lie
+        if (successor.targetState.props['Carla_reply']=='na' and successor.action=='steal'):
+            r += -7 * successor.targetState.props['friendship']
+        
+        # compensation 
+        if (successor.targetState.props['Carla_compensated'] and successor.action=='steal'):
+            r += 1
+        
+        if (successor.targetState.props['Carla_compensated']):
+            r += 1
+
+
+
+        return r
+        
+    def StateHeuristic(self, state:State):
+        return 0
 
 # Hal and Carla as individuals
 

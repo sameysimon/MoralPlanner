@@ -75,13 +75,13 @@ public:
     //
     // Getters
     //
-    AbsoluteValue* judge(Successor& successor) {
+    WorthBase* judge(Successor& successor) override {
         return judgementMap[&successor];
     }
-    unique_ptr<WorthBase> gather(std::vector<Successor*>& successors, std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
+    unique_ptr<WorthBase> gather(const std::vector<WorthBase*>& worth, const std::vector<double>& probs, const std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
         AbsoluteValue* ab;
-        for (int i = 0; i < successors.size(); i++) {
-            AbsoluteValue* j = judge(*successors[i]);
+        for (int i = 0; i < worth.size(); i++) {
+            AbsoluteValue* j = static_cast<AbsoluteValue*>(worth[i]);
             ab = static_cast<AbsoluteValue*>(baselines[i]);// May be better way to do this?
             if (j->value or ab->value) {
                 auto r = make_unique<AbsoluteValue>();
@@ -93,6 +93,18 @@ public:
         r->value = false;
         return r;
     };
+
+    std::vector<double> normalise(std::vector<WorthBase*> &worth_vec) override {
+        std::vector<double> r;
+        for (auto wb : worth_vec) {
+            if (quickCast(*wb).value) {
+                r.push_back(1);
+            }
+            r.push_back(0);
+        }
+        return r;
+    }
+
     unique_ptr<WorthBase> newHeuristic(State& s) override {
         auto eu = make_unique<AbsoluteValue>();
         eu->value = heuristicList[s.id];
@@ -126,12 +138,12 @@ public:
         pSortedHistories = new SortHistories(*this);
     }
     int attack(QValue& qv1, QValue& qv2) override;
-    Attack CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>>& histories) override;
+    Attack CriticalQuestionOne(Attack& a, policy_hists& histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
-    void InitMEHR(std::vector<std::vector<History*>> &histories) override {
+    void InitMEHR(std::vector<std::vector<unique_ptr<History>>> &histories) override {
         pSortedHistories->InitMEHR(histories);
     }
-    void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override {
+    void AddPoliciesForMEHR(policy_hists &histories) override {
         pSortedHistories->AddPolicyHistories(histories);
     }
     void AddConsideration(Consideration& con) override {

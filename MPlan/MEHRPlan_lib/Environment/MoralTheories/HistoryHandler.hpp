@@ -14,16 +14,16 @@ protected:
 public:
     explicit HistoryHandler(MEHRTheory &mehrTheory) : rMehrTheory(mehrTheory) { }
     virtual ~HistoryHandler() = default;
-    virtual void InitMEHR(std::vector<std::vector<History*>> &histories) = 0;
-    virtual void AddPolicyHistories(std::vector<std::vector<History*>> &histories) = 0;
+    virtual void InitMEHR(policy_hists &histories) = 0;
+    virtual void AddPolicyHistories(policy_hists& histories) = 0;
 };
 
 class SortHistories : public HistoryHandler {
 public:
     std::vector<std::vector<size_t>> orderedHistories;
     explicit SortHistories(MEHRTheory &mehrTheory): HistoryHandler(mehrTheory) {}
-    void InitMEHR(std::vector<std::vector<History*>> &histories) override;
-    void AddPolicyHistories(std::vector<std::vector<History*>> &histories) override;
+    void InitMEHR(policy_hists &histories) override;
+    void AddPolicyHistories(policy_hists& histories) override;
 
-    Attack CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>>& histories);
+    Attack CriticalQuestionOne(Attack& a, policy_hists& histories);
 };

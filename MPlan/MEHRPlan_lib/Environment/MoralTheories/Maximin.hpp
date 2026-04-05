@@ -16,8 +16,8 @@ public:
     MEHRMaximin(size_t rank_, size_t id_, std::string &name_) : MEHRTheory(rank_, id_, name_) { }
     void AddConsideration(Consideration& con) override { considerations.push_back(con.id); }
     int attack(QValue& qv1, QValue& qv2) override;
-    Attack CriticalQuestionOne(Attack& a, std::vector<std::vector<History*>> &histories) override;
+    Attack CriticalQuestionOne(Attack& a, policy_hists &histories) override;
     int CriticalQuestionTwo(QValue& qv1, QValue& qv2) override;
-    void InitMEHR(std::vector<std::vector<History*>> &histories) override;
-    void AddPoliciesForMEHR(std::vector<std::vector<History*>> &histories) override;
+    void InitMEHR(policy_hists &histories) override;
+    void AddPoliciesForMEHR(policy_hists &histories) override;
 };

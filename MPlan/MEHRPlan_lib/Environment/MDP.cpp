@@ -16,25 +16,43 @@
 #include <vector>
 
 
-void MDP::getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval) {
-    blankQValue(qval);
-    auto scrs = getActionSuccessors(state, stateActionIndex);
-    if (scrs->empty()) { return; }
-    std::vector<WorthBase*> nullBaselines = std::vector<WorthBase*>(scrs->size(), nullptr);
-    for (auto & t : considerations) {
-        std::fill(nullBaselines.begin(), nullBaselines.end(), t->newWorth());
-        qval.expectations.push_back(t->gather(*scrs, nullBaselines, false));
-        delete nullBaselines[0];
+QValue MDP::MultiGather(std::vector<Successor*>& successors, std::vector<QValue*>& baseline, bool ignoreProbability) {
+    QValue qv = QValue(*this);
+    for (int cIdx = 0; cIdx < considerations.size(); ++cIdx) {
+        // Build successor's expectations -- comboExpects[i] is expected worth for successors[i].
+        std::vector<WorthBase*> worth = std::vector<WorthBase*>(successors.size());
+        std::vector<WorthBase*> comboExpects = std::vector<WorthBase*>(successors.size());
+        std::vector<double> probs = std::vector<double>(successors.size());
+        for (int scrIdx=0; scrIdx < successors.size(); ++scrIdx) {
+            comboExpects[scrIdx] = baseline[scrIdx]->expectations[cIdx].get();
+            worth[scrIdx] = considerations[cIdx]->judge(*successors[scrIdx]);
+            probs[scrIdx] = successors[scrIdx]->probability;
+        }
+        qv.expectations[cIdx] = considerations[cIdx]->gather(worth, probs, comboExpects, ignoreProbability);
     }
+    return qv;
+}
+QValue MDP::MultiGather(const std::vector<QValue*>& worth, const std::vector<double> &probs, const std::vector<QValue*>& baseline, const bool ignoreProbability) {
+    QValue qv = QValue(*this);
+    for (int cIdx = 0; cIdx < considerations.size(); ++cIdx) {
+        // Build successor's expectations -- comboExpects[i] is expected worth for successors[i].
+        std::vector<WorthBase*> currWorth = std::vector<WorthBase*>(worth.size());
+        std::vector<WorthBase*> currBaseline = std::vector<WorthBase*>(currWorth.size());
+        for (int scrIdx=0; scrIdx < currWorth.size(); ++scrIdx) {
+            currBaseline[scrIdx] = baseline[scrIdx]->expectations[cIdx].get();
+            currWorth[scrIdx] = worth[scrIdx]->expectations[cIdx].get();
+        }
+        qv.expectations[cIdx] = considerations[cIdx]->gather(currWorth, probs, currBaseline, ignoreProbability);
+    }
+    return qv;
 }
 
-void MDP::addCertainSuccessorToQValue(QValue& qval, Successor* scr) {
-    std::vector<Successor*> successors = {scr};
-    auto baselines = std::vector<WorthBase*>(1);
-    for (int i=0; i<considerations.size(); ++i) {
-        baselines[0] = qval.expectations[i].get();
-        qval.expectations[i] = considerations[i]->gather(successors, baselines, true);
-    }
+
+void MDP::AggregateWithCertainSuccessor(QValue& qval, Successor* scr) {
+    std::vector successors = {scr};
+    std::vector<QValue*> baselines;
+    baselines.push_back(&qval);
+    qval.expectations = MultiGather(successors, baselines, true).expectations;
 }
 
 void MDP::blankQValue(QValue& qval) {
@@ -245,6 +263,12 @@ bool MDP::checkPoliciesEqual(Policy& p1, Policy& p2) {
         stack.pop();
         auto p1Action = p1.getAction(currStateIdx);
         auto p2Action = p2.getAction(currStateIdx);
+        if (!p1Action && !p2Action) {
+            continue;
+        }
+        if (!p1Action && p2Action || p1Action && !p2Action) {
+            return false;
+        }
         if (p1Action==-1 && p2Action==-1) {
             continue;
         }
@@ -255,7 +279,7 @@ bool MDP::checkPoliciesEqual(Policy& p1, Policy& p2) {
             return false;
         }
         // If they are both in the map, and they are equal
-        auto scrs = *getActionSuccessors(*states[currStateIdx], p1Action);
+        auto scrs = *getActionSuccessors(*states[currStateIdx], p1Action.value());
         for (auto scr : scrs) {
             stack.push(scr->target);
         }
@@ -293,7 +317,7 @@ int MDP::checkPolicyInVector(Policy& pi, const vector<Policy*>& pols) {
             return -1;
         }
         // If they are both in the map, and they are equal
-        int actionIdx = pi.getAction(currStateIdx);
+        int actionIdx = pi.getAction(currStateIdx).value();
         auto scrs = *getActionSuccessors(*states[currStateIdx], actionIdx);
         for (auto scr : scrs) {
             stack.push(scr->target);

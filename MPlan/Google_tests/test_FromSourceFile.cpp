@@ -27,15 +27,13 @@ protected:
         // Extract all 'policies'
         auto se = SolutionExtracter(mdp);
         vector<unique_ptr<Policy>> policies;
-        vector<int> backupOrder = {1,0};
+        policy_hists histories;
+        vector backupOrder = {1,0};
         vector<vector<int>> Pi(2);
         Pi[0].resize(mdp.getActions(*mdp.states[0])->size(),0);
         iota(Pi[0].begin(), Pi[0].end(), 0);
-        se.Extract(policies, Pi, backupOrder);
+        se.Extract(policies, histories, Pi);
         // Extract all 'policy' histories
-        vector<vector<History*>> histories;
-        auto eh = ExtractHistories(mdp);
-        eh.extract(histories, policies);
 
         NonAcceptability nacc(mdp.mehr_theories.size(), policies.size());
         MEHR mehr(mdp, policies, histories);
@@ -47,7 +45,7 @@ protected:
             string action_name = soln["Action_Map"]["0"];
             for (size_t i=0; i < policies.size(); ++i) {
                 Policy* pi = policies[i].get();
-                auto actionIdx = pi->getAction(0);
+                auto actionIdx = pi->getAction(0).value();
                 if (mdp.getActions(*mdp.states[0])->at(actionIdx)->label == action_name) {
                     // Contains a matching policy
                     found = true;
