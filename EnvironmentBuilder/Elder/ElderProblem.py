@@ -80,7 +80,7 @@ class OrdinalAutonomy(Consideration):
         self.optimalityType=optimalityType
         self.tag=tag
         self.default = 0
-        self.ordinalLabels = {"0": "Neutral", "1": "Respectful", "-1": "Minor", "-2": "Significant", "-1": "Severe"}
+        self.ordinalLabels = {"0": "Neutral", "1": "Respectful", "-1": "Minor", "-2": "Significant", "-3": "Severe"}
 
     def judge(self, successor: Successor):
         if (successor.action == "Block"):

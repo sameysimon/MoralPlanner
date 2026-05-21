@@ -35,6 +35,7 @@ struct FIELD {
     static constexpr const char* HISTORIES = "Histories";
     static constexpr const char* FOILSOLUTIONS = "FoilSolutions";
     static constexpr const char* ATTACKS = "Attacks";
+    static constexpr const char* TOTAL_ATTACKS = "Total_Attacks";
 
     static constexpr const char* SOURCEPOLICY = "SourcePolicyIdx";
     static constexpr const char* SOURCEHISTORY = "SourceHistoryIdx";
@@ -54,6 +55,7 @@ class Runner;
 class JSONBuilder {
 public:
     static json toJSON(Runner& run);
+    static json addInputJSON(const std::string& fileIn);
     static json toJSON(const std::vector<Attack>& attackVector);
     static json toJSON(explainResult &er, Runner& runner, bool addMEHR);
 

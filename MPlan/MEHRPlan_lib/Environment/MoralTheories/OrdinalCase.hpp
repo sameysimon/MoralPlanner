@@ -26,7 +26,7 @@ public:
         return 0;
     }
     [[nodiscard]] std::string ToString() const override {
-        return std::format("Rank:{}", mValue);
+        return std::format("R={}", mValue);
     }
     bool isEquivalent(WorthBase& w) const override {
         auto oth = static_cast<OrdinalWorth*>(&w);
@@ -52,7 +52,8 @@ public:
 };
 
 class Ordinal : public Consideration {
-    std::unordered_map<Successor*, OrdinalWorth*> mJudgementMap;
+    std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual> mJudgementMap;
+
     std::vector<double> mHeuristicList;
     // When mOptimalityType=0, optimise for worst case,
     // When mOptimalityType=1, optimise for best case,
@@ -64,24 +65,24 @@ class Ordinal : public Consideration {
     }
 public:
     explicit Ordinal(size_t id) : Consideration(id) {
-        mJudgementMap = std::unordered_map<Successor*, OrdinalWorth*>();
+        mJudgementMap = std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual>();
     }
     Ordinal(json& t, size_t id) : Consideration(id) {
         label = t["Name"];
         mOptimalityType = t["Optimality_type"];
-        mJudgementMap = std::unordered_map<Successor*, OrdinalWorth*>();
+        mJudgementMap = std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual>();
     }
-    void processSuccessor(Successor* successor, nlohmann::json successorData) override {
+    void processSuccessor(Successor* successor, nlohmann::json &successorData) override {
         int val = successorData;
-        auto u = new OrdinalWorth();
+        auto u = make_unique<OrdinalWorth>();
         u->mValue = val;
-        this->mJudgementMap.insert(std::make_pair(successor, u));
+        this->mJudgementMap[successor] = std::move(u);
     }
     //
     // Getters
     //
     WorthBase* judge(Successor& successor) override {
-        return mJudgementMap[&successor];
+        return mJudgementMap[&successor].get();
     }
     unique_ptr<WorthBase> gather(const std::vector<WorthBase*>& worth, const std::vector<double>& probs, const std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
         OrdinalWorth& optimal = quickCast(*worth[0]);
@@ -90,16 +91,20 @@ public:
         for (int i = 0; i < worth.size(); i++) {
             j = quickCast(*worth[i]);
             if (mOptimalityType==0 && j.compare(optimal) == -1) {
+                // worst mode, pick the worst one
                 optimal = j;
             }
             if (mOptimalityType==1 && j.compare(optimal) == 1) {
+                // best mode, pick the best one
                 optimal = j;
             }
             j = quickCast(*baselines[i]);
-            if (mOptimalityType==0 && j.compare(optimal) == 1) {
+            if (mOptimalityType==0 && j.compare(optimal) == -1) {
+                // worst mode, pick the worst one
                 optimal = j;
             }
-            if (mOptimalityType==1 && j.compare(optimal) == -1) {
+            if (mOptimalityType==1 && j.compare(optimal) == 1) {
+                // best mode, pick the best one
                 optimal = j;
             }
         }

@@ -142,7 +142,10 @@ public:
     [[nodiscard]] string toString() const {
         string x = "";
         for (auto &it : policy) {
-            x += std::format("  STATE {} WORTH ({}) CHOOSES {}\n", it.first, worth.at(it.first).toString(), it.second);
+            auto it_w = worth.find(it.first);
+            string y = "??";
+            if (it_w != worth.end()) { y = std::format("{}", it_w->second.toString()); }
+            x += std::format("  STATE {} WORTH ({}) CHOOSES {}\n", it.first,y, it.second);
         }
         return x;
     }

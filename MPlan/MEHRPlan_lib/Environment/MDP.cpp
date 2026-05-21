@@ -107,15 +107,39 @@ int MDP::CompareByConsiderations(QValue& qv1, QValue& qv2) {
     }
     return result;
 }
-
 int MDP::ParetoCompare(QValue& qv1, QValue& qv2) {
-    int result = 0;
     bool atLeastOneGreater = false;
     bool atLeastOneLesser = false;
     bool allAtLeast = true;
     bool allAtMost = true;
     int r = 0;
     for (auto pCon : considerations) {
+        r = qv1.expectations[pCon->id]->compare(*qv2.expectations[pCon->id]);
+        if (r==1) {
+            atLeastOneGreater = true;
+            allAtMost = false;
+        }
+        if (r==-1) {
+            atLeastOneLesser = true;
+            allAtLeast = false;
+        }
+    }
+    if (atLeastOneGreater and allAtLeast) {
+        return 1;
+    }
+    if (atLeastOneLesser and allAtMost) {
+        return -1;
+    }
+    return 0;
+}
+int MDP::ParetoCompare(QValue& qv1, QValue& qv2, std::vector<size_t>& consideration_indices) {
+    bool atLeastOneGreater = false;
+    bool atLeastOneLesser = false;
+    bool allAtLeast = true;
+    bool allAtMost = true;
+    int r = 0;
+    for (auto con_idx : consideration_indices) {
+        Consideration* pCon = considerations[con_idx];
         r = qv1.expectations[pCon->id]->compare(*qv2.expectations[pCon->id]);
         if (r==1) {
             atLeastOneGreater = true;

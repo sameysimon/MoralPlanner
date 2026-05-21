@@ -123,6 +123,7 @@ class MEHR {
     size_t getBestHistoryForPolicy(size_t theoryIdx, size_t policyIdx);
 
 
+
     int CQ2CompareWithRank(QValue& qv1, QValue& qv2, size_t theoryIdx);
 
     int PolicyCompare(ushort theoryIdx, ushort rankIdx, const size_t &lhs, const size_t &rhs);
@@ -182,6 +183,15 @@ class MEHR {
             }
         }
         return ss.str();
+    }
+    size_t GetTotalAttacks() {
+        size_t totalAttacks = 0;
+        for (auto &attSet : attacks) {
+            for (auto &att : attSet) {
+                totalAttacks += att.HistoryEdges.size();
+            }
+        }
+        return totalAttacks;
     }
 
 };

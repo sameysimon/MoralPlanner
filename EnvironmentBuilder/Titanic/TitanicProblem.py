@@ -2,10 +2,25 @@ from copy import deepcopy
 from EnvironmentBuilder.BaseMDP import MDP, Consideration, State, Successor, Theory
 import math
 
+
+class ToRam(Consideration):
+    def __init__(self):
+        self.type='Absolutism'
+        self.rank=0
+        self.tag='Ram'
+        self.default = False
+
+    def judge(self, successor: Successor):
+        if (successor.targetState.props['x-front'] == 0 and successor.action=='straight'):
+            return True
+        return False
+    
+    def StateHeuristic(self, state:State):
+        return False
+
 class Utility(Consideration):
-    def __init__(self, tag='1', componentOf=[]):
+    def __init__(self, tag='1'):
         super().__init__()
-        self.compoenentOf = componentOf
         self.type='Utility'
         self.rank=0
         self.tag = f"{tag}_class_deaths" if tag!="crew" else "crew_deaths"
@@ -237,7 +252,11 @@ class Titanic(MDP):
         for c in considerations:
             tag = c["Type"]
             if tag in ['1', '3', 'crew']:
-                mc = Utility(tag=tag, componentOf=c["Component_of"])
+                mc = Utility(tag=tag)
+            if tag == 'ram':
+                mc = ToRam()
+
+
             
             mc.componentOf=c["Component_of"]
             self.Considerations.append(mc)

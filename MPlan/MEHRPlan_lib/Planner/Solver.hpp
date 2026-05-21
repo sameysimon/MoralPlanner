@@ -13,6 +13,7 @@ class Solver {
     MDP& mdp;
     // Worth vector set Function. It maps state to a list of solutions' possible QValues.
     vector<vector<QValue>> mData;
+    vector<vector<QValue>>* pTempData = nullptr;
 
     vector<int> mBackupOrder;
     unique_ptr<unordered_set<int>> mFoundStates;// Explicitly encountered states
@@ -88,6 +89,7 @@ public:
     // Single-Objective VI (for heuristics)
     void BuildIndependentHeuristic();
     void SCVI(size_t con_idx, vector<size_t> &statesByTime);
+    void MCDP();
 
     vector<QValue> EvaluatePolicy(Policy& pi, size_t until_time);
     // Multi-objective IAO*
@@ -98,6 +100,9 @@ public:
                                 vector<Successor*>* successors);
     void pprune(std::vector<QValue>& inVector, std::vector<int>& outVector);
     vector<vector<QValue*>> GetSuccessorQValueCombinations(vector<Successor*>* successors);
+    vector<QValue>& GetQValuesAtState(size_t stateIdx) {
+        return mData.at(stateIdx);
+    }
     void getUnDomCandidates(State& state, vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction);
     static bool checkConverged(vector<vector<QValue>>& d, vector<vector<QValue>>& d_clone);
 
@@ -105,6 +110,16 @@ public:
         mExpanded.clear();
         mPi = vector(mdp.states.size(), vector<int>());
 
+    }
+    void UseTempData(bool doUseTempData = true) {
+        if (doUseTempData) {
+            // cache the current data
+            pTempData = new vector<vector<QValue>>();
+            *pTempData = mData;
+            return;
+        }
+        mData = *pTempData;
+        delete pTempData;
     }
     void lockPolicy(Policy& policy) {
         mIsActionLock = true;

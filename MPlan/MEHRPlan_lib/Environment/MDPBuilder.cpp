@@ -16,6 +16,7 @@
 #include "Utilitarianism.hpp"
 //#include "OrdinalCase.hpp"
 //#include "Threshold.hpp"
+#include "Fairness.hpp"
 #include "MoralTheory.hpp"
 #include "OrdinalCase.hpp"
 
@@ -203,6 +204,9 @@ void MDP::theoriesFromJSON(nlohmann::json &data) {
         else if (type == "Maximin") {
             theory = new MEHRMaximin(t["Rank"], mehr_theories.size(), name);
         }
+        else if (type == "Fairness") {
+            theory = new MEHRFairness(t["Rank"], mehr_theories.size(), name);
+        }
         else if (type == "Ordinal") {
             theory = new MEHROrdinal(t["Rank"], mehr_theories.size(), name);
         }
@@ -327,6 +331,7 @@ void MDP::successorsFromJSON(nlohmann::json &data) {
         } else if (t.is_object()) {
             transitionDict = t[std::to_string(sourceIdx)];
         }
+        size_t a_idx = 0;
         for (auto& actionSuccessors : transitionDict.items())
         {
             // get the action
@@ -343,14 +348,14 @@ void MDP::successorsFromJSON(nlohmann::json &data) {
                 // Create successor
                 double prob = successorData[0];
                 int targetID = successorData[1];
-                successor = new Successor(sourceIdx, targetID, prob);
+                successor = new Successor(sourceIdx, targetID, prob, );
                 successorSet->push_back(successor);
 
                 // Pass successor judgement to moral theory
                 for (int i = 0; i < this->considerations.size(); ++i) {
                     this->considerations[i]->processSuccessor(successor, successorData[i+2]);
                 }
-
+                a_idx++;
             }
         }
     }

@@ -14,18 +14,25 @@ json JSONBuilder::toJSON(Runner& run) {
     result.merge_patch(toJSON(*(run.solver)));
     result.merge_patch(toJSON(run.policies, *(run.mdp), *(run.non_accept)));
 
+    result[FIELD::TOTAL_ATTACKS] = run.mehr->GetTotalAttacks();
     result[FIELD::DURATION_CQ_1] = run.mehr->cq1_time;
     result[FIELD::DURATION_CQ_2] = run.mehr->cq2_time;
 
-    // Add input file to end of json for easy processing!
-    std::ifstream inputFile = std::ifstream(run.fileIn);
-    if (!inputFile.is_open()) {
-        throw std::runtime_error("Error loading input file: '" + run.fileIn + "'");
-    }
-    json inFile = json::parse(inputFile);
-    result.merge_patch(inFile);
+    result.merge_patch(addInputJSON(run.fileIn));
 
     return result;
+}
+
+// Add input file to end of json for easy processing!
+json JSONBuilder::addInputJSON(const std::string &fileIn) {
+    json r = json::object();
+    std::ifstream inputFile = std::ifstream(fileIn);
+    if (!inputFile.is_open()) {
+        throw std::runtime_error("Error loading input file: '" + fileIn + "'");
+    }
+    json inFile = json::parse(inputFile);
+    r.merge_patch(inFile);
+    return r;
 }
 
 json JSONBuilder::toJSON(const std::vector<Attack>& attackVector) {

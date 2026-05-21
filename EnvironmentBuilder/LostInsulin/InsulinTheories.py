@@ -1,19 +1,20 @@
 from EnvironmentBuilder.BaseMDP import MDP, Consideration, State, Successor
 
 class Time(Consideration):
-    def __init__(self, horizon_):
+    def __init__(self, horizon_, budget_):
         self.type='Cost'
         self.rank=1
         self.tag='Cost'
         self.default = 0
         self.horizon = horizon_
+        self.budget = budget_
 
     def judge(self, successor: Successor):
-        if not successor.targetState.props['Hal_alive']:
-            return -1
         if (successor.targetState.props['Hal_has_insulin']):
             return 0
-        return -0.1
+        if not successor.targetState.props['Hal_alive']:
+            return -self.budget
+        return -1
     
     def StateHeuristic(self, state:State):
         return 0
@@ -101,6 +102,59 @@ class Relationship(Consideration):
     def StateHeuristic(self, state:State):
         return 0
 
+
+class OrdinalLaw(Consideration):
+    # Default to maximising the worst (pessimist). Set optimalityType to 1 to optimise the best (optimist)
+    def __init__(self, optimalityType=0, tag='Legality'):
+        super().__init__()
+        self.type='Ordinal'
+        self.rank=0
+        self.optimalityType=optimalityType
+        self.tag=tag
+        self.default = 0
+        self.ordinalLabels = {"0": "No violation", "-1": "Opportunistic Intent", "-2": "Trespass", "-3": "Non-Forceful Theft", "-4": "Burglary", "-5": "Violent Theft"}
+
+    def judge(self, successor: Successor):
+        if (successor.action=='search_outside' and successor.targetState.props["Hal_at"]=='Carla_house'):
+            return -2
+        if (successor.action=='search_outside'):
+            return -1
+        if (successor.action=='intimidate' and successor.targetState.props["Hal_has_insulin"]==True):
+            return -3
+        if (successor.targetState.props["Entry_status"]=='broken_in'):
+            return -4
+        if (successor.action == 'attack_Carla'):
+            return -5
+        return 0
+    
+    def StateHeuristic(self, state:State):
+        return 0
+    
+
+class OrdinalNecessity(Consideration):
+    # Default to maximising the worst (pessimist). Set optimalityType to 1 to optimise the best (optimist)
+    def __init__(self, optimalityType=0, tag='Necessity'):
+        super().__init__()
+        self.type='Ordinal'
+        self.rank=0
+        self.optimalityType=optimalityType
+        self.tag=tag
+        self.default = 0
+        self.ordinalLabels = {"0": "No violation", "-1": "Probable death", "-2": "Serious medical risk", "-3": "Significant hardship", "-5": "Discomfort", "-6": "Convenience only"}
+
+    def judge(self, successor: Successor):
+        # Only crimes have necessity of crime.
+        if (not (successor.action in ['steal', 'give_low', 'give_high', 'break_in', 'attack_Carla'])):
+            return 0
+        x = successor.targetState.props['time'] * -1
+        x = -6 if x < -6 else x
+        return x
+        
+    def StateHeuristic(self, state:State):
+        return 0
+
+
+
 # Hal and Carla as individuals
 
 class HalLife(Consideration):
@@ -112,11 +166,16 @@ class HalLife(Consideration):
         self.default = 0
 
     def judge(self, successor: Successor):
-        if (successor.sourceState.props['Hal_alive']==True and successor.targetState.props['Hal_alive']==False):
-            return -10
+        u = 0
+        if (successor.sourceState.props['Carla_reply']=="gave"):
+            u -= 1
+        if (successor.sourceState.props['Carla_reply']=="refused"):
+            u -= 2
         if (successor.targetState.props['Hal_arrested']==True and successor.sourceState.props['Hal_arrested']==False):
             return -1
-        return 0
+        if (successor.sourceState.props['Hal_alive']==True and successor.targetState.props['Hal_alive']==False):
+            return -10
+        return u
         
     def StateHeuristic(self, state:State):
         return 0
@@ -131,8 +190,10 @@ class CarlaLife(Consideration):
 
     def judge(self, successor: Successor):
         u = 0
-        if (successor.sourceState.props['Hal_at']=="Carla_house"):
-            u -= 1 
+        if (successor.sourceState.props['Carla_reply']=="gave"):
+            u -= 1
+        if (successor.sourceState.props['Carla_reply']=="refused"):
+            u -= 2
         if (successor.sourceState.props['Carla_alive']==True and successor.targetState.props['Carla_alive']==False):
             u -= 10
         return u

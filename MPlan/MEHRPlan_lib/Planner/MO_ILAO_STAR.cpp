@@ -38,7 +38,26 @@ vector<vector<QValue>> Solver::build_blank_data(bool use_domain_heuristic, size_
 }
 
 //
-// MAIN ALGORITHM.
+// NON-HEURISTIC ALGORITHM
+//
+void Solver::MCDP() {
+    vector<size_t> statesByTime(mdp.states.size());
+    std::iota(statesByTime.begin(), statesByTime.end(), 0);
+    std::sort(statesByTime.begin(), statesByTime.end(), [&](size_t a, size_t b) {
+        return mdp.states[a]->time > mdp.states[b]->time;
+    });
+
+    mBackupOrder.clear();
+    mExpanded.clear();
+    for (auto stateIdx : statesByTime) {
+        backup(*mdp.states[stateIdx]);
+        backups++;
+    }
+}
+
+
+//
+// MAIN HEURISTIC ALGORITHM.
 //
 void Solver::MC_iAO_Star() {
     mBackupOrder.clear();
@@ -58,7 +77,6 @@ void Solver::MC_iAO_Star() {
         Log::writeLog("\n", LogLevel::Debug);
 #endif
     } while (checkForUnexpandedStates(mExpanded, mBackupOrder));
-    // For stats later
     this->expanded_states = mExpanded.size();
 }
 

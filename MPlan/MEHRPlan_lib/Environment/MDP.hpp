@@ -114,6 +114,7 @@ public:
     int CompareByTheories(QValue& qv1, QValue& qv2, bool useRanks=false);
     int CompareByConsiderations(QValue& qv1, QValue& qv2);
     int ParetoCompare(QValue& qv1, QValue& qv2);
+    int ParetoCompare(QValue& qv1, QValue& qv2, std::vector<size_t>& consideration_indices);
     int compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories);
 
     void blankQValue(QValue& qval);

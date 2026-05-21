@@ -5,6 +5,7 @@
 #include "REST_App.hpp"
 #include "JSONBuilder.hpp"
 #include <algorithm>
+#include "Utilitarianism.hpp"
 
 inline bool isDoubleEqual(double d1, double d2) {
     return abs(d1 - d2) < DBL_EPSILON;
@@ -39,7 +40,7 @@ crow::response REST_App::HandleMDP(const crow::request &req) {
     runner = make_unique<Runner>(file_in);
     runner->make_history_paths = true;
 
-    runner->WriteTo(file_out);
+    runner->FullSolve(file_out);
     json resp;
     resp["file_out"] = file_out;
     finishedSolving = true;
@@ -71,76 +72,127 @@ crow::response REST_App::HandleQueryFoilAction(const crow::request &req) {
         finishedSolving = true;
         return {500, e.what()};
     }
-    auto action_id = runner->mdp->getActionIndex(state_id, action_label);
-
-    // Check if counter-factual is actually counterfactual
+    size_t action_id = 0;
+    if (auto a = runner->mdp->getActionIndex(state_id, action_label)) {
+        action_id = a.value();
+    } else {
+        return {400, "Invalid Query Request: Invalid action label string."};
+    }
     auto &fact_pi = runner->policies[factPolicy_id];
-    auto &isa = fact_pi->included_state_actions;
+
     nlohmann::json bod = nlohmann::json::object();
-    if (isa.end() != find(isa.begin(), isa.end(), pair(state_id, action_id))) {
-        bod["type"] = "Equivalent";
+
+    //
+    // 1. Check for Pareto dominance in foil policies
+    //
+    auto foilPolicyWorth = runner->EvaluateAction(state_id, action_id, fact_pi.get());
+    vector<QValue> candidates = vector<QValue>();// The QValue candidates (corresponding to state-actions)
+    candidates.insert(candidates.end(), foilPolicyWorth.begin(), foilPolicyWorth.end());
+    auto BestWorth = runner->solver->GetQValuesAtState(0);
+    candidates.insert(candidates.end(), BestWorth.begin(), BestWorth.end());
+
+    vector<int> indicesOfUndominated = vector<int>();// Indices of candidate QValues that are undominated.
+    runner->solver->pprune(candidates, indicesOfUndominated);
+    size_t undominated = 0;
+    for (size_t idx : indicesOfUndominated) {
+        if (idx < foilPolicyWorth.size()) {
+            undominated++;
+        }
+    }
+    if (undominated==0) {
+        bod["type"] = "Pareto Dominance";
+        return {200, bod.dump()};
+    }
+    //
+    // 2. Check budget of foil policies
+    //
+    size_t inBudget = 0;
+    for (size_t w_i = 0; w_i < foilPolicyWorth.size(); ++w_i) {
+        QValue& w = foilPolicyWorth[w_i];
+        bool isInBudget = runner->mdp->isQValueInBudget(w);
+        if (isInBudget) {
+            inBudget++;
+        }
+        if  (isInBudget || w_i < foilPolicyWorth.size()) {
+        }
+    }
+    if (inBudget==0) {
+        bod["type"] = "Non-moral";
         return {200, bod.dump()};
     }
 
-    // Check if counter-factual is actually preferred.
-    bool isAnyCounterPreferred = false;
-    bool oneCounterEqual = false;
+    //
+    // 3. Check undominated policies are not all over-budget and all in-budget policies are not dominated.
+    //
+    bool areAllUndominatedOverBudget = true;
+    for (size_t i = 0; i < indicesOfUndominated.size() - 1 ; ++i) {
+        size_t foilNonDomd = indicesOfUndominated[i];
+        if (foilNonDomd >= foilPolicyWorth.size()) {
+            break;
+        }
+        if (runner->mdp->isQValueInBudget(candidates[foilNonDomd])) {
+            areAllUndominatedOverBudget = false;
+            break;
+        }
+    }
+    if (areAllUndominatedOverBudget && inBudget==undominated) {
+        bod["type"] = "Pareto Dominance and Non-moral";
+        return {200, bod.dump()};
+
+    }
+
+    //
+    // 4. Check if counter-factual is actually counterfactual
+    //
+    auto &isa = fact_pi->included_state_actions;
+    if (isa.end() != find(isa.begin(), isa.end(), pair(state_id, action_id))) {
+        bod["type"] = "Equivalent to fact";
+        return {200, bod.dump()};
+    }
+
+    // 5. Check for existing foil policies and if they are actually preferred.
     double factNacc = runner->non_accept->getPolicyNonAccept(factPolicy_id);
+    double cheapestMoralFoilCost = 9999999;
+    double foilsMinNacc = 999999;
+    size_t existing_foils = 0;
     for (size_t pi_i = 0; pi_i < runner->policies.size(); ++pi_i) {
         auto &pi = runner->policies[pi_i];
-        if (pi->policy[static_cast<int>(state_id)] == action_id) {
-            double counterNacc= runner->non_accept->getPolicyNonAccept(pi_i);
-            if (counterNacc < factNacc) {
-                isAnyCounterPreferred = true;
-            }
-            if (isDoubleEqual(counterNacc, factNacc)) {
-                oneCounterEqual = true;
-            }
-        }
-    }
-    if (isAnyCounterPreferred) {
-        bod["type"] = "False by MEHR";
-        return {200, bod.dump()};
-    }
-    // If we are on the most pref'd policy, and at least one counter is same pref, then user pref.
-    if (oneCounterEqual && isDoubleEqual(runner->non_accept->getMinimumNonAccept(), factNacc)) {
-        bod["type"] = "User preference";
-        return {200, bod.dump()};
-    }
-
-    vector<QValue> candidates = vector<QValue>();// The QValue candidates (corresponding to state-actions)
-    vector<int> indicesOfUndominated = vector<int>();// Indices of candidate QValues that are undominated.
-    vector<int> qValueIdxToAction = vector<int>();// Maps QValue index to action index.
-    State* s = runner->mdp->states[state_id];
-    auto actions = runner->mdp->getActions(*s);
-    runner->solver->getUnDomCandidates(*s, candidates, indicesOfUndominated, qValueIdxToAction);
-    bool anyInBudget = false;
-    bool anyUndominated = false;
-    for (size_t qvIdx = 0; qvIdx < candidates.size(); qvIdx++) {
-        if (actions->at(qValueIdxToAction[qvIdx])->label != action_label) {
+        auto it = pi->policy.find(static_cast<int>(state_id));
+        if (it == pi->policy.end()) {
             continue;
         }
-        if (runner->mdp->isQValueInBudget(candidates[qvIdx])) {
-            anyInBudget = true;
+        if (pi->policy[static_cast<int>(state_id)] != action_id) {
+            continue;
         }
-        if (find(indicesOfUndominated.begin(),indicesOfUndominated.end(),qvIdx) != indicesOfUndominated.end()) {
-            anyUndominated = true;
+        existing_foils++;
+        double currNacc = runner->non_accept->getPolicyNonAccept(pi_i);
+        if (isDoubleEqual(currNacc, foilsMinNacc) && runner->mdp->non_moralTheoryIdx != -1) {
+            WorthBase* x = runner->policies[pi_i]->getExpectationPtr()->expectations.at(runner->mdp->non_moralTheoryIdx).get();
+            auto currCost = static_cast<ExpectedUtility*>(x)->value;
+            if (currCost < cheapestMoralFoilCost) {
+                cheapestMoralFoilCost = currCost;
+            }
         }
+        if (currNacc < foilsMinNacc) {
+            foilsMinNacc = currNacc;
+            cheapestMoralFoilCost = 9999999;
+        }
+    }
+    if (existing_foils==0) {
+        bod["type"] = "Equivalent to other";
+        return {200, bod.dump()};
+    }
+    // If foils beaten by fact in MEHR.
+    if (foilsMinNacc > factNacc) {
+        bod["type"] = "MEHR Preference";
+        return {200, bod.dump()};
     }
 
-    if (anyInBudget && anyUndominated) {
-        bod["type"] = "MEHR Preference";
-    }
-    if (anyInBudget && !anyUndominated) {
-        bod["type"] = "Pareto Dominance";
-    }
-    if (!anyInBudget && anyUndominated) {
-        bod["type"] = "Non-moral";
-    }
-    if (!anyInBudget && !anyUndominated) {
-        bod["type"] = "Pareto Dominance and Non-moral";
-    }
+    // If foils are better/equal to fact, then choice is user pref'.
+    bod["type"] = "User preference";
     return {200, bod.dump()};
+
+
 }
 
 crow::response REST_App::HandleQValues(const crow::request &req) {
@@ -160,6 +212,7 @@ crow::response REST_App::HandleQValues(const crow::request &req) {
     // Get the values
     State* s = runner->mdp->states[state_id];
     runner->solver->getUnDomCandidates(*s, candidates, indicesOfUndominated, qValueIdxToAction);
+
     return {200, JSONBuilder::toJSON(candidates, indicesOfUndominated, qValueIdxToAction, *runner->mdp, *s).dump()};
 
 }
@@ -381,8 +434,13 @@ crow::response REST_App::HandleGetNeccMEHR(const crow::request &req) {
     // Collect necessary foil policies
     vector<size_t> necc_policies(runner->policies.size(), 0);
     iota(necc_policies.begin(), necc_policies.end(), 0);
+
     std::erase_if(necc_policies, [this, state_id, action_idx](auto policy_idx) {
-        return runner->policies[policy_idx]->policy[static_cast<int>(state_id)] != action_idx.value();
+        auto it = runner->policies[policy_idx]->policy.find(state_id);
+        if (it == runner->policies[policy_idx]->policy.end()) {
+            return true;
+        }
+        return it->second != action_idx.value();
     });
     // If no policies, it will be equivalent to others. Plan now to generate them
     if (necc_policies.empty()) {
@@ -480,7 +538,7 @@ crow::response REST_App::HandlePlanFromHistory(const crow::request &req) {
     runner->make_history_paths = true;
     std::string of = OUTPUT_FOLDER_PATH;
     std::string file_out = format("{}ServerRequest_t{}.json", of, hist->path->size() + real_time);
-    runner->WriteTo(file_out);
+    runner->FullSolve(file_out);
     json resp;
     resp["file_out"] = file_out;
     finishedSolving = true;
