@@ -121,7 +121,7 @@ public:
     //
     // Initialisation
     //
-    void processSuccessor(Successor* successor, nlohmann::json successorData) override {
+    void processSuccessor(Successor* successor, json &successorData) override {
         bool val = successorData;
         auto ab = new AbsoluteValue();
         ab->value = val;

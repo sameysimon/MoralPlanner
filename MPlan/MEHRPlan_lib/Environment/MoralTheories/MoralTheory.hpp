@@ -68,7 +68,7 @@ public:
     virtual WorthBase* newWorth() = 0;
     virtual std::unique_ptr<WorthBase> UniqueWorth() = 0;
     virtual std::unique_ptr<WorthBase> newHeuristic(State& s) = 0;
-    virtual void processSuccessor(Successor* successor, nlohmann::json successorData) = 0;
+    virtual void processSuccessor(Successor* successor, json &successorData) = 0;
     virtual void addComponent(Consideration* m) {};
     virtual std::vector<double> normalise(std::vector<WorthBase*>& worth_vec) = 0;
 

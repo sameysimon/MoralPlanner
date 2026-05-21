@@ -18,17 +18,20 @@
 
 QValue MDP::MultiGather(std::vector<Successor*>& successors, std::vector<QValue*>& baseline, bool ignoreProbability) {
     QValue qv = QValue(*this);
+    std::vector<WorthBase*> worth = std::vector<WorthBase*>(successors.size());
+    std::vector<WorthBase*> comboExpects = std::vector<WorthBase*>(successors.size());
+    std::vector<double> probs = std::vector<double>(successors.size());
     for (int cIdx = 0; cIdx < considerations.size(); ++cIdx) {
         // Build successor's expectations -- comboExpects[i] is expected worth for successors[i].
-        std::vector<WorthBase*> worth = std::vector<WorthBase*>(successors.size());
-        std::vector<WorthBase*> comboExpects = std::vector<WorthBase*>(successors.size());
-        std::vector<double> probs = std::vector<double>(successors.size());
         for (int scrIdx=0; scrIdx < successors.size(); ++scrIdx) {
             comboExpects[scrIdx] = baseline[scrIdx]->expectations[cIdx].get();
             worth[scrIdx] = considerations[cIdx]->judge(*successors[scrIdx]);
             probs[scrIdx] = successors[scrIdx]->probability;
         }
         qv.expectations[cIdx] = considerations[cIdx]->gather(worth, probs, comboExpects, ignoreProbability);
+        worth.clear();
+        comboExpects.clear();
+        probs.clear();
     }
     return qv;
 }

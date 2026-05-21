@@ -53,8 +53,6 @@ set(SOURCE_FILES
         Environment/MoralTheories/HistoryHandler.hpp
         Planner/Policy.cpp
         Planner/PolicyEvaluate.cpp
-        Environment/AAF_Convert.cpp
-        Environment/AAF_Convert.hpp
         Environment/MoralTheories/Fairness.cpp
         Environment/MoralTheories/Fairness.hpp
 )

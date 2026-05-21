@@ -13,6 +13,9 @@ class OrdinalWorth : public WorthBase {
 public:
     // Higher is better
     int mValue = 0;
+    OrdinalWorth(size_t rank) {
+        mValue = rank;
+    }
 
     // Use simple numeric operators
     int compare(WorthBase& wb) const override {
@@ -52,7 +55,8 @@ public:
 };
 
 class Ordinal : public Consideration {
-    std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual> mJudgementMap;
+    //std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual> mJudgementMap;
+    vector<vector<vector<pair<size_t, unique_ptr<OrdinalWorth>>>>> judgements;
 
     std::vector<double> mHeuristicList;
     // When mOptimalityType=0, optimise for worst case,
@@ -65,50 +69,61 @@ class Ordinal : public Consideration {
     }
 public:
     explicit Ordinal(size_t id) : Consideration(id) {
-        mJudgementMap = std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual>();
+        //mJudgementMap = std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual>();
     }
-    Ordinal(json& t, size_t id) : Consideration(id) {
+    Ordinal(json& t, size_t id, size_t state_space_reserve) : Consideration(id) {
         label = t["Name"];
         mOptimalityType = t["Optimality_type"];
-        mJudgementMap = std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual>();
+        //mJudgementMap = std::unordered_map<Successor*, unique_ptr<OrdinalWorth>, SuccessorHash, SuccessorEqual>();
+        judgements.resize(state_space_reserve);
+        for (auto i = 0; i < state_space_reserve; ++i) {
+            judgements[i].resize(state_space_reserve);
+        }
+
     }
     void processSuccessor(Successor* successor, nlohmann::json &successorData) override {
         int val = successorData;
-        auto u = make_unique<OrdinalWorth>();
-        u->mValue = val;
-        this->mJudgementMap[successor] = std::move(u);
+        auto ow = make_unique<OrdinalWorth>(val);
+        judgements[successor->source][successor->target].push_back( pair(successor->action_idx, std::move(ow)));
     }
+
+
     //
     // Getters
     //
     WorthBase* judge(Successor& successor) override {
-        return mJudgementMap[&successor].get();
+        for (auto &ow : judgements[successor.source][successor.target]) {
+            if (ow.first == successor.action_idx) {
+                return ow.second.get();
+            }
+        }
+        throw format("Cannot find moral worth of successor {} -> {} by action ID {}", successor.source, successor.target, successor.action_idx);
     }
     unique_ptr<WorthBase> gather(const std::vector<WorthBase*>& worth, const std::vector<double>& probs, const std::vector<WorthBase*>& baselines, bool ignoreProbability) override {
-        OrdinalWorth& optimal = quickCast(*worth[0]);
-        OrdinalWorth& j = quickCast(*baselines[0]);
+        OrdinalWorth* optimal = static_cast<OrdinalWorth*>(worth[0]);
+        OrdinalWorth* j;
 
         for (int i = 0; i < worth.size(); i++) {
-            j = quickCast(*worth[i]);
-            if (mOptimalityType==0 && j.compare(optimal) == -1) {
+            j = static_cast<OrdinalWorth*>(worth[i]);
+            if (mOptimalityType==0 && j->compare(*optimal) == -1) {
                 // worst mode, pick the worst one
                 optimal = j;
             }
-            if (mOptimalityType==1 && j.compare(optimal) == 1) {
+            if (mOptimalityType==1 && j->compare(*optimal) == 1) {
                 // best mode, pick the best one
                 optimal = j;
             }
-            j = quickCast(*baselines[i]);
-            if (mOptimalityType==0 && j.compare(optimal) == -1) {
+            j = static_cast<OrdinalWorth*>(baselines[i]);
+            if (mOptimalityType==0 && j->compare(*optimal) == -1) {
                 // worst mode, pick the worst one
                 optimal = j;
             }
-            if (mOptimalityType==1 && j.compare(optimal) == 1) {
+            if (mOptimalityType==1 && j->compare(*optimal) == 1) {
                 // best mode, pick the best one
                 optimal = j;
             }
         }
-        return make_unique<OrdinalWorth>(optimal);
+        return make_unique<OrdinalWorth>(optimal->mValue);
     }
     std::vector<double> normalise(std::vector<WorthBase*> &worth_vec) override {
         std::vector<double> r;

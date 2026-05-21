@@ -72,7 +72,7 @@ public:
     std::string fileIn;
     bool make_history_paths = false;
 
-    Planning_Mode planning_mode;
+    Planning_Mode planning_mode = INDEPENDENT_HEURISTIC;
 
     Runner() = default;
     explicit Runner(const std::string& fileIn_, bool make_history_paths_ = true) {

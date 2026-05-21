@@ -146,18 +146,20 @@ void MDP::buildFromJSON(nlohmann::json& data) {
     }
 
     try {
+        statesFromJSON(data);
+    } catch (nlohmann::json::exception& e) {
+        oss << "MDP::buildFromJSON. Failed to load states data. " << e.what();
+        throw std::runtime_error(oss.str());
+    }
+
+
+    try {
         theoriesFromJSON(data);
     } catch (nlohmann::json::exception& e) {
         cerr << "MDP::buildFromJSON. Bad JSON for Moral Theories. " << e.what() << endl;
         exit(1);
     }
 
-    try {
-        statesFromJSON(data);
-    } catch (nlohmann::json::exception& e) {
-        oss << "MDP::buildFromJSON. Failed to load states data. " << e.what();
-        throw std::runtime_error(oss.str());
-    }
 
     try {
         successorsFromJSON(data);
@@ -255,7 +257,7 @@ void MDP::theoriesFromJSON(nlohmann::json &data) {
             this->considerations.push_back(new Absolutism(t, conID));
         }
         else if (type == "Ordinal") {
-            this->considerations.push_back(new Ordinal(t, conID));
+            this->considerations.push_back(new Ordinal(t, conID, this->states.size()));
         }
         else {
             throw std::runtime_error(std::format(
@@ -348,7 +350,7 @@ void MDP::successorsFromJSON(nlohmann::json &data) {
                 // Create successor
                 double prob = successorData[0];
                 int targetID = successorData[1];
-                successor = new Successor(sourceIdx, targetID, prob, );
+                successor = new Successor(sourceIdx, targetID, prob, a_idx);
                 successorSet->push_back(successor);
 
                 // Pass successor judgement to moral theory

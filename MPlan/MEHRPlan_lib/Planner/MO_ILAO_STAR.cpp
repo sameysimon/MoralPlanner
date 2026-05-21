@@ -125,8 +125,9 @@ void Solver::getUnDomCandidates(State& state, vector<QValue>& candidates, vector
     pprune(candidates, indicesOfUndominated);
 
 #ifdef DEBUG
+
     stringstream ss;
-    ss << "   Actions Undominated = ";
+    ss << format("State {}'s undom'd actions: ", state.id);
     for (auto elem : indicesOfUndominated) {
         auto a = actions.at(qValueIdxToAction[elem]);
         ss <<  (a->label) << " @ {" << candidates[elem].toString() << "}; ";
