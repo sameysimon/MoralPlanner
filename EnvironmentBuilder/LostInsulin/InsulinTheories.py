@@ -112,7 +112,7 @@ class OrdinalLaw(Consideration):
         self.optimalityType=optimalityType
         self.tag=tag
         self.default = 0
-        self.ordinalLabels = {"0": "No violation", "-1": "Opportunistic Intent", "-2": "Trespass", "-3": "Non-Forceful Theft", "-4": "Burglary", "-5": "Violent Theft"}
+        self.ordinalLabels = {"0": "No violation", "-1": "Opportunistic Intent", "-2": "Trespass", "-3": "Robbery", "-4": "Burglary", "-5": "Violent Theft"}
 
     def judge(self, successor: Successor):
         if (successor.action=='search_outside' and successor.targetState.props["Hal_at"]=='Carla_house'):
@@ -167,10 +167,6 @@ class HalLife(Consideration):
 
     def judge(self, successor: Successor):
         u = 0
-        if (successor.sourceState.props['Carla_reply']=="gave"):
-            u -= 1
-        if (successor.sourceState.props['Carla_reply']=="refused"):
-            u -= 2
         if (successor.targetState.props['Hal_arrested']==True and successor.sourceState.props['Hal_arrested']==False):
             return -1
         if (successor.sourceState.props['Hal_alive']==True and successor.targetState.props['Hal_alive']==False):
@@ -190,10 +186,8 @@ class CarlaLife(Consideration):
 
     def judge(self, successor: Successor):
         u = 0
-        if (successor.sourceState.props['Carla_reply']=="gave"):
+        if (successor.action == 'attack_Carla'):
             u -= 1
-        if (successor.sourceState.props['Carla_reply']=="refused"):
-            u -= 2
         if (successor.sourceState.props['Carla_alive']==True and successor.targetState.props['Carla_alive']==False):
             u -= 10
         return u

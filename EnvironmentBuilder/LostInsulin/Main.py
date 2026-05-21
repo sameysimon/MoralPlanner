@@ -5,17 +5,18 @@ import random
 
 
 class Odds():
-    CARLA_COMPLIES=0.8
+    CARLA_COMPLIES=0.3
     CARLA_INTIMIDATED=0.5
-    REFUSED_BREAK_IN=0.5
-    FIRST_BREAK_IN=0.8
+    BREAK_IN_ARREST=0.6
+    SNEAK_IN_ARREST=0.3
     COMPENSATE_LOW=0.1
-    COMPENSATE_HIGH=0.1
+    COMPENSATE_HIGH=0.4
     HAL_DIES=0.4
     CARLA_DIES=0.1
     HAL_FINDS=0.5
-    CARLA_LOSES_FIGHT=0.5
-    HAL_FINDS_ENTRANCE=0.5
+    CARLA_LOSES_FIGHT=0.7
+    CARLA_LOSES_FIGHT_AFTER_INTIM=0.5
+    HAL_FINDS_ENTRANCE=0.8
     
 
 
@@ -68,6 +69,9 @@ class LostInsulin(MDP):
         
         if (state.props['Hal_at']=='Hal_house'):
             acts = ['ask_Carla', 'break_in', 'search_outside', 'wait', 'intimidate', 'attack_Carla']
+            if (state.props['Entry_status']=='easy_entry'):
+                acts.append('sneak_inside')
+
             if (state.props['Entry_status']=='No_easy_entry'):
                 acts.remove('search_outside')
 
@@ -106,11 +110,19 @@ class LostInsulin(MDP):
         
         outcomes = []
         if (action=='break_in'):
-            success_prob = Odds.FIRST_BREAK_IN if props['Carla_reply']=='na' else Odds.REFUSED_BREAK_IN
+            success_prob = Odds.BREAK_IN_ARREST
 
             p_ = deepcopy(props)
             p_['Hal_at'] = 'Carla_house'
-            p_['Entry_status'] = 'broken_in'
+            outcomes.append((p_, prob*success_prob))
+            
+            p_ = deepcopy(props)
+            p_['Hal_arrested'] = True
+            outcomes.append((p_, prob*(1 - success_prob)))
+        elif (action=='sneak_in'):
+            success_prob = Odds.SNEAK_IN_ARREST
+            p_ = deepcopy(props)
+            p_['Hal_at'] = 'Carla_house'
             outcomes.append((p_, prob*success_prob))
             
             p_ = deepcopy(props)
@@ -135,17 +147,19 @@ class LostInsulin(MDP):
             p_['Carla_reply'] = 'refused_intimidate'
             outcomes.append((p_, prob * (1 - Odds.CARLA_INTIMIDATED)))
         elif (action=='attack_Carla'):
+            prob = Odds.CARLA_LOSES_FIGHT_AFTER_INTIM if p_['Carla_reply']=='refused_intimidate' else Odds.CARLA_LOSES_FIGHT
             p_ = deepcopy(props)
             p_['Carla_reply'] = 'gave'
             p_['Hal_has_insulin'] = True
-            outcomes.append((p_, prob * Odds.CARLA_LOSES_FIGHT))
+            
+            outcomes.append((p_, prob * prob))
             
             p_ = deepcopy(props)
             p_['Carla_reply'] = 'refused_attack'
-            outcomes.append((p_, prob * (1 - Odds.CARLA_LOSES_FIGHT)))
+            outcomes.append((p_, prob * (1 - prob)))
         elif (action=='search_outside'):
             p_ = deepcopy(props)
-            p_['Hal_at'] = 'Carla_house'
+            p_['Entry_status'] = 'easy_entry'
             outcomes.append((p_, prob*Odds.HAL_FINDS_ENTRANCE))
             
             p_ = deepcopy(props)

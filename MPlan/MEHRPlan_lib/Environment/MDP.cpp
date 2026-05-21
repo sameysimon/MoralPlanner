@@ -13,9 +13,6 @@
 #include "Utilitarianism.hpp"
 #include <stack>
 
-#include <vector>
-
-
 QValue MDP::MultiGather(std::vector<Successor*>& successors, std::vector<QValue*>& baseline, bool ignoreProbability) {
     QValue qv = QValue(*this);
     std::vector<WorthBase*> worth = std::vector<WorthBase*>(successors.size());

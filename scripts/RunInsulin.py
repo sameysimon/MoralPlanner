@@ -46,7 +46,7 @@ theoriesConfigs = {
 }
 
 theoriesConfigs = {
-    "Hal&Carla": {"Theories": [["AU", "Utility", 0], ["Legal Necessity", "Ordinal", 0], ["Legal Charge", "Ordinal", 0]], 
+    "Hal&Carla": {"Theories": [["AU", "Utility", 1], ["Legal Necessity", "Ordinal", 0], ["Legal Charge", "Ordinal", 0]], 
         "Considerations": [["CarlaLife", "AU"],
                             ["HalLife", "AU"],
                             ["Necessity", "Legal Necessity"],
