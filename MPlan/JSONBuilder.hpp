@@ -43,6 +43,8 @@ struct FIELD {
     static constexpr const char* FOILSOLUTIONS = "FoilSolutions";
     static constexpr const char* ATTACKS = "Attacks";
     static constexpr const char* TOTAL_ATTACKS = "Total_Attacks";
+    static constexpr const char* TOTAL_POLICIES = "Total_reachable_policies";
+
 
     static constexpr const char* SOURCEPOLICY = "SourcePolicyIdx";
     static constexpr const char* SOURCEHISTORY = "SourceHistoryIdx";

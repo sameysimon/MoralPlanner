@@ -7,6 +7,8 @@
 #include "Solver.hpp"
 #include <string>
 
+#include "Policy_Counter.h"
+
 json JSONBuilder::toJSON(Runner& run) {
     json result = json::object();
     result.merge_patch(toJSON(run.durations));
@@ -94,6 +96,8 @@ json JSONBuilder::toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcce
     r[FIELD::SOLUTION_TOTAL] = policies.size();
     r[FIELD::SOLUTIONS_ORDER] = sorted_indices;
     r[FIELD::NUM_OF_MIN_NON_ACCEPT] = num_of_min_non_acc;
+    CountPolicies c(mdp);
+    r[FIELD::TOTAL_POLICIES] = c.GetCount();
 
     return r;
 }

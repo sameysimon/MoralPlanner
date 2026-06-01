@@ -17,8 +17,10 @@ class Odds():
     
     COMPENSATE_LOW=0.4
     COMPENSATE_HIGH=0.5
+
     HAL_DIES=0.4
     CARLA_DIES=0.2
+
     HAL_FINDS=0.5
 
     CARLA_LOSES_FIGHT=0.7
@@ -78,7 +80,7 @@ class LostInsulin(MDP):
             return ['hurt']
         
         if (state.props['Hal_at']=='Hal_house'):
-            acts = ['ask_Carla', 'break_in', 'search_outside', 'wait', 'intimidate', 'attack_Carla', 'buy_low', 'buy_high', 'sneak_inside']
+            acts = ['ask_Carla', 'search_outside', 'break_in', 'wait', 'intimidate', 'attack_Carla', 'buy_low', 'buy_high', 'sneak_inside']
             
             if (state.props['Entry_status']!='easy_entry'):
                 SafeRemove(acts, 'sneak_inside')
@@ -293,7 +295,8 @@ class LostInsulin(MDP):
         outcomes = []
         
         if (props['Hal_alive'] and props['Hal_has_insulin']==False):
-            die_chance = ((props['time'] + 1) ) / (self.horizon + 1)
+            die_chance = 1 - ((((self.horizon - props['time']) ) / (self.horizon + 1)) * (1 - Odds.HAL_DIES))
+            
 
             p_ = deepcopy(props)    
             p_['Hal_alive']=True

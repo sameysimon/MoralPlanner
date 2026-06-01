@@ -26,6 +26,7 @@ set(HEADER_FILES
         Environment/MoralTheories/OrdinalCase.hpp
         Environment/MoralTheories/Fairness.cpp
         Environment/MoralTheories/Fairness.hpp
+        Planner/Policy_Counter.h
 )
 
 set(SOURCE_FILES
