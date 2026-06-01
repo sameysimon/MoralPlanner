@@ -27,7 +27,6 @@ theoriesConfigs = {
               "Considerations": [["1", theory1Class], ["3", theory3Class], ["crew", theoryCrew]]
             },
 
-
     "AU(1+3+C)=D": {"Theories": [[theoryAU, "Utility", 0], [theoryDeon, "Absolutism", 0]], 
               "Considerations": [["1", theoryAU], ["3", theoryAU], ["crew", theoryAU], ["ram", theoryDeon]],
             },
@@ -110,4 +109,4 @@ def PostToServer():
     er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
 
 
-Experiment()
+PostToServer()

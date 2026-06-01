@@ -36,7 +36,6 @@ public:
     vector<vector<int>> mPi;
 
     size_t expanded_states=0;
-    long explicit_states=0;
     int expansions=0;
     int backups=0;
 

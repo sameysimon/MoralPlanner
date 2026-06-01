@@ -6,7 +6,8 @@
 
 using json = nlohmann::json;
 struct FIELD {
-    static constexpr const char* EXPANDED = "Expanded";
+    static constexpr const char* EXPANDED_STATES = "Expanded";
+    static constexpr const char* BSG_SIZE = "Best_subgraph_size";
     static constexpr const char* BACKUPS = "Backups";
     static constexpr const char* ITERATIONS = "Iterations";
     static constexpr const char* SOLUTION_TOTAL = "SolutionTotal";
@@ -25,7 +26,13 @@ struct FIELD {
     static constexpr const char* SOLUTIONS = "Solutions";
     static constexpr const char* NON_ACCEPTABILITY = "Acceptability";
     static constexpr const char* NUM_OF_MIN_NON_ACCEPT = "Num_Min_Non_Acceptability";
+
     static constexpr const char* ACTION_MAP = "Action_Map";
+
+    static constexpr const char* TOTAL_HISTORIES = "Total_histories";
+    static constexpr const char* MAX_EXPECTATION = "Max_expectation";
+    static constexpr const char* MIN_EXPECTATION = "Min_expectation";
+
     static constexpr const char* EXPECTED_COST = "Expected_Cost";
     static constexpr const char* EXPECTATION = "Expectation";
     static constexpr const char* DATA = "Data";
@@ -61,12 +68,15 @@ public:
 
     static json toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcceptability &non_accept, bool includeActions=true);
     static json toJSON(Policy &pi, MDP &mdp, double non_accept, bool includeActions=true);
+    static json toJSON(Policy& pi, MDP& mdp, double non_accept,
+                       vector<unique_ptr<History>>& policy_histories);
 
     static json toJSON(policy_hists& histories, bool includePaths=false);
     // JSON {probability: double, worth: string, path: [[sourceStateID, targetStateID], ...]}
     static json toJSON(History& h);
     static json toJSON(vector<size_t>& path);
     static json toJSON(Durations& dur);
+    static json toJSON(QValue& qv);
     static json toJSON(vector<QValue>& candidates, vector<int>& indicesOfUndominated, vector<int>& qValueIdxToAction, MDP& mdp, State& s);
     static json toJSON(Solver& solver);
 private:

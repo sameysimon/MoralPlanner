@@ -77,6 +77,8 @@ public:
                         s->get()->included_state_actions.emplace_back(stateIdx, a);
                     }
                 }
+                // PF PRUNE HERE????
+
             }
             currStateSetIdx++;
         }
@@ -168,15 +170,6 @@ private:
         return false;
     }
     void gatherQValue(QValue& new_qv, vector<Successor*>* successors, Policy& pi, int currentTime) {
-        std::vector<WorthBase*> baselines = std::vector<WorthBase*>(successors->size());
-        for (int theoryIdx = 0; theoryIdx < mdp.considerations.size(); ++theoryIdx) {
-            for (int scrIdx=0; scrIdx < successors->size(); ++scrIdx) {
-                baselines[scrIdx] = pi.getWorthAtTheory(currentTime+1, (*successors)[scrIdx]->target, theoryIdx);
-            }
-            //new_qv.expectations[theoryIdx] = mdp.considerations[theoryIdx]->gather(*successors,baselines, false);
-        }
-
-
         std::vector<QValue*> baselines_ = std::vector<QValue*>(successors->size());
         for (int scrIdx=0; scrIdx < successors->size(); ++scrIdx) {
             baselines_[scrIdx] = &pi.worth[(*successors)[scrIdx]->target];

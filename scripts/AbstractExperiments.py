@@ -133,6 +133,7 @@ class ExperimentRunner:
                             "Out_time": json_data['Duration_Outs'],
                             "Sol_reduce_time": json_data['Duration_Sols_Reduce'],
                             "Expanded_states": json_data['Expanded'],
+                            "BSG_states": json_data['Best_subgraph_size'],
                             "Average_histories": json_data['Average_histories'],
                             "Max_histories": json_data['Max_histories'],
                             "Min_histories": json_data['Min_histories'],
@@ -153,6 +154,16 @@ class ExperimentRunner:
                         self.data.append(entry)
 
 
+    def AnalyseSolutions(self, configReps=1, envReps=1):
+        self.data = []
+        for conf_rep in range(configReps):
+            for conf in self.configs:
+                for env_rep in range(envReps):
+                    # open file
+                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
+                    with open(outFile, 'r') as file:
+                        json_data = json.load(file)
+                        
 
 
     def StartServerAndPost(self, fileName):

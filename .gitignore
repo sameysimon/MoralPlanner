@@ -208,5 +208,8 @@ cmake-build-debug/
 cmake-build-release/
 
 MPlan/cmake-build-debug/
+MPlan/cmake-build-debug-clang/
+MPlan/cmake-build-release-clang/
 MPlan/cmake-build-release/
 
+Data/Experiments/

@@ -66,7 +66,7 @@ json JSONBuilder::toJSON(explainResult &er, Runner& runner, bool addMEHR) {
         if (addMEHR) {
             nacc = runner.non_accept->getPolicyNonAccept(i);;
         }
-        r[FIELD::FOILSOLUTIONS][std::to_string(i)] = toJSON(*runner.policies[i], *(runner.mdp), nacc);
+        r[FIELD::FOILSOLUTIONS][std::to_string(i)] = toJSON(*runner.policies[i], *(runner.mdp), nacc, runner.histories.at(i));
         r[FIELD::HISTORIES][std::to_string(i)] = json::array();
         for (auto &h : runner.histories[i]) {
             r[FIELD::HISTORIES][std::to_string(i)].push_back(toJSON(*h));
@@ -94,6 +94,7 @@ json JSONBuilder::toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcce
     r[FIELD::SOLUTION_TOTAL] = policies.size();
     r[FIELD::SOLUTIONS_ORDER] = sorted_indices;
     r[FIELD::NUM_OF_MIN_NON_ACCEPT] = num_of_min_non_acc;
+
     return r;
 }
 
@@ -119,7 +120,26 @@ json JSONBuilder::toJSON(Policy &pi, MDP &mdp, double non_accept, bool includeAc
     for (int thIdx=0; thIdx < mdp.considerations.size(); thIdx++) {
         r[FIELD::EXPECTATION][mdp.considerations[thIdx]->label] = pi.worth[0].expectations[thIdx]->ToString();
     }
+    return r;
+}
+json JSONBuilder::toJSON(Policy &pi, MDP &mdp, double non_accept, vector<unique_ptr<History>>& policy_histories) {
+    json r = toJSON(pi, mdp, non_accept);
+    r[FIELD::TOTAL_HISTORIES] = policy_histories.size();
+    QValue min_qv = policy_histories[0]->mWorth;
+    QValue max_qv = policy_histories[0]->mWorth;
 
+    for (size_t i = 0; i < mdp.considerations.size(); ++i) {
+        for (auto &h_vec : policy_histories) {
+            if (min_qv.expectations[i]->compare(*h_vec->mWorth.expectations[i]) == -1) {
+                *min_qv.expectations[i] = *h_vec->mWorth.expectations[i];
+            }
+            if (max_qv.expectations[i]->compare(*h_vec->mWorth.expectations[i]) == 1) {
+                *max_qv.expectations[i] = *h_vec->mWorth.expectations[i];
+            }
+        }
+    }
+    r[FIELD::MIN_HISTORIES] = toJSON(min_qv);
+    r[FIELD::MAX_HISTORIES] = toJSON(max_qv);
     return r;
 }
 
@@ -180,10 +200,17 @@ json JSONBuilder::toJSON(Durations& dur) {
     r[FIELD::DURATION_TOTAL] = dur.Total();
     return r;
 }
+json JSONBuilder::toJSON(QValue& qv) {
+    json r = json::array();
+    r = qv.toStringVector();
+    return r;
+}
+
 
 json JSONBuilder::toJSON(Solver& solver) {
     json r;
-    r[FIELD::EXPANDED] = solver.expanded_states;
+    r[FIELD::EXPANDED_STATES] = solver.expanded_states;
+    r[FIELD::BSG_SIZE] = solver.mPi.size();
     r[FIELD::BACKUPS] = solver.backups;
     r[FIELD::ITERATIONS] = solver.expansions;
     return r;

@@ -36,6 +36,7 @@ struct NonAcceptability {
             std::fill(n.begin(), n.end(), 0);
         }
     }
+
     [[nodiscard]] double getPolicyNonAccept(size_t policyIdx) const {
         double r = 0;
         for (const vector<double>& n : non_accept) {

@@ -172,7 +172,6 @@ vector<vector<QValue*>> Solver::GetSuccessorQValueCombinations(vector<Successor*
 
 void Solver::pprune(std::vector<QValue>& inVector, std::vector<int>& outVector) {
     if (inVector.size()==0) {return; }
-
     vector<bool> inBudget;
     bool anyInBudget = false;
     if (mdp.non_moralTheoryIdx != -1) {
@@ -183,7 +182,6 @@ void Solver::pprune(std::vector<QValue>& inVector, std::vector<int>& outVector) 
             }
         }
     }
-
     for (int i=0; i<inVector.size(); i++) {
         if (anyInBudget && !inBudget[i]) {
             continue; // Over budget QValues cannot be undominated/added to outVector

@@ -332,13 +332,18 @@ void MEHR::addPoliciesToMEHR(NonAcceptability &non_accept, vector<size_t> &newPo
         t->AddPoliciesForMEHR(histories);
     }
     for (auto newPiIdx : newPolicies) {
+        attacks.emplace_back();
+        non_accept.appendPolicy();
+    }
+    for (auto newPiIdx : newPolicies) {
         addPolicyToMEHR(newPiIdx, non_accept);
     }
 }
 
 void MEHR::addPolicyToMEHR(size_t new_policy_idx, NonAcceptability &non_accept) {
-    attacks.emplace_back();
-    non_accept.appendPolicy();
+    if (new_policy_idx >= attacks.size() || new_policy_idx >= non_accept.getTotalPolicies()) {
+        throw runtime_error(format("MEHR::addPolicyToMEHR: Attempting to add policy {} to MEHR without assigning space.", new_policy_idx));
+    }
     auto& newQv = policies[new_policy_idx]->worth[0];
     if (histories.size() != policies.size()) {
         throw runtime_error("MEHR::addPolicyToMEHR: Histories and policies size desync.");

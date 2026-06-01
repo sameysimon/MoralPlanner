@@ -27,8 +27,12 @@ QValue MDP::MultiGather(std::vector<Successor*>& successors, std::vector<QValue*
         }
         qv.expectations[cIdx] = considerations[cIdx]->gather(worth, probs, comboExpects, ignoreProbability);
         worth.clear();
+        worth.resize(successors.size());
         comboExpects.clear();
+        comboExpects.resize(successors.size());
         probs.clear();
+        probs.resize(successors.size());
+
     }
     return qv;
 }

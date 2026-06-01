@@ -1,5 +1,20 @@
 from EnvironmentBuilder.BaseMDP import MDP, Consideration, State, Successor
 
+HAL_ARREST = -10
+
+HAL_WIN = -10
+CARLA_WIN = -7
+
+HAL_DEFEAT = -10
+CARLA_DEFEAT = -20
+
+HAL_DIE = -100
+CARLA_DIE = -100
+
+HAL_PAYS_LOW = -1
+HAL_PAYS_HIGH = -3
+
+
 class Time(Consideration):
     def __init__(self, horizon_, budget_):
         self.type='Cost'
@@ -19,9 +34,7 @@ class Time(Consideration):
     def StateHeuristic(self, state:State):
         return 0
   
-
 # Stealing theories
-
 class ToSteal(Consideration):
     def __init__(self):
         self.type='Absolutism'
@@ -112,16 +125,18 @@ class OrdinalLaw(Consideration):
         self.optimalityType=optimalityType
         self.tag=tag
         self.default = 0
-        self.ordinalLabels = {"0": "No violation", "-1": "Opportunistic Intent", "-2": "Trespass", "-3": "Robbery", "-4": "Burglary", "-5": "Violent Theft"}
+        self.ordinalLabels = {"0": "No violation", "-1": "Opportunistic Intent", "-2": "Trespass", "-3": "Burglary", "-4": "Robbery", "-5": "Violent Theft"}
 
     def judge(self, successor: Successor):
         if (successor.action=='search_outside' and successor.targetState.props["Hal_at"]=='Carla_house'):
             return -2
         if (successor.action=='search_outside'):
             return -1
+        if (successor.action=='sneak_inside' and successor.targetState.props["Hal_at"]=='Carla_house'):
+            return -2
         if (successor.action=='intimidate' and successor.targetState.props["Hal_has_insulin"]==True):
             return -3
-        if (successor.targetState.props["Entry_status"]=='broken_in'):
+        if (successor.action=='break_in' and successor.targetState.props["Hal_at"]=='Carla_house'):
             return -4
         if (successor.action == 'attack_Carla'):
             return -5
@@ -133,30 +148,44 @@ class OrdinalLaw(Consideration):
 
 class OrdinalNecessity(Consideration):
     # Default to maximising the worst (pessimist). Set optimalityType to 1 to optimise the best (optimist)
-    def __init__(self, optimalityType=0, tag='Necessity'):
+    def __init__(self, optimalityType=0, tag='Necessity', horizon=6):
         super().__init__()
         self.type='Ordinal'
         self.rank=0
         self.optimalityType=optimalityType
         self.tag=tag
         self.default = 0
-        self.ordinalLabels = {"0": "No violation", "-1": "Probable death", "-2": "Serious medical risk", "-3": "Significant hardship", "-5": "Discomfort", "-6": "Convenience only"}
+        self.horizon = horizon
+        self.ordinalLabels = {"0": "No violation", "-1": "Probable death", "-2": "Serious medical risk", "-3": "Significant hardship", "-4": "Convenience only", "-5": "Beyond necessity"}
 
     def judge(self, successor: Successor):
         # Only crimes have necessity of crime.
-        if (not (successor.action in ['steal', 'give_low', 'give_high', 'break_in', 'attack_Carla'])):
+        if (successor.action == 'attack_Carla' and successor.targetState.props['Hal_has_insulin']):
+            return -5
+        
+        if (not (successor.action in ['steal', 'break_in', 'trespass', 'attack_Carla'])):
             return 0
-        x = successor.targetState.props['time'] * -1
-        x = -6 if x < -6 else x
-        return x
+        die_chance = ((successor.targetState.props['time']  + 1) ) / (self.horizon + 1)
+        if (die_chance > 0.5):
+            return -1
+        if (die_chance > 0.2):
+            return -2
+        if (successor.sourceState.props['Carla_sold'] == 'na' and successor.sourceState.props['Carla_reply'] == 'na'):
+            return -4
+        if (successor.sourceState.props['Carla_sold'] == 'refused_low'):
+            return -3
+    
+        
+        return -2
         
     def StateHeuristic(self, state:State):
         return 0
 
 
 
-# Hal and Carla as individuals
-
+#
+# Hal's personal moral consideratinos
+#
 class HalLife(Consideration):
     def __init__(self):
         super().__init__()
@@ -166,16 +195,79 @@ class HalLife(Consideration):
         self.default = 0
 
     def judge(self, successor: Successor):
-        u = 0
-        if (successor.targetState.props['Hal_arrested']==True and successor.sourceState.props['Hal_arrested']==False):
-            return -1
         if (successor.sourceState.props['Hal_alive']==True and successor.targetState.props['Hal_alive']==False):
-            return -10
-        return u
+            return HAL_DIE
+        return 0
+        
+    def StateHeuristic(self, state:State):
+        return 0   
+class HalSmall(Consideration):
+    def __init__(self):
+        super().__init__()
+        self.type='Utility'
+        self.rank=0
+        self.tag='HalSmall'
+        self.default = 0
+
+    def judge(self, successor: Successor):
+        if (successor.targetState.props['Hal_arrested']==True and successor.sourceState.props['Hal_arrested']==False):
+            return HAL_ARREST
+        if (successor.action == 'attack_Carla' and successor.targetState.props['Carla_reply']=='refused_attack'):
+            return HAL_DEFEAT
+        if (successor.action == 'buy_high' and successor.targetState.props['Carla_reply']=='sold'):
+            return HAL_PAYS_HIGH
+        if (successor.action == 'buy_low' and successor.targetState.props['Carla_reply']=='sold'):
+            return HAL_PAYS_LOW
+        if (successor.action == 'buy_low'):
+            return HAL_PAYS_LOW
+        if (successor.action == 'buy_high'):
+            return HAL_PAYS_HIGH
+            
+        elif (successor.action == 'attack_Carla'):
+            return HAL_WIN
+        return 0
         
     def StateHeuristic(self, state:State):
         return 0
     
+class Hal(Consideration):
+    def __init__(self):
+        super().__init__()
+        self.type='Utility'
+        self.rank=0
+        self.tag='Hal'
+        self.default = 0
+        self.small = HalSmall()
+        self.life = HalLife()
+
+    def judge(self, successor: Successor):
+        return self.small.judge(successor) + self.life.judge(successor)
+        
+    def StateHeuristic(self, state:State):
+        return max(self.small.StateHeuristic(state), self.life.StateHeuristic(state))
+    
+
+#
+# Carla's moral considerations
+#
+class CarlaSmall(Consideration):
+    def __init__(self):
+        super().__init__()
+        self.type='Utility'
+        self.rank=0
+        self.tag='CarlaLife'
+        self.default = 0
+
+    def judge(self, successor: Successor):
+        if (successor.action == 'attack_Carla' and successor.targetState.props['Carla_reply']=='refused_attack'):
+            return CARLA_WIN
+        elif (successor.action == 'attack_Carla'):
+            return CARLA_DEFEAT
+        return 0
+
+    def StateHeuristic(self, state:State):
+        return 0
+
 class CarlaLife(Consideration):
     def __init__(self):
         super().__init__()
@@ -185,19 +277,30 @@ class CarlaLife(Consideration):
         self.default = 0
 
     def judge(self, successor: Successor):
-        u = 0
-        if (successor.action == 'attack_Carla'):
-            u -= 1
         if (successor.sourceState.props['Carla_alive']==True and successor.targetState.props['Carla_alive']==False):
-            u -= 10
-        return u
+            return CARLA_DIE
+        return 0
 
     def StateHeuristic(self, state:State):
         return 0
+    
+class Carla(Consideration):
+    def __init__(self):
+        super().__init__()
+        self.type='Utility'
+        self.rank=0
+        self.tag='CarlaLife'
+        self.default = 0
+        self.carlaLife = CarlaLife()
+        self.carlaSmall = CarlaSmall()
 
+    def judge(self, successor: Successor):
+        return self.carlaLife.judge(successor) + self.carlaSmall.judge(successor)
+
+    def StateHeuristic(self, state:State):
+        return max(self.carlaLife.StateHeuristic(state), self.carlaSmall.StateHeuristic(state))
 
 # Hal and Carla combined stuff
-
 class OverallUtility(Consideration):
     def __init__(self):
         super().__init__()
@@ -205,35 +308,11 @@ class OverallUtility(Consideration):
         self.rank=0
         self.tag='Overall'
         self.default = 0
+        self.carla = Carla()
+        self.hal = Hal()
 
     def judge(self, successor: Successor):
-        u =0
-        if (successor.sourceState.props['Carla_alive']==True and successor.targetState.props['Carla_alive']==False):
-            u -= 10
-        if (successor.sourceState.props['Hal_alive']==True and successor.targetState.props['Hal_alive']==False):
-            u -= 10
-        if (successor.targetState.props['Hal_arrested']==True and successor.sourceState.props['Hal_arrested']==False):
-            u -= 1
-        
-        return u
+        return self.carla.judge(successor) + self.hal.judge(successor)
 
     def StateHeuristic(self, state:State):
-        return 0
-
-class LifeAndDeath(Consideration):
-    def __init__(self):
-        super().__init__()
-        self.type='Utility'
-        self.rank=0
-        self.tag='LifeAndDeath'
-        self.default = 0
-
-    def judge(self, successor: Successor):
-        if (successor.sourceState.props['Hal_alive']==True and successor.targetState.props['Hal_alive']==False):
-            return -10
-        if (successor.sourceState.props['Carla_alive']==True and successor.targetState.props['Carla_alive']==False):
-            return -10
-        return 0
-    
-    def StateHeuristic(self, state:State):
-        return 0
+        return max(self.hal.StateHeuristic(state), self.carla.StateHeuristic(state))

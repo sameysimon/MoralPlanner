@@ -303,6 +303,7 @@ public:
         CPUTime(&Solver::MC_iAO_Star, *solver);
         policyWorth = solver->GetQValuesAtState(0);
         solver->UseTempData(false);
+        solver->removeLocks();
         return policyWorth;
     }
 
@@ -334,7 +335,6 @@ public:
             histories.emplace_back(std::move(newHistories[piIdx]));
         }
         r.mehrTime = CPUTime(&MEHR::addPoliciesToMEHR, *mehr, *non_accept, r.newPolicyIndices);
-
         solver->removeLocks();
         return r;
     }

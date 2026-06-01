@@ -4,51 +4,53 @@ from copy import deepcopy
 import pandas as pd
 import numpy as np
 
-defaultConfig = {"Name": "HalCarlaEqual", "Budget": 3, "Horizon": 3}
+defaultConfig = {"Name": "HalCarlaEqual", "Budget": 3, "Horizon": 5}
 
 halTheory={"Name":"Hal", "Type":"Utility", "Rank":0}
 
 
 
 theoriesConfigs = {
+    "AU_Strict": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Overall", "AU"]]},
+    "Hal&Carla": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Carla", "AU"], ["Carla", "AU"]]},
+    "Hal=Carla": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"]]},
+    "Fairness": {"Theories": [["Fair", "Fairness", 1]], "Considerations": [["Carla", "Fair"], ["Carla", "Fair"]]},
 
-    "Hal&Carla": {"Theories": [["AU", "Utility", 0], ["Legal Necessity", "Utility", 0]], 
-                  "Considerations": [["CarlaLife", "AU"],
-                                     ["HalLife", "AU"],
-                                     ["Necessity", "Legal Necessity"]
-                                     ]
-                },
-
-    "Hal&Carla": {"Theories": [["AU", "Utility", 0]], "Considerations": [["CarlaLife", "AU"], ["HalLife", "AU"]]},
-    "Hal=Carla": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0]], "Considerations": [["CarlaLife", "Carla"], ["HalLife", "Hal"]]},
-    "Fairness": {"Theories": [["Fair", "Fairness", 1]], "Considerations": [["CarlaLife", "Fair"], ["HalLife", "Fair"]]},
-
-    "H=C>H&C": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["AU", "Utility", 1]], "Considerations": [["CarlaLife", ["AU", "Carla"]], ["HalLife", ["AU", "Hal"]]]},
-    "H=C>Fair": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["Fair", "Fairness", 1]], "Considerations": [["CarlaLife", ["Fair", "Carla"]], ["HalLife", ["Fair", "Hal"]]]},
-    "H=C>Fair=H&C": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["Fair", "Fairness", 1], ["AU", "Utility", 1]], "Considerations": [["CarlaLife", ["AU", "Fair", "Carla"]], ["HalLife", ["AU", "Fair", "Hal"]]]},
+    "H=C>H&C": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["AU", "Utility", 1]], "Considerations": [["Carla", ["AU", "Carla"]], ["Carla", ["AU", "Hal"]]]},
+    "H=C>Fair": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["Fair", "Fairness", 1]], "Considerations": [["Carla", ["Fair", "Carla"]], ["Carla", ["Fair", "Hal"]]]},
+    "H=C>Fair=H&C": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["Fair", "Fairness", 1], ["AU", "Utility", 1]], "Considerations": [["Carla", ["AU", "Fair", "Carla"]], ["Carla", ["AU", "Fair", "Hal"]]]},
     
-    "Fair=Hal=Carla=AU": {"Theories": [["Fair", "Fairness", 1], ["AU", "Utility", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["CarlaLife", ["Fair", "Hal", "AU"]], ["HalLife", ["Carla", "Fair", "AU"]]]},
+    "Fair=Hal=Carla=AU": {"Theories": [["Fair", "Fairness", 1], ["AU", "Utility", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["Carla", ["Fair", "Hal", "AU"]], ["Carla", ["Carla", "Fair", "AU"]]]},
     
-    "Carla>Hal": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 1]], "Considerations": [["CarlaLife", "Carla"], ["HalLife", "Hal"]]},
+    "Carla>Hal": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 1]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"]]},
 
-    "Hal>Carla+Steal": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 0], ["Law", "Absolutism", 1]], "Considerations": [["CarlaLife", "Carla"], ["HalLife", "Hal"], ["ToSteal", "Law"]]},
-    "Cost,Carla=Steal;H6_B5": {"Theories": [["Carla", "Utility", 0], ["Law","Absolutism",0]], "Considerations": [["CarlaLife", "Carla"], ["ToSteal", "Law"], ["Cost", ""]]},
+    "Hal>Carla+Steal": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 0], ["Law", "Absolutism", 1]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["ToSteal", "Law"]]},
+    "Cost,Carla=Steal;H6_B5": {"Theories": [["Carla", "Utility", 0], ["Law","Absolutism",0]], "Considerations": [["Carla", "Carla"], ["ToSteal", "Law"], ["Cost", ""]]},
 
-    "Steal>Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 0]], "Considerations": [["CarlaLife", "Carla"], ["HalLife", "Hal"], ["ToSteal", "Law"]]},
-    "StealComp>Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 0]], "Considerations": [["CarlaLife", "Carla"], ["HalLife", "Hal"], ["StealWithComp", "Law"]]},
-    "Steal=Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 1]], "Considerations": [["CarlaLife", "Carla"], ["HalLife", "Hal"], ["ToSteal", "Law"]]},
-    "StealComp=Steal=Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 1], ["Comp", "Absolutism", 1]], "Considerations": [["CarlaLife", "Carla"], ["HalLife", "Hal"], ["ToSteal", "Law"], ["StealWithComp", "Comp"]]},
+    "Steal>Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 0]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["ToSteal", "Law"]]},
+    "StealComp>Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 0]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["StealWithComp", "Law"]]},
+    "Steal=Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 1]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["ToSteal", "Law"]]},
+    "StealComp=Steal=Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 1], ["Comp", "Absolutism", 1]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["ToSteal", "Law"], ["StealWithComp", "Comp"]]},
 
-    "Rawls": {"Theories": [["Rawls", "Maximin", 1]], "Considerations": [["CarlaLife", "Rawls"], ["HalLife", "Rawls"]]},
-    "Fairness": {"Theories": [["Fair", "Fairness", 1]], "Considerations": [["CarlaLife", "Fair"], ["HalLife", "Fair"]]},
-    "Rawls=Hal=Carla": {"Theories": [["Rawls", "Maximin", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["CarlaLife", ["Rawls", "Hal"]], ["HalLife", ["Carla", "Rawls"]]]},
-    "Rawls=Fair=Hal=Carla": {"Theories": [["Fair", "Fairness", 1], ["Rawls", "Maximin", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["CarlaLife", ["Fair", "Hal"]], ["HalLife", ["Carla", "Fair"]]]},
+    "Rawls": {"Theories": [["Rawls", "Maximin", 1]], "Considerations": [["Carla", "Rawls"], ["Carla", "Rawls"]]},
+    "Fairness": {"Theories": [["Fair", "Fairness", 1]], "Considerations": [["Carla", "Fair"], ["Carla", "Fair"]]},
+    "Rawls=Hal=Carla": {"Theories": [["Rawls", "Maximin", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["Carla", ["Rawls", "Hal"]], ["Carla", ["Carla", "Rawls"]]]},
+    "Rawls=Fair=Hal=Carla": {"Theories": [["Fair", "Fairness", 1], ["Rawls", "Maximin", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["Carla", ["Fair", "Hal"]], ["Carla", ["Carla", "Fair"]]]},
 }
 
-theoriesConfigs = {
-    "Hal&Carla": {"Theories": [["AU", "Utility", 1], ["Legal Necessity", "Ordinal", 0], ["Legal Charge", "Ordinal", 0]], 
-        "Considerations": [["CarlaLife", "AU"],
-                            ["HalLife", "AU"],
+
+utilConfigs = {
+    "AU_Strict": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Overall", "AU"]]},
+    "AU": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Hal", "AU"], ["Carla", "AU"]]},
+    "Carla": {"Theories": [["Carla", "Utility", 0]], "Considerations": [["Carla", "Carla"]]},
+    "Hal": {"Theories": [["Hal", "Utility", 0]], "Considerations": [["Hal", "Hal"]]},
+    "Hal=Carla": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0]], "Considerations": [["Carla", "Carla"], ["Hal", "Hal"]]},
+}
+
+IGNOREtheoriesConfigs = {
+    "Necessity&Law": {"Theories": [["AU", "Utility", 0], ["Legal Necessity", "Ordinal", 0], ["Legal Charge", "Ordinal", 0]], 
+        "Considerations": [["Carla", "AU"],
+                            ["Carla", "AU"],
                             ["Necessity", "Legal Necessity"],
                             ["OrdinalLaw", "Legal Charge"]
                             ]
@@ -56,7 +58,7 @@ theoriesConfigs = {
 }
 
 configs = []
-for name, dat in theoriesConfigs.items():
+for name, dat in utilConfigs.items():
     c = deepcopy(defaultConfig)
     c["Name"] = name
     c["Theories"] = dat["Theories"]
@@ -77,14 +79,14 @@ def Experiment():
     er.saveResults()
     df = pd.DataFrame(er.data)
     # Merge ToSteal with StealWithComp
-    df[['ToSteal', 'StealWithComp', 'HalLife', 'Cost']] = df[['ToSteal', 'StealWithComp', 'HalLife', 'Cost']].replace("N/A", np.nan)
+    df[['ToSteal', 'StealWithComp', 'Carla', 'Cost']] = df[['ToSteal', 'StealWithComp', 'Carla', 'Cost']].replace("N/A", np.nan)
     df[['ToSteal']].replace('T', '\\top')
     df[['ToSteal']].replace('F', '\\bot')
     df['Steal'] = df['ToSteal'].combine_first(df['StealWithComp'])
-    df['HalLife'] = df['HalLife'].combine_first(df['Cost'])
+    df['Carla'] = df['Carla'].combine_first(df['Cost'])
     agg_rules = {
-        'HalLife': 'first',
-        'CarlaLife': 'first',
+        'Carla': 'first',
+        'Carla': 'first',
         'Steal': 'first',
         'Num_of_sols': 'first',
         'Num_of_min_non_accept': 'first',
@@ -100,7 +102,9 @@ def Experiment():
     summary_table = summary_table.drop(columns=['Config_name', 'Num_of_min_non_accept'])
     
     SaveDataFrameToTexTemplate(summary_table, f"{er.texTablesFolder}/Insulin_worth.tex", f"{er.texOutFolder}/Insulin_worth.tex", False)
-    er.plotParetoGraph(list(theoriesConfigs.keys())[0], 0, "CarlaLife", "HalLife", 0)
+    er.plotParetoGraph(list(theoriesConfigs.keys())[0], 0, "Carla", "Carla", 0)
+
+    df["Solutions"]
 
 
 
@@ -109,11 +113,10 @@ def StartServerAndPost():
     er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
 
 # To send a file to existing server...
-def PostToServer():
-    er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
+def PostToServer(configIndex=0):
+    er.PostMDPToServer(er.makeMdpFileName(configs[configIndex]["Name"], 0))
 
 #Experiment()
-PostToServer()
+PostToServer(1)
 #StartServerAndPost()
 input("Enter to exit...")
-
