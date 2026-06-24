@@ -1,0 +1,76 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+
+  {
+      "name": "RunServer",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.RunServer"
+    },
+    {
+      "name": "RunInsulin",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.RunInsulin"
+    },
+    {
+      "name": "RunBasicInsulin",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.RunBasicInsulin"
+    },
+    {
+      "name": "RunElder",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.RunElder"
+    },
+    {
+      "name": "RunTitanic",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.RunTitanic"
+    },
+        {
+      "name": "RunPipeline",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.Pipeline"
+    },
+    {
+      "name": "RunSearchRescue",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.RunSearchRescue"
+    },
+    {
+      "name": "Current Script File",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.${fileBasenameNoExtension}"
+    },
+    {
+      "name": "Python Debugger: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Run Random Abstract",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.RunAbstract"
+    },
+    {
+      "name": "BuildTest",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.BuildTest"
+    },
+  ]
+}

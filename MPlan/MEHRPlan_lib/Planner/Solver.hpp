@@ -97,7 +97,34 @@ public:
     void backup(State& state);
     void gatherActionSuccessors(vector<QValue>& candidates, vector<int>& qValueIdxToAction, int aIdx,
                                 vector<Successor*>* successors);
-    void pprune(std::vector<QValue>& inVector, std::vector<int>& outVector);
+
+
+    static std::vector<int> Pprune(MDP& mdp, std::vector<QValue>& inVector);
+    static void Pprune(MDP&mdp, std::vector<QValue>& inVector, std::vector<int>& outVector);
+
+    template <class T, class Accessor>
+    static std::vector<int> Pprune(MDP& mdp, const T& inVector, Accessor getQValue);
+
+    template <class T, class Accessor>
+    static void Pprune(MDP& mdp, const T& inVector, std::vector<int>& outVector, Accessor getQValue);
+
+    template <class T, class Accessor>
+    static void Pprune(MDP& mdp, T& inVector, std::vector<int>& outVector, Accessor& getQValue);
+
+    static bool CheckProperFront(MDP& mdp, vector<QValue*> &ExistingWorth, QValue& newWorth) {
+        if (!mdp.isQValueInBudget(newWorth)) {
+            return false;
+        }
+        for (auto qv : ExistingWorth) {
+            int r = mdp.ParetoCompare(*qv, newWorth);
+            if (r == 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     vector<vector<QValue*>> GetSuccessorQValueCombinations(vector<Successor*>* successors);
     vector<QValue>& GetQValuesAtState(size_t stateIdx) {
         return mData.at(stateIdx);

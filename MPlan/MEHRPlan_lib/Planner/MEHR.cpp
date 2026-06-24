@@ -210,7 +210,7 @@ int MEHR::CQ2CompareWithRank(QValue& qv1, QValue& qv2, size_t theoryIdx) {
                 break;// If found inputted theory's rank, theory defences are ignored.
             }
             auto def = mdp.mehr_theories[currTheoryIdx]->CriticalQuestionTwo(qv1, qv2);
-            if (r != def && r!= 0) {
+            if (r != def && def != 0 && r!= 0) {
                 return 0;
             }
         }

@@ -89,7 +89,6 @@ def buildEnvToFile(Domain:str, fileOut:str, **kwargs):
     SaveEnvToJSON(mdp, fileOut, Domain)
 
     print(f"Written {Domain} MMMDP with {len(mdp.states)} states and theories {str(kwargs["Theories"])}.")
-    print(f"")
     print(f"PATH  {fileOut}")
     print(f"")
 

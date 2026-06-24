@@ -1,122 +1,153 @@
-from scripts.AbstractExperiments import ExperimentRunner
+from scripts.AbstractExperiments import ExperimentRunner, GenerateConfigs
 from scripts.TexTables import SaveDataFrameToTexTemplate
 from copy import deepcopy
 import pandas as pd
 import numpy as np
 
-defaultConfig = {"Name": "HalCarlaEqual", "Budget": 3, "Horizon": 5}
 
-halTheory={"Name":"Hal", "Type":"Utility", "Rank":0}
-
-
-
-theoriesConfigs = {
-    "AU_Strict": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Overall", "AU"]]},
-    "Hal&Carla": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Carla", "AU"], ["Carla", "AU"]]},
-    "Hal=Carla": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"]]},
-    "Fairness": {"Theories": [["Fair", "Fairness", 1]], "Considerations": [["Carla", "Fair"], ["Carla", "Fair"]]},
-
-    "H=C>H&C": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["AU", "Utility", 1]], "Considerations": [["Carla", ["AU", "Carla"]], ["Carla", ["AU", "Hal"]]]},
-    "H=C>Fair": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["Fair", "Fairness", 1]], "Considerations": [["Carla", ["Fair", "Carla"]], ["Carla", ["Fair", "Hal"]]]},
-    "H=C>Fair=H&C": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["Fair", "Fairness", 1], ["AU", "Utility", 1]], "Considerations": [["Carla", ["AU", "Fair", "Carla"]], ["Carla", ["AU", "Fair", "Hal"]]]},
-    
-    "Fair=Hal=Carla=AU": {"Theories": [["Fair", "Fairness", 1], ["AU", "Utility", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["Carla", ["Fair", "Hal", "AU"]], ["Carla", ["Carla", "Fair", "AU"]]]},
-    
-    "Carla>Hal": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 1]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"]]},
-
-    "Hal>Carla+Steal": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 0], ["Law", "Absolutism", 1]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["ToSteal", "Law"]]},
-    "Cost,Carla=Steal;H6_B5": {"Theories": [["Carla", "Utility", 0], ["Law","Absolutism",0]], "Considerations": [["Carla", "Carla"], ["ToSteal", "Law"], ["Cost", ""]]},
-
-    "Steal>Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 0]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["ToSteal", "Law"]]},
-    "StealComp>Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 0]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["StealWithComp", "Law"]]},
-    "Steal=Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 1]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["ToSteal", "Law"]]},
-    "StealComp=Steal=Hal=Carla": {"Theories": [["Carla", "Utility", 1], ["Hal", "Utility", 1], ["Law", "Absolutism", 1], ["Comp", "Absolutism", 1]], "Considerations": [["Carla", "Carla"], ["Carla", "Hal"], ["ToSteal", "Law"], ["StealWithComp", "Comp"]]},
-
-    "Rawls": {"Theories": [["Rawls", "Maximin", 1]], "Considerations": [["Carla", "Rawls"], ["Carla", "Rawls"]]},
-    "Fairness": {"Theories": [["Fair", "Fairness", 1]], "Considerations": [["Carla", "Fair"], ["Carla", "Fair"]]},
-    "Rawls=Hal=Carla": {"Theories": [["Rawls", "Maximin", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["Carla", ["Rawls", "Hal"]], ["Carla", ["Carla", "Rawls"]]]},
-    "Rawls=Fair=Hal=Carla": {"Theories": [["Fair", "Fairness", 1], ["Rawls", "Maximin", 1], ["Carla", "Utility", 1], ["Hal", "Utility", 1]], "Considerations": [["Carla", ["Fair", "Hal"]], ["Carla", ["Carla", "Fair"]]]},
+defaultConfig = {"Budget": 3, "Horizon": 6}
+Config_repetitions=1
+Environment_repetitions = 10
+UtilityConfigs = {
+    "(Hal)": {"Theories": [["Hal", "Utility", 0]], "Considerations": [["Hal", "Hal"]]},
+    "(Carla)": {"Theories": [["Carla", "Utility", 0]], "Considerations": [["Carla", "Carla"]]},
+    "(AU)": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Overall", "AU"]]},
+    "(Hal, Carla)": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Hal", "AU"], ["Carla", "AU"]]},
+    "(Hal)^0, (Carla)^0": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0]], "Considerations": [["Carla", "Carla"], ["Hal", "Hal"]]},
+    "(Hal)^0, (Carla)^0, (Hal,Carla)^0": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0], ["AU", "Utility", 0]], "Considerations": [["Carla",["AU", "Carla"]], ["Hal", ["AU", "Hal"]]]},
+    "(HalLife)^0, (CaraLife)^0": {"Theories": [["HalLife", "Utility", 0], ["CarlaLife", "Utility", 0]],
+                    "Considerations": [["CarlaLife", "CarlaLife"], ["HalLife", "HalLife"]]
+    },
+    "(HalLife)^0, (CaraLife)^0, (HalSmall)^1, (CaraSmall)^1": {
+        "Theories": [["HalLife", "Utility", 0], ["CarlaLife", "Utility", 0], ["HalSmall", "Utility", 1], ["CarlaSmall", "Utility", 1]],
+        "Considerations": [["CarlaLife", "CarlaLife"], ["HalLife", "HalLife"], ["CarlaSmall", "CarlaSmall"], ["HalSmall", "HalSmall"]]
+    }
 }
 
-
-utilConfigs = {
-    "AU_Strict": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Overall", "AU"]]},
-    "AU": {"Theories": [["AU", "Utility", 0]], "Considerations": [["Hal", "AU"], ["Carla", "AU"]]},
-    "Carla": {"Theories": [["Carla", "Utility", 0]], "Considerations": [["Carla", "Carla"]]},
-    "Hal": {"Theories": [["Hal", "Utility", 0]], "Considerations": [["Hal", "Hal"]]},
-    "Hal=Carla": {"Theories": [["Carla", "Utility", 0], ["Hal", "Utility", 0]], "Considerations": [["Carla", "Carla"], ["Hal", "Hal"]]},
-}
-
-IGNOREtheoriesConfigs = {
-    "Necessity&Law": {"Theories": [["AU", "Utility", 0], ["Legal Necessity", "Ordinal", 0], ["Legal Charge", "Ordinal", 0]], 
-        "Considerations": [["Carla", "AU"],
-                            ["Carla", "AU"],
-                            ["Necessity", "Legal Necessity"],
-                            ["OrdinalLaw", "Legal Charge"]
-                            ]
+LegalConfigs = {
+    "Hal": {
+        "Theories": [["Hal", "Utility", 0]], 
+        "Considerations": [["Hal", "Hal"]]
+    },
+    "(Law)^0, (Hal)^0": {
+        "Theories": [["Hal", "Utility", 0], ["OrdinalLaw", "Ordinal", 0]], 
+        "Considerations": [["Hal", "Hal"], ["OrdinalLaw", "OrdinalLaw"]]
+    },
+    "(Hal)^0, (Necessity)^0": {
+        "Theories": [["Hal", "Utility", 0], ["Necessity", "Ordinal", 0]], 
+        "Considerations": [["Hal", "Hal"], ["Necessity", "Necessity"]]
+    },
+    "(Law)^0, (Hal)^0, (Carla)^0": {
+        "Theories": [["Hal", "Utility", 0], ["OrdinalLaw", "Ordinal", 0], ["Carla", "Utility", 0]],
+        "Considerations": [["Hal", "Hal"], ["OrdinalLaw", "OrdinalLaw"], ["Carla", "Carla"]]
+    },
+    "(Law)^0, (Necessity)^0": {
+        "Theories": [["Necessity", "Ordinal", 0], ["OrdinalLaw", "Ordinal", 0]], 
+        "Considerations": [["Necessity", "Necessity"], ["OrdinalLaw", "OrdinalLaw"]]
+    },
+    "(Law)^0, (Necessity)^0, (Hal)^0": {
+        "Theories": [["Hal", "Utility", 0], ["Necessity", "Ordinal", 0], ["OrdinalLaw", "Ordinal", 0]], 
+        "Considerations": [["Hal", "Hal"], ["Necessity", "Necessity"], ["OrdinalLaw", "OrdinalLaw"]]
+    },
+    "(Law)^0, (Necessity)^0, (Hal)^1": {
+        "Theories": [["Hal", "Utility", 1], ["Necessity", "Ordinal", 0], ["OrdinalLaw", "Ordinal", 0]], 
+        "Considerations": [["Hal", "Hal"], ["Necessity", "Necessity"], ["OrdinalLaw", "OrdinalLaw"]]
+    },
+    "(Law)^1, (Necessity)^0, (Hal)^1": {
+        "Theories": [["Hal", "Utility", 1], ["Necessity", "Ordinal", 0], ["OrdinalLaw", "Ordinal", 0]], 
+        "Considerations": [["Hal", "Hal"], ["Necessity", "Necessity"], ["OrdinalLaw", "OrdinalLaw"]]
+    },
+    "(Law)^1, (Necessity)^0, (Hal)^2": {
+        "Theories": [["Hal", "Utility", 2], ["Necessity", "Ordinal", 0], ["OrdinalLaw", "Ordinal", 1]], 
+        "Considerations": [["Hal", "Hal"], ["Necessity", "Necessity"], ["OrdinalLaw", "OrdinalLaw"]]
     },
 }
 
-configs = []
-for name, dat in utilConfigs.items():
-    c = deepcopy(defaultConfig)
-    c["Name"] = name
-    c["Theories"] = dat["Theories"]
-    c["Considerations"] = dat["Considerations"]
-    c["Budget"] = dat["Budget"] if "Budget" in dat.keys() else c["Budget"]
-    c["Horizon"] = dat["Horizon"] if "Horizon" in dat.keys() else c["Horizon"]
-    configs.append(c)
 
-er = ExperimentRunner("LostInsulin", configs)
+configs = []
+er = 0
 
 # To Save envs to file...
 def SaveToFile():
-    er.buildEnvironments(1)
-
-# To save envs to file then call and run experiments...
-def Experiment():
-    er.run(configRepetitions=1, envRepetitions=1)
-    er.saveResults()
-    df = pd.DataFrame(er.data)
-    # Merge ToSteal with StealWithComp
-    df[['ToSteal', 'StealWithComp', 'Carla', 'Cost']] = df[['ToSteal', 'StealWithComp', 'Carla', 'Cost']].replace("N/A", np.nan)
-    df[['ToSteal']].replace('T', '\\top')
-    df[['ToSteal']].replace('F', '\\bot')
-    df['Steal'] = df['ToSteal'].combine_first(df['StealWithComp'])
-    df['Carla'] = df['Carla'].combine_first(df['Cost'])
-    agg_rules = {
-        'Carla': 'first',
-        'Carla': 'first',
-        'Steal': 'first',
-        'Num_of_sols': 'first',
-        'Num_of_min_non_accept': 'first',
-        'Min_non_accept': 'first',
-        'Total_time': 'mean',
-        'Total_Attacks': 'first'
-    }
-    summary_table = df.groupby('Config_name', sort=False).agg(agg_rules).reset_index()
-    summary_table = summary_table.fillna("N/A")
-    summary_table['Num_of_sols'] = summary_table.apply(lambda row: f"{int(row['Num_of_min_non_accept'])}/{int(row['Num_of_sols'])}", axis=1)
-    print(summary_table)
-    summary_table['Min_non_accept'] = summary_table['Min_non_accept'].round(4)
-    summary_table = summary_table.drop(columns=['Config_name', 'Num_of_min_non_accept'])
-    
-    SaveDataFrameToTexTemplate(summary_table, f"{er.texTablesFolder}/Insulin_worth.tex", f"{er.texOutFolder}/Insulin_worth.tex", False)
-    er.plotParetoGraph(list(theoriesConfigs.keys())[0], 0, "Carla", "Carla", 0)
-
-    df["Solutions"]
-
-
+    er.buildEnvironments(8)
 
 # To save envs to file, then start server and send experiments
-def StartServerAndPost():
-    er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
+def StartServerAndPost(configIndex=0, port=18080):
+    er.StartServerAndPost(er.makeMdpFileName(configs[configIndex]["Name"], 0), port)
 
 # To send a file to existing server...
-def PostToServer(configIndex=0):
-    er.PostMDPToServer(er.makeMdpFileName(configs[configIndex]["Name"], 0))
+def PostToServer(configIndex=0, port=18080):
+    er.PostMDPToServer(er.makeMdpFileName(configs[configIndex]["Name"], 0), port)
 
-#Experiment()
-PostToServer(1)
-#StartServerAndPost()
-input("Enter to exit...")
+def PostAllConfigsToServer():
+    port = 18080
+    for i in range(len(configs)):
+        print(f"Running config {configs[i]["Name"]} on port {port+i}...")
+        PostToServer(i, port=port)
+        input("Done. Enter to continue.")
+
+
+# To save envs to file then call and run experiments...
+def UtilityExperiment():
+    defaultConfig = {"Budget": 3, "Horizon": 6}
+    configs = GenerateConfigs(UtilityConfigs, defaultConfig)
+
+    er = ExperimentRunner("LostInsulin", configs)
+    er.buildEnvironments(configRepetitions=Config_repetitions)
+    er.run(configRepetitions=Config_repetitions, envRepetitions=Environment_repetitions)
+    er.saveResults()
+    #
+    # Utilities Summary Table
+    #
+    cols = ["Config_name", 'Hal_Utility', 'Carla_Utility', "Min_non_accept", "Num_of_min_non_accept", "Num_of_sols", "Total_time"]
+    df = pd.DataFrame(er.data)
+    df = df.replace(["", "N/A", "NA", "nan", "None"], np.nan)
+    if 'Carla' in df.columns and 'CarlaLife' in df.columns:
+        df['Carla_Utility'] = df['Carla'].combine_first(df['CarlaLife'])
+    if 'Hal' in df.columns and 'HalLife' in df.columns:
+        df['Hal_Utility'] = df['Hal'].combine_first(df['HalLife'])
+    if 'Overall' in df.columns:
+        df['Hal_Utility'] = df['Hal_Utility'].combine_first(df['Overall'])
+    df = df.replace(np.nan, "SKIP")
+    agg_rules = {
+                'Hal_Utility': 'first',
+                'Carla_Utility': 'first',
+                "Num_of_sols": 'first',
+                "Num_of_min_non_accept": 'first',
+                "Min_non_accept": 'first',
+                'Total_time': 'mean',
+            }
+    df = df[cols].groupby('Config_name', sort=False).agg(agg_rules)
+    df = df[['Hal_Utility', 'Carla_Utility', 'Num_of_min_non_accept', 'Num_of_sols', 'Min_non_accept', 'Total_time']]
+    df = df.round(3)
+
+    SaveDataFrameToTexTemplate(df, f"{er.texTablesFolder}/UtilitarianResults.tex", f"{er.texOutFolder}/Utility_table.tex", row_template_mode=False)
+    
+    conf_name = list(UtilityConfigs.keys())[3]
+    er.plotParetoGraph(conf_name, 0, "Carla", "Hal", 0, fileName=f"ParetoGraph_{conf_name}.png")
+    er.plotNonAcceptGraph(conf_name, 0, 0,fileName=f"NaccGraph_{conf_name}.png")
+
+    er.plotTimeChart(UtilityConfigs, 5)
+
+
+
+def LegalExperiment():
+    defaultConfig = {"Budget": 3, "Horizon": 6}
+    
+    configs = GenerateConfigs(LegalConfigs, defaultConfig)
+    er = ExperimentRunner("LostInsulin", configs)
+    Config_repetitions=1
+    Environment_repetitions=1
+    er.buildEnvironments(configRepetitions=Config_repetitions)
+    er.StartServerAndPost(er.makeMdpFileName(configs[2]["Name"], 0))
+    input()
+    er.run(configRepetitions=Config_repetitions, envRepetitions=Environment_repetitions)
+    er.saveResults()
+    agg_rules={"Hal": "first", "Necessity":'first', "Legality":'first', "Num_of_min_non_accept": 'first', "Num_of_sols": 'first',
+                "Min_non_accept": 'first', 'Total_time': 'mean'}
+    df = er.TexSummary(agg_rules=agg_rules, tex_template='LI_LawResults.tex', tex_output='LI_LawResults.tex')
+    print(df.head())
+
+
+LegalExperiment()
+input()

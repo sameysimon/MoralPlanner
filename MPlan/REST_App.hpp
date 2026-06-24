@@ -29,6 +29,7 @@ class REST_App {
     }
 
 public:
+    void HandleMDP(const string& file_in, const string& file_out);
     crow::response HandleMDP(const crow::request &req);
     crow::response HandleQueryFoilAction(const crow::request &req);
     crow::response HandleQValues(const crow::request &req);
@@ -45,10 +46,17 @@ public:
     crow::response HandleAggregateCachedSuccessors(const crow::request& req);
 
 
-    REST_App(int port_ = 18080) {
+    REST_App(int port_ = 18080, const string& file_in="", const string &file_out="") {
         port = port_;
-        //app.loglevel(static_cast<crow::LogLevel>(4 - LogLevel));
+        if (!file_in.empty()) {
+            if (file_out.empty()) {
+                HandleMDP(file_in, format("{}ServerResponse.json", OUTPUT_FOLDER_PATH));
+            } else {
+                HandleMDP(file_in, file_out);
+            }
+        }
         InitHandlers();
+
     }
 
 

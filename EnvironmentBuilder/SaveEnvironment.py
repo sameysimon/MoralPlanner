@@ -1,5 +1,6 @@
 from EnvironmentBuilder.BaseMDP import MDP
 import EnvironmentBuilder.CustomJSON as myJSON
+from EnvironmentBuilder.SearchRescue import SearchRescueProblem
 import os
 
 def SaveEnvToJSON(mdp: MDP, fileName:str, domainName:str):
@@ -64,6 +65,11 @@ def SaveEnvToJSON(mdp: MDP, fileName:str, domainName:str):
 
     output['Considerations']=considers
 
+    if domainName=="SearchRescue":
+        output["Domain_Data"] = {}
+        output["Domain_Data"]["AdjEdge"] = SearchRescueProblem.SearchRescue.AdjEdge
+        output["Domain_Data"]["Community"] = SearchRescueProblem.SearchRescue.Community
+
 
     t = os.path.dirname(os.path.abspath(__file__))
 
@@ -71,5 +77,4 @@ def SaveEnvToJSON(mdp: MDP, fileName:str, domainName:str):
     with open(fileName, 'w') as file:
         file.write(json_string)
         #json.dump(output, file, indent=2, cls=cJE)
-    print('Written to `' + fileName + '`')
     return actionList # return action list because it's handy to have lol

@@ -6,8 +6,8 @@ import random
 
 class Odds():
     CARLA_COMPLIES=0.2
-    CARLA_BUYS_LOW=0.4
-    CARLA_BUYS_HIGH=0.5
+    CARLA_BUYS_LOW=0.3
+    CARLA_BUYS_HIGH=0.4
     CARLA_INTIMIDATED=0.5
 
     SNEAK_IN_ARREST=0.2
@@ -18,13 +18,13 @@ class Odds():
     COMPENSATE_LOW=0.4
     COMPENSATE_HIGH=0.5
 
-    HAL_DIES=0.4
-    CARLA_DIES=0.2
+    HAL_DIES=0.1
+    CARLA_DIES=0.1
 
     HAL_FINDS=0.5
 
     CARLA_LOSES_FIGHT=0.7
-    CARLA_LOSES_FIGHT_AFTER_INTIM=0.5
+    CARLA_LOSES_FIGHT_AFTER_INTIM=0.4
     HAL_FINDS_ENTRANCE=0.8
     
 def SafeRemove(l:list, item):
@@ -40,6 +40,10 @@ class LostInsulin(MDP):
         if not Horizon==None:
             InitialProps['horizon'] = Horizon
         self.horizon=Horizon
+
+        self.Static_Hal_Death = False
+        if ("Static_Hal_Death" in kwargs.keys()):
+            self.Static_Hal_Death = kwargs["Static_Hal_Death"]
         
         self.stateFactory(InitialProps) # Create at least one initial state
         self.rules = [LostInsulin.DeathChance, LostInsulin.ToCompensate, LostInsulin.LeaveOrWait, LostInsulin.Time] 
@@ -47,7 +51,8 @@ class LostInsulin(MDP):
         self.budget = Budget
         self.isNonMoral = False
         self.theorySetup(Theories, Considerations)
-
+        
+        
     defaultProps = {
             'time':0,
             'Hal_alive': True,
@@ -80,7 +85,7 @@ class LostInsulin(MDP):
             return ['hurt']
         
         if (state.props['Hal_at']=='Hal_house'):
-            acts = ['ask_Carla', 'search_outside', 'break_in', 'wait', 'intimidate', 'attack_Carla', 'buy_low', 'buy_high', 'sneak_inside']
+            acts = ['ask_Carla', 'search_outside', 'wait', 'intimidate', 'attack_Carla', 'buy_low', 'buy_high', 'sneak_inside']
             
             if (state.props['Entry_status']!='easy_entry'):
                 SafeRemove(acts, 'sneak_inside')
@@ -165,7 +170,6 @@ class LostInsulin(MDP):
             p_ = deepcopy(props)
             p_['Carla_reply'] = 'gave'
             p_['Hal_has_insulin'] = True
-            p_['Carla_has_insulin']=False
             outcomes.append((p_, prob * Odds.CARLA_COMPLIES))
             
             p_ = deepcopy(props)
@@ -175,7 +179,6 @@ class LostInsulin(MDP):
             p_ = deepcopy(props)
             p_['Carla_sold'] = 'sold'
             p_['Hal_has_insulin'] = True
-            p_['Carla_has_insulin']=False
             # Reset these variables since they won't be relevant
             p_['Carla_reply'] = 'na'
             p_['Entry_status'] = 'na'
@@ -188,7 +191,6 @@ class LostInsulin(MDP):
             p_ = deepcopy(props)
             p_['Carla_sold'] = 'sold'
             p_['Hal_has_insulin'] = True
-            p_['Carla_has_insulin']=False
             # Reset these variables since they won't be relevant
             p_['Carla_reply'] = 'na'
             p_['Entry_status'] = 'na'
@@ -218,7 +220,6 @@ class LostInsulin(MDP):
             p_['Carla_reply'] = 'gave'
             p_['Hal_has_insulin'] = True
             p_['Carla_has_insulin']=False
-            
             outcomes.append((p_, prob * odds))
             
             p_ = deepcopy(props)
@@ -296,8 +297,9 @@ class LostInsulin(MDP):
         
         if (props['Hal_alive'] and props['Hal_has_insulin']==False):
             die_chance = 1 - ((((self.horizon - props['time']) ) / (self.horizon + 1)) * (1 - Odds.HAL_DIES))
+            if (self.Static_Hal_Death == True):
+                die_chance = Odds.HAL_DIES
             
-
             p_ = deepcopy(props)    
             p_['Hal_alive']=True
             outcomes.append((p_, prob*(1 - die_chance)))

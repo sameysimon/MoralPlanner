@@ -20,7 +20,7 @@ crow::response REST_App::HandleMDP(const crow::request &req) {
     string file_out;
     std::string inp = DATA_FOLDER_PATH;
     std::string of = OUTPUT_FOLDER_PATH;
-    bool use_data_file = true;
+    bool from_data_folder = false;
     try {
         file_in = json_req["file_in"].s();
         if (json_req.has("file_out")) {
@@ -28,24 +28,29 @@ crow::response REST_App::HandleMDP(const crow::request &req) {
         } else {
             file_out = format("{}ServerRequest.json", OUTPUT_FOLDER_PATH);
         }
-        if (json_req.has("use_data_file")) {
-            use_data_file = json_req["use_data_file"].b();
+        if (json_req.has("from_data_folder")) {
+            from_data_folder = json_req["from_data_folder"].b();
         }
     } catch (runtime_error &e) {
         Log::writeLog(e.what(), Fatal);
         finishedSolving = true;
         return {500, e.what()};
     }
-
-    runner = make_unique<Runner>(file_in);
-    runner->make_history_paths = true;
-
-    runner->FullSolve(file_out);
+    if (from_data_folder) {
+        file_out = format("{}{}.json", OUTPUT_FOLDER_PATH, file_out);
+    }
+    HandleMDP(file_in, file_out);
     json resp;
     resp["file_out"] = file_out;
     finishedSolving = true;
     return {resp.dump()};
 }
+void REST_App::HandleMDP(const string &file_in, const string &file_out) {
+    runner = make_unique<Runner>(file_in);
+    runner->make_history_paths = true;
+    runner->FullSolve(file_out);
+}
+
 
 crow::response REST_App::HandleQueryFoilAction(const crow::request &req) {
     auto json_req = crow::json::load(req.body);
@@ -92,7 +97,7 @@ crow::response REST_App::HandleQueryFoilAction(const crow::request &req) {
     candidates.insert(candidates.end(), BestWorth.begin(), BestWorth.end());
 
     vector<int> indicesOfUndominated = vector<int>();// Indices of candidate QValues that are undominated.
-    runner->solver->pprune(candidates, indicesOfUndominated);
+    Solver::Pprune(*runner->mdp, candidates, indicesOfUndominated);
     size_t undominated = 0;
     for (size_t idx : indicesOfUndominated) {
         if (idx < foilPolicyWorth.size()) {
@@ -596,21 +601,28 @@ crow::response REST_App::HandleAggregateCachedSuccessors(const crow::request &re
     finishedSolving = false;// prevent other requests
     vector<QValue*> tempWorth;
     vector<QValue*> tempBaseline;
-    vector<double> probs;
-    tempBaseline.reserve(TotalHistory.size());
+    vector<double> probs = {1};
+    vector<QValue> cum_QValue;
+    auto* first_qv = new QValue(*runner->mdp);
+    tempBaseline.emplace_back(first_qv);
     for (auto & i : TotalHistory) {
-        tempWorth.emplace_back(&i);
-        tempBaseline.emplace_back(new QValue(*runner->mdp));
-        probs.emplace_back(1);
+        tempWorth = {&i};
+        cum_QValue.push_back(runner->mdp->MultiGather(tempWorth, probs, tempBaseline));
+        tempBaseline = { &cum_QValue.back() };
     }
-    // Aggregate response data, cleanup, and return.
-    auto qv = runner->mdp->MultiGather(tempWorth, probs, tempBaseline);
-    for (auto p : tempBaseline) {
-        delete p;
+    delete first_qv;
+
+
+    json resp_payload = json::object();
+    resp_payload["Cumulative_Worth"] = json::array();
+    for (auto & qv : cum_QValue) {
+        resp_payload["Cumulative_Worth"].push_back(qv.toStringVector());
+    }
+    resp_payload["Total_History"] = json::array();
+    for (auto & qv : TotalHistory) {
+        resp_payload["Total_History"].push_back(qv.toStringVector());
     }
     TotalHistory.clear();
     finishedSolving = true;
-    json resp_payload = json::object();
-    resp_payload["Worth"] = qv.toStringVector();
     return {resp_payload.dump()};
 }

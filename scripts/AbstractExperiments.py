@@ -12,14 +12,35 @@ import time
 import requests
 import atexit
 from scripts.TexTables import SaveDataFrameToTexTemplate
+import re
+from matplotlib.ticker import MaxNLocator
+
+
+def latex_config_name(name):
+    return "$" + name.replace("^0", "^{0}") + "$"
+
+
+def GenerateConfigs(inputConfigs, defaultConfig):
+    configs = []
+    for name, dat in inputConfigs.items():
+        c = copy.deepcopy(defaultConfig)
+        c["Name"] = name
+        c["Theories"] = dat["Theories"]
+        c["Considerations"] = dat["Considerations"]
+        if "Budget" in dat.keys():
+            c["Budget"] = dat["Budget"]
+        c["Horizon"] = dat["Horizon"] if "Horizon" in dat.keys() else c["Horizon"]
+        configs.append(c)
+    return configs
 
 
 class ExperimentRunner:
-    time_columns = ['Total_time', "Heuristic_time", 'Plan_time', 'Mehr_time', 'CQ1_time', 'CQ2_time', 'Sol_time', 'Out_time', 'Sol_reduce_time']
-    def __init__(self, domain, configs:list=None, outFolder=None) -> None:
+    time_columns = ['Total_time', "Heuristic_time", 'Plan_time', 'Mehr_time', 'Sol_time']
+    def __init__(self, domain, configs:list=None, outFolder=None, MoralPlanner_Location="/", date_time=None) -> None:
+        fs_start = MoralPlanner_Location
         self.domain = domain
         self.configs = configs
-        self.planner = os.getcwd() + "/MPlan/cmake-build-release-clang/MPlan"
+        self.planner = f"{os.getcwd()}{fs_start}MPlan/cmake-build-release-clang/MPlan"
         
         self.horizon = 3
         self.budget = 18
@@ -31,14 +52,18 @@ class ExperimentRunner:
         self.seed = 123
         
         self.ServerProcess = None
-
+        
+        self.datetimeNow = date_time
+        if date_time is None:
+            self.datetimeNow = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+        
         self.loglevel = 1
         if not outFolder is None:
             self.outputFolder = outFolder
         else:
-            self.outputFolder = os.getcwd() + f"/Data/Experiments/{domain}/{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"
+            self.outputFolder = f"{os.getcwd()}{fs_start}Data/Experiments/{domain}/{self.datetimeNow}"
         
-        self.texTablesFolder = os.getcwd() + "/Data/TexTables"
+        self.texTablesFolder = f"{os.getcwd()}{fs_start}Data/TexTables"
         self.mdpFolder = f"{self.outputFolder}/mdps"
         self.figuresFolder = f"{self.outputFolder}/Figures"
         self.rawOutFolder = f"{self.outputFolder}/raw"
@@ -77,6 +102,23 @@ class ExperimentRunner:
         self.extractData(configRepetitions, envRepetitions)
 
 
+    def TexSummary(self, agg_rules:dict, tex_template, tex_output, merge:dict={}, round=3):
+        df = pd.DataFrame(self.data)
+        df = df.replace(["", "N/A", "NA", "nan", "None"], np.nan)
+
+        for new_key, old_keys in merge.items():
+            for k in range(len(old_keys) - 1):
+                df[new_key] = df[old_keys[k]].combine_first(old_keys+1)
+        df = df.replace(np.nan, "SKIP")
+
+        df = df[['Config_name'] + list(agg_rules.keys())].groupby('Config_name', sort=False).agg(agg_rules)
+        df.round(3)
+        SaveDataFrameToTexTemplate(df,
+                                   f"{self.texTablesFolder}/{tex_template}", f"{self.texOutFolder}/{tex_output}", 
+                                   row_template_mode=False,
+                                   timestamp=self.datetimeNow)
+        return df
+
     def buildEnvironments(self, configRepetitions:int=1):
         for i in range(configRepetitions):
             for conf in self.configs:
@@ -93,6 +135,7 @@ class ExperimentRunner:
                     result.check_returncode()
             self.log(f"Finished env on {conf["Name"]}.",0)
 
+        
 
     def extractData(self, configRepetitions=1, envRepetitions=1):
         self.con_tags = []
@@ -126,10 +169,10 @@ class ExperimentRunner:
                             "Total_time": json_data['Duration_Total'],
                             "Heuristic_time": json_data['Duration_Heuristic'],
                             "Plan_time": json_data['Duration_Plan'],
+                            "Sol_time": json_data['Duration_Sols'],
                             "Mehr_time": json_data['Duration_MEHR'],
                             "CQ1_time": json_data['Duration_CQ1'],
                             "CQ2_time": json_data['Duration_CQ2'],
-                            "Sol_time": json_data['Duration_Sols'],
                             "Out_time": json_data['Duration_Outs'],
                             "Sol_reduce_time": json_data['Duration_Sols_Reduce'],
                             "Expanded_states": json_data['Expanded'],
@@ -140,11 +183,12 @@ class ExperimentRunner:
                             "Total_states": json_data['Total_states'],
                             "Backups": json_data['Backups'],
                             "Iterations": json_data['Iterations'],
-                            "Horizon": json_data['Horizon'],
+                            "Horizon": json_data['Horizon'] - 1,
                             "Min_non_accept": json_data["Solutions"][bestPolicyIdx]["Acceptability"],
                             "Num_of_min_non_accept": json_data['Num_Min_Non_Acceptability'],
                             "Num_of_sols": len(json_data["Solutions"]),
-                            "Total_Attacks": json_data["Total_Attacks"]
+                            "Total_Attacks": json_data["Total_Attacks"],
+                            "Total_reachable_policies": json_data["Total_reachable_policies"]
                         }
                         for tag in self.con_tags:
                             if (tag in json_data["Solutions"][bestPolicyIdx]["Expectation"].keys()):
@@ -155,21 +199,21 @@ class ExperimentRunner:
 
 
 
-    def StartServerAndPost(self, fileName):
-        self.StartServer()
+    def StartServerAndPost(self, fileName, port=18080):
+        self.StartServer(port)
         time.sleep(1)
-        self.PostMDPToServer(fileName)
+        self.PostMDPToServer(fileName, port)
 
-    def StartServer(self):
-        self.ServerProcess = subprocess.Popen([self.planner, "--server", "--debug", "0"])
-        atexit.register(self.ServerProcess.terminate)
+    def StartServer(self, port=18080, autoTerminate=True):
+        self.ServerProcess = subprocess.Popen([self.planner, "--server", "--debug", "3", "--port", str(port)])
+        if autoTerminate:
+            atexit.register(self.ServerProcess.terminate)
 
-    def PostMDPToServer(self, fileName, fileOut=None):
-        req = {'file_in': fileName, 'from_data_folder':False}
-        if fileOut:
+    def PostMDPToServer(self, fileName, port=18080, fileOut=None, from_data_folder=False):
+        req = {'file_in': fileName, 'from_data_folder':from_data_folder}
+        if not fileOut is None:
             req['file_out'] = fileOut
-        self.buildEnvironments(1)
-        resp = requests.post("http://localhost:18080/MDP", json=req)
+        resp = requests.post(f"http://localhost:{str(port)}/MDP", json=req)
         if (resp.status_code!=200):
             self.log(f"MPlan Server Error: {resp.reason}",0)
             if not self.ServerProcess is None:
@@ -184,7 +228,7 @@ class ExperimentRunner:
         req = {'states_index': scr_states, 'actions':actions}
         resp = requests.post("http://localhost:18080/CacheSuccessors", json=req)
     
-    def GetCachedSuccessorsFromServer(self):
+    def GetCachedSuccessorsFromServer(self) -> requests.Response:
         return requests.post("http://localhost:18080/AggregateCachedSuccessors")
         
 
@@ -250,6 +294,8 @@ class ExperimentRunner:
 
         theoryResults = df[cols].groupby('Config_name', sort=False).first()
         theoryResults.to_csv(self.getTheoryExpectationsFilePath())
+        SaveDataFrameToTexTemplate(theoryResults, f"{self.texTablesFolder}/UtilitarianResults.tex", f"{self.texOutFolder}/Utility_table.tex")
+
 
 
     def loadResults(self, of):
@@ -257,42 +303,132 @@ class ExperimentRunner:
         df = pd.read_csv(self.getAllDataFilePath())
         self.data = df.to_dict()
 
+    def plotConfigsAgainstHorizon(self, configs, 
+                                  dep_var="Hal",
+                                  title=None,
+                                  x_title=None,
+                                  y_title=None,
+                                  legend_loc=None,
+                                  df="None"):
 
-    #TODO update strings below. 
-    def plotTimeResults(self, df=None):
-        if (df==None):
+        if (not isinstance(df, pd.DataFrame)):
+            df = pd.DataFrame(self.data)
+        
+        # Ensure numeric values
+        df[dep_var] = pd.to_numeric(df[dep_var])
+        df["Horizon"] = pd.to_numeric(df["Horizon"])
+
+        fig, ax = plt.subplots(figsize=(10, 7))
+
+        linestyles = ["-", "--", "-.", ":"]
+        markers = ["o", "s", "^", "D", "x", "*"]
+
+        for i, config_name in enumerate(configs):
+            group = (
+                df[df["Config_name"] == config_name]
+                .groupby("Horizon", as_index=False)[dep_var]
+                .mean()
+                .sort_values("Horizon")
+            )
+            ax.plot(
+                group["Horizon"],
+                group[dep_var],
+                marker=markers[i  % len(markers)],
+                label=latex_config_name(config_name),
+                alpha=0.75,
+                linewidth=1.5,
+                linestyle=linestyles[i % len(linestyles)]
+            )
+
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        if title is None:
+            title = f"Horizon vs. {dep_var}"
+        ax.set_title(title)
+        
+        if x_title is None:
+            x_title = "Horizon"
+        if y_title is None:
+            y_title = dep_var
+
+        ax.set_xlabel(x_title)
+        ax.set_ylabel(y_title)
+        
+        if legend_loc is None:
+            legend_loc = "upper left"
+
+        ax.legend(loc=legend_loc)
+        fig.tight_layout()
+
+    def plotTimeResults(self, config_names=None, df="", title=None, legend_loc="upper left"):
+        if (not isinstance(df, pd.DataFrame)):
             df = pd.DataFrame(self.data)
 
-        average_durations = df.groupby('Horizon')[ExperimentRunner.time_columns].mean().reset_index()
+        if (config_names is None):
+            config_names = sorted(df['Config_name'].unique())
+        elif isinstance(config_names, str):
+            config_names = [config_names]
+
+        average_durations = df.groupby(['Config_name', 'Horizon'])[ExperimentRunner.time_columns].mean().reset_index()
         average_durations['Mehr_time'] = average_durations['Mehr_time'].replace(0, 0.0001)
 
-        plt.figure(figsize=(10, 6))
-        for column in ExperimentRunner.time_columns:
-            plt.scatter(average_durations['Horizon'], average_durations[column], label=column)
+        plt.figure(figsize=(12, 7))
 
-            plt.plot(average_durations['Horizon'], average_durations[column], linestyle='-', alpha=0.6)
-            # Add a line of best fit
-            x = average_durations['Horizon']
-            y = average_durations[column]
-            slope, intercept, r_value, _, _ = linregress(x, np.log10(y))  # Fit line in log scale
-            best_fit_line = 10 ** (slope * x + intercept)  # Transform back to original scale
-            plt.plot(x, best_fit_line, linestyle='--', alpha=0.8, label=f'{column} Best Fit (R={r_value:.2f})')
+        color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        component_colors = {
+            col: color_cycle[i % len(color_cycle)]
+            for i, col in enumerate(ExperimentRunner.time_columns)
+        }
+        line_styles = ['-', '--', '-.', ':']
+        markers = ['o', 's', '^', 'D', 'x', '*', 'P', 'X']
+        
+        for config_idx, config_name in enumerate(config_names):
+            config_group = average_durations[average_durations['Config_name'] == config_name]
+            if config_group.empty:
+                continue
 
-        plt.yscale('log')  # Set the y-axis to logarithmic scale
-        plt.title("Time Metrics vs Horizon (Logarithmic Scale)")
+            line_style = line_styles[config_idx % len(line_styles)]
+            marker = markers[config_idx % len(markers)]
+            for column in ExperimentRunner.time_columns:
+                plt.plot(
+                    config_group['Horizon'],
+                    config_group[column],
+                    label=f"{config_name} - {column}",
+                    color=component_colors[column],
+                    linestyle=line_style,
+                    marker=marker,
+                    alpha=0.85,
+                    linewidth=1.7,
+                    markersize=6,
+                )
+
+        plt.yscale('log')
+        if title is None:
+            title = "Time Metrics vs Horizon (Log Scale, same color = same component)"
+        plt.title(title)
         plt.xlabel("Horizon")
         plt.ylabel("Time (microseconds, log scale)")
-        plt.xticks(ticks=np.arange(min(average_durations['Horizon']), max(average_durations['Horizon']) + 1, 1))
-        plt.legend()
-        #plt.grid(True, which='both', linestyle='--', linewidth=0.5)   Adjust grid for log scale
-        plt.savefig(self.outputFolder+ "timeVHorizon_LOG_SCALE.png")  # Save the plot
 
-        plt.show()  # Show the plot
+        horizons = average_durations['Horizon']
+        if not horizons.empty:
+            plt.xticks(ticks=np.arange(min(horizons), max(horizons) + 1, 1))
 
-    def plotPercentTimeResults(self, df=None):
-        if (df==None):
+        plt.legend(loc=legend_loc, fontsize='small', ncol=2)
+        plt.grid(True, which='both', linestyle='--', linewidth=0.5, alpha=0.4)
+        plt.savefig(self.outputFolder + "timeVHorizon_LOG_SCALE.png")
+        plt.show()
+
+    def plotPercentTimeResults(self, config_name=None, df="", legend_loc=None, latex_name=None, labels=None):
+        if (not isinstance(df, pd.DataFrame)):
             df = pd.DataFrame(self.data)
-        average_durations = df.groupby('Horizon')[ExperimentRunner.time_columns].mean().reset_index()
+        
+        if latex_name is None:
+            latex_name = config_name
+        
+        average_durations = df.copy()
+        if (not (config_name is None)):
+            average_durations = average_durations[average_durations['Config_name']==config_name]
+
+        average_durations = average_durations.groupby('Horizon')[ExperimentRunner.time_columns].mean().reset_index()
         cols = copy.deepcopy(ExperimentRunner.time_columns)
         cols.remove('Total_time')
         for column in cols:
@@ -301,16 +437,17 @@ class ExperimentRunner:
         plt.figure(figsize=(10, 6))
         cols_percent = [c + "_percent" for c in cols]
         for column in cols_percent:
-            plt.plot(average_durations['Horizon'], average_durations[column], marker='o', label=column.replace('_percent', ''))
+            l = column.replace('_percent', '')
+            if not (labels is None):
+                l = labels[l]
+            plt.plot(average_durations['Horizon'], average_durations[column], marker='o', label=l)
 
-        plt.title("Time Components as Percentage of Total Time vs Horizon")
+        plt.title(f"Time Components as Percentage of Total Time vs Horizon for {latex_config_name(config_name)}")
         plt.xlabel("Horizon")
         plt.ylabel("Percentage of Total Time (%)")
         plt.xticks(ticks=np.arange(min(average_durations['Horizon']), max(average_durations['Horizon']) + 1, 1))
 
-        plt.legend()
-        plt.savefig(self.outputFolder + "time_components_percentage_vs_horizon.png")  # Save the plot
-        plt.show()
+        plt.legend(loc=legend_loc)
 
     def plotParetoGraph(self, configName:str, conf_rep:int, con_one_label:str, con_two_label:str, env_rep:int=0, fileName:str="ParetoGraph.png"):
         outFile = self.makePlanOutFileName(configName, conf_rep, env_rep)
@@ -323,7 +460,6 @@ class ExperimentRunner:
         
         df = pd.DataFrame(x, columns=[con_one_label, con_two_label, "Non-acceptability"])
         
-        # FIX: Sort so low non-acceptability (green) is drawn LAST (on top)
         df = df.sort_values(by="Non-acceptability", ascending=False)
 
         plt.figure(figsize=(10,7))
@@ -339,7 +475,7 @@ class ExperimentRunner:
         )
         plt.xlabel(con_one_label)
         plt.ylabel(con_two_label)
-        plt.title(f"Expected moral worth of policies under {con_one_label} and {con_two_label}")
+        plt.title(f"Expected moral worth of {len(json_data["Solutions"])} proper Pareto front policies by {con_one_label} and {con_two_label}")
         
         cbar = plt.colorbar(scatter)
         cbar.set_label('Non-acceptability (Lower = Green, Higher = Red)')
@@ -347,5 +483,81 @@ class ExperimentRunner:
         plt.grid(True, linestyle='--', alpha=0.6)
         plt.tight_layout()
 
-        plt.savefig(f"{self.figuresFolder}/{fileName}")
+        plt.savefig(f"{self.figuresFolder}/{configName}_{fileName}", dpi=300)
         plt.show()
+    
+
+    def plotNonAcceptGraph(self, config_names:list, fileName:str="NaccGraph.png"):
+
+        config_names = ["(Hal)^0, (Carla)^0",
+                 "(Hal)^0, (Carla)^0, (Hal,Carla)^0",
+                 "(HalLife)^0, (CaraLife)^0"
+                 ]
+
+        for c in config_names:
+            # Assuming self.makePlanOutFileName exists
+            outFile = self.makePlanOutFileName(c, 0, 0)
+            with open(outFile, 'r') as file:
+                json_data = json.load(file)
+                nacc = [sol["Acceptability"] for sol in json_data["Solutions"]]  
+                x_sorted = np.sort(nacc)
+                y_cumulative = np.arange(1, len(x_sorted) + 1)
+                
+                formatted_label = re.sub(r"\^(\d)", r"$^{\1}$", str(c))
+                
+        plt.figure(figsize=(8, 5))
+        plt.step(y_cumulative, x_sorted, where='post', linewidth=2, label=formatted_label)
+        # 4. Create the step plot
+        plt.title(f"Cumulative proper Pareto front policies vs. Non-Acceptability")
+        plt.ylabel("Non-acceptability")
+        plt.xlabel("Cumulative proper Pareto front policies")
+        plt.grid(True, linestyle='--', alpha=0.6)
+
+        plt.ylim(bottom=0, top=2.5) 
+        plt.xlim(left=1) 
+
+        plt.legend(title="Configurations")
+
+        plt.tight_layout()
+
+        plt.tight_layout()
+        plt.savefig(f"{self.figuresFolder}/{fileName}", dpi=300)
+        plt.show()
+
+
+    def plotTimeChart(self, configs, envRepetitions:int, fileName:str="ConfigsPlot.png"):
+        data = []
+        for c in configs.keys():
+            for env_rep in range(envRepetitions):
+                # Assuming self.makePlanOutFileName exists
+                outFile = self.makePlanOutFileName(c, 0, env_rep)
+                with open(outFile, 'r') as file:
+                    json_data = json.load(file)
+                    data.append([c, env_rep, 
+                                 json_data["Duration_Heuristic"],
+                                 json_data["Duration_Plan"],
+                                 json_data["Duration_Sols"],
+                                 json_data["Duration_MEHR"],
+                                 json_data["Duration_Total"]])
+                                 
+        df = pd.DataFrame(data, columns=["Config_name", "Env_rep", "Heuristic", "Plan", "Solution Extraction", "MEHR", "Total"])
+        time_categories = ['Heuristic', 'Plan', 'Solution Extraction', 'MEHR', 'Total']
+        
+        averages = df.groupby('Config_name', sort=False)[time_categories].mean()
+
+        fig, ax = plt.subplots(layout='constrained', figsize=(10, 6))
+        
+        averages.plot.bar(ax=ax, width=0.8, rot=0)
+
+        for container in ax.containers:
+            ax.bar_label(container, padding=3, fmt='%.1f')
+            
+        ax.set_ylabel('Duration (microseconds)')
+        ax.set_xlabel('')
+        ax.set_title('CPU time on Utilitarian Lost Insulin problems')
+        
+        ax.legend(loc='upper left', ncols=5)
+        ax.set_ylim(0, df['Total'].max() * 1.25)
+        
+        plt.savefig(f"{self.figuresFolder}/{fileName}", dpi=300)
+        #plt.show()

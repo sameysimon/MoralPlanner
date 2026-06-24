@@ -18,21 +18,20 @@ QValue MDP::MultiGather(std::vector<Successor*>& successors, std::vector<QValue*
     std::vector<WorthBase*> worth = std::vector<WorthBase*>(successors.size());
     std::vector<WorthBase*> comboExpects = std::vector<WorthBase*>(successors.size());
     std::vector<double> probs = std::vector<double>(successors.size());
+    for (int scrIdx=0; scrIdx < successors.size(); ++scrIdx) {
+        probs[scrIdx] = successors[scrIdx]->probability;
+    }
     for (int cIdx = 0; cIdx < considerations.size(); ++cIdx) {
         // Build successor's expectations -- comboExpects[i] is expected worth for successors[i].
         for (int scrIdx=0; scrIdx < successors.size(); ++scrIdx) {
             comboExpects[scrIdx] = baseline[scrIdx]->expectations[cIdx].get();
             worth[scrIdx] = considerations[cIdx]->judge(*successors[scrIdx]);
-            probs[scrIdx] = successors[scrIdx]->probability;
         }
         qv.expectations[cIdx] = considerations[cIdx]->gather(worth, probs, comboExpects, ignoreProbability);
         worth.clear();
         worth.resize(successors.size());
         comboExpects.clear();
         comboExpects.resize(successors.size());
-        probs.clear();
-        probs.resize(successors.size());
-
     }
     return qv;
 }
@@ -111,7 +110,7 @@ int MDP::CompareByConsiderations(QValue& qv1, QValue& qv2) {
     }
     return result;
 }
-int MDP::ParetoCompare(QValue& qv1, QValue& qv2) {
+int MDP::ParetoCompare(const QValue& qv1, const QValue& qv2) {
     bool atLeastOneGreater = false;
     bool atLeastOneLesser = false;
     bool allAtLeast = true;
@@ -136,7 +135,7 @@ int MDP::ParetoCompare(QValue& qv1, QValue& qv2) {
     }
     return 0;
 }
-int MDP::ParetoCompare(QValue& qv1, QValue& qv2, std::vector<size_t>& consideration_indices) {
+int MDP::ParetoCompare(const QValue& qv1, const QValue& qv2, const std::vector<size_t>& consideration_indices) {
     bool atLeastOneGreater = false;
     bool atLeastOneLesser = false;
     bool allAtLeast = true;
@@ -273,7 +272,7 @@ void MDP::heuristicQValue(QValue& qval, State& state) {
  * If there is no cost theory, all QValues are in budget, so returns true.
  * @return true if in budget or no non-moral cost, false otherwise.
  */
-bool MDP::isQValueInBudget(QValue& qval) const {
+bool MDP::isQValueInBudget(const QValue& qval) const {
     if (non_moralTheoryIdx==-1) { return true; }
     auto cost = static_cast<ExpectedUtility*>(qval.expectations[non_moralTheoryIdx].get());
     return cost->value > -1 * budget;

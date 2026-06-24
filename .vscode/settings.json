@@ -1,0 +1,14 @@
+{
+    "cmake.sourceDirectory": "/Users/user/Desktop/MyMoralPlanner/MoralPlanner/MPlan",
+    "cSpell.words": [
+        "prob"
+    ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true
+    },
+    "hide-files.files": []
+}

@@ -113,14 +113,14 @@ public:
     void AggregateWithCertainSuccessor(QValue& qval, Successor* scr);
     int CompareByTheories(QValue& qv1, QValue& qv2, bool useRanks=false);
     int CompareByConsiderations(QValue& qv1, QValue& qv2);
-    int ParetoCompare(QValue& qv1, QValue& qv2);
-    int ParetoCompare(QValue& qv1, QValue& qv2, std::vector<size_t>& consideration_indices);
+    int ParetoCompare(const QValue& qv1, const QValue& qv2);
+    int ParetoCompare(const QValue& qv1, const QValue& qv2, const std::vector<size_t>& consideration_indices);
     int compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories);
 
     void blankQValue(QValue& qval);
     void getNoBaseLineQValue(State& state, int stateActionIndex, QValue& qval);
     void heuristicQValue(QValue& qval, State& state);
-    bool isQValueInBudget(QValue& qval) const;
+    bool isQValueInBudget(const QValue& qval) const;
 
     bool checkPoliciesEqual(Policy& p1, Policy& p2);
     int checkPolicyInVector(Policy& pi, const std::vector<Policy*>& pols);

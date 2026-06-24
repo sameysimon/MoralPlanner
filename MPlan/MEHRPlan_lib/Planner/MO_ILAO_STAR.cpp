@@ -122,7 +122,7 @@ void Solver::getUnDomCandidates(State& state, vector<QValue>& candidates, vector
         vector<Successor*>* successors = MDP::getActionSuccessors(state, aIdx);
         gatherActionSuccessors(candidates, qValueIdxToAction, aIdx, successors);
     }
-    pprune(candidates, indicesOfUndominated);
+    Pprune(mdp, candidates, indicesOfUndominated);
 
 #ifdef DEBUG
 
@@ -170,40 +170,6 @@ vector<vector<QValue*>> Solver::GetSuccessorQValueCombinations(vector<Successor*
     return combs;
 }
 
-void Solver::pprune(std::vector<QValue>& inVector, std::vector<int>& outVector) {
-    if (inVector.size()==0) {return; }
-    vector<bool> inBudget;
-    bool anyInBudget = false;
-    if (mdp.non_moralTheoryIdx != -1) {
-        for (int i=0; i<inVector.size(); i++) {
-            inBudget.push_back(mdp.isQValueInBudget(inVector[i]));
-            if (inBudget[i]) {
-                anyInBudget = true;
-            }
-        }
-    }
-    for (int i=0; i<inVector.size(); i++) {
-        if (anyInBudget && !inBudget[i]) {
-            continue; // Over budget QValues cannot be undominated/added to outVector
-        }
-        auto& qv = inVector[i];
-        bool isDominated=false;
-        for (int j = 0; j < inVector.size(); j++) {
-            if (j==i) continue;
-            if (anyInBudget && !inBudget[j]) {
-                continue;// Over budget QValues cannot dominate anything.
-            }
-            int r = mdp.ParetoCompare(qv, inVector[j]);
-            if (r == -1) {
-                isDominated=true;
-                break;
-            }
-        }
-        if (!isDominated) {
-            outVector.push_back(i);
-        }
-    }
-}
 
 bool Solver::checkForUnexpandedStates(unordered_set<int>& expanded, vector<int>& bpsg) {
     if (expanded.size()==0 or bpsg.size()==0) {

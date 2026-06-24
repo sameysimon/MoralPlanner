@@ -56,6 +56,7 @@ set(SOURCE_FILES
         Planner/PolicyEvaluate.cpp
         Environment/MoralTheories/Fairness.cpp
         Environment/MoralTheories/Fairness.hpp
+        Planner/PPrune.cpp
 )
 
 

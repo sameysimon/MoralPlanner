@@ -14,6 +14,10 @@ CARLA_DIE = -100
 HAL_PAYS_LOW = -1
 HAL_PAYS_HIGH = -3
 
+CARLA_SEARCHED = -1
+CARLA_INTRUDED = -2
+
+
 
 class Time(Consideration):
     def __init__(self, horizon_, budget_):
@@ -160,28 +164,34 @@ class OrdinalNecessity(Consideration):
 
     def judge(self, successor: Successor):
         # Only crimes have necessity of crime.
-        if (successor.action == 'attack_Carla' and successor.targetState.props['Hal_has_insulin']):
+        if (successor.action == 'attack_Carla'):
             return -5
         
-        if (not (successor.action in ['steal', 'break_in', 'trespass', 'attack_Carla'])):
+        if (not (successor.action in ['steal', 'break_in', 'sneak_inside', 'attack_Carla'])):
             return 0
         die_chance = ((successor.targetState.props['time']  + 1) ) / (self.horizon + 1)
-        if (die_chance > 0.5):
-            return -1
-        if (die_chance > 0.2):
-            return -2
-        if (successor.sourceState.props['Carla_sold'] == 'na' and successor.sourceState.props['Carla_reply'] == 'na'):
-            return -4
-        if (successor.sourceState.props['Carla_sold'] == 'refused_low'):
-            return -3
-    
-        
-        return -2
+        if (die_chance >= 0.5):
+            # MORE THAN 50% DEATH
+            if (successor.sourceState.props['time']>0):
+                if (successor.sourceState.props['Carla_sold'] == 'refused_high'):
+                    return -1
+                if (successor.sourceState.props['Carla_sold'] == 'refused_low'):
+                    return -2
+                return -3
+            else:
+                return -1
+        else:
+            # LESS THAN 50% OF DEATH
+            if (successor.sourceState.props['Carla_sold'] == 'refused_high'):
+                return -2
+            if (successor.sourceState.props['Carla_sold'] == 'refused_low'):
+                return -3
+            if (successor.sourceState.props['Carla_reply'] == 'refused_ask'):
+                return -4
+            return -5
         
     def StateHeuristic(self, state:State):
         return 0
-
-
 
 #
 # Hal's personal moral consideratinos
@@ -255,7 +265,7 @@ class CarlaSmall(Consideration):
         super().__init__()
         self.type='Utility'
         self.rank=0
-        self.tag='CarlaLife'
+        self.tag='CarlaSmall'
         self.default = 0
 
     def judge(self, successor: Successor):
@@ -263,6 +273,10 @@ class CarlaSmall(Consideration):
             return CARLA_WIN
         elif (successor.action == 'attack_Carla'):
             return CARLA_DEFEAT
+        elif (successor.action=='search_outside'):
+            return CARLA_SEARCHED
+        elif (successor.targetState.props['Hal_at']=='Carla_house' and successor.action=='sneak_inside'):
+            return CARLA_INTRUDED
         return 0
 
     def StateHeuristic(self, state:State):
@@ -289,7 +303,7 @@ class Carla(Consideration):
         super().__init__()
         self.type='Utility'
         self.rank=0
-        self.tag='CarlaLife'
+        self.tag='Carla'
         self.default = 0
         self.carlaLife = CarlaLife()
         self.carlaSmall = CarlaSmall()

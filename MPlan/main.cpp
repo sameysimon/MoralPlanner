@@ -27,8 +27,7 @@ int main(int argc, const char * argv[]) {
     std::string outputFolder = OUTPUT_FOLDER_PATH;
     std::string fileIn = dataFolder + "../Experiments/Random/2025-03-21 16:27:23/mdps/0Util_0Law__hor=6_con0.json";
     ushort portIn = 18080;
-    fileIn = " /Users/user/Desktop/MyMoralPlanner/MoralPlanner/Data/Experiments/SearchRescue/2026-02-09 13:03:05/mdps/NoIgnore>Explore>Red=Blue_con0.json";
-    fileIn = "/Users/user/Desktop/MyMoralPlanner/MoralPlanner/Data/Experiments/Titanic/2025-11-27 17:51:31/mdps/1=3=C_con0.json";
+    fileIn = "/Users/user/Desktop/MyMoralPlanner/MoralPlanner/Data/Experiments/LostInsulin/2026-06-04 16:18:35/mdps/AU_Multi_con0.json";
     std::string fileOut = outputFolder + "MPlan-Out.json";
     Log::setLogLevel(LogLevel::Info);
 
@@ -98,11 +97,13 @@ int main(int argc, const char * argv[]) {
         }
     }
 
-
-
-
     if (run_as_server) {
-        auto app = REST_App(portIn);
+        if (have_file_input) {
+            auto app = REST_App(portIn, fileOut);
+        } else {
+            auto app = REST_App(portIn);
+        }
+
         return 0;
     }
     Log::writeLog(std::format("Chosen {} as input MDP file.", fileIn), LogLevel::Info);

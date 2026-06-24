@@ -53,35 +53,46 @@ public:
             }
             piTable[1-prevPolicies][currStateSetIdx].clear();
 
+            // Generate combo-policies
             auto stateActions = vector<int>();
+            vector<QValue> curr_QValues;
+            vector<int> action_index;
+            vector<unique_ptr<Policy>> curr_policies;
             for (const auto a : Pi[stateIdx]) {
-                if (find(stateActions.begin(), stateActions.end(), a) != end(stateActions)) {
-                    continue;
-                }
+                if (find(stateActions.begin(), stateActions.end(), a) != end(stateActions)) { continue; }
                 stateActions.push_back(a);
 
                 auto successors = MDP::getActionSuccessors(*mdp.states[stateIdx], a);
                 auto scrPolicyCombos = GetSuccessorPolicyCombos(successors, piTable[prevPolicies], piStateTable[prevPolicies]);
 
                 for (auto &combo : scrPolicyCombos) {
-                    auto newPi = make_unique<Policy>(mdp, stateIdx);
-                    // Copy values for sub-policies of each successor.
-                    newPi->MergePolicies(combo, *successors, mdp);
-                    // Aggregate combo's successor qValues with action.
-                    newPi->addAction((int)stateIdx, a);
-                    gatherQValue(newPi->AddWorth(mdp, stateIdx), successors, *newPi, currTime);
-
-                    auto &tab = piTable[1-prevPolicies][currStateSetIdx];
-                    auto [s, inserted] = tab.insert(std::move(newPi));
-                    if (!inserted) {
-                        s->get()->included_state_actions.emplace_back(stateIdx, a);
-                    }
+                    // Generate combination policy
+                    curr_policies.emplace_back(make_unique<Policy>(mdp, stateIdx));
+                    curr_policies.back()->MergePolicies(combo, *successors, mdp);
+                    curr_policies.back()->addAction((int)stateIdx, a);
+                    // Find its expected worth
+                    curr_QValues.emplace_back(mdp);
+                    gatherQValue(curr_QValues.back(), successors, *curr_policies.back(), currTime);
+                    action_index.push_back(a);
                 }
-                // PF PRUNE HERE????
-
             }
+            // Pareto prune combo-policies
+            auto PPFQValues = Solver::Pprune(mdp, curr_QValues);
+            // Find and add unique, pruned combo-policies
+            for (auto i : PPFQValues) {
+                auto [qv_it, qv_inserted] =
+                    curr_policies[i]->worth.emplace(static_cast<int>(stateIdx), std::move(curr_QValues[i]));
+                auto &tab = piTable[1-prevPolicies][currStateSetIdx];
+                auto [pi_it, foundMatchingPolicy] = tab.insert(std::move(curr_policies[i]));
+                if (!foundMatchingPolicy) {
+                    pi_it->get()->included_state_actions.emplace_back(stateIdx, action_index[i]);
+                }
+            }
+
             currStateSetIdx++;
         }
+
+        // Construct final policy vector
         auto &solns = piTable[1 - prevPolicies][0];
         result.reserve(solns.size());
         for (auto it = solns.begin(); it != solns.end(); ) {
@@ -118,8 +129,7 @@ public:
             if (scrPolicyVecIt == piStateLookup.end() || piTable[scrPolicyVecIdx].empty()) {
                 auto newPi = make_unique<Policy>(mdp, target);
                 auto& qval = newPi->AddWorth(mdp, static_cast<int>(target));
-                mdp.blankQValue(qval);
-                mdp.heuristicQValue(qval, *mdp.states[target]);
+                //mdp.heuristicQValue(qval, *mdp.states[target]);
                 newPi->history_set.insert(make_unique<History>(mdp, 1, make_history_paths));
                 if (scrPolicyVecIt == piStateLookup.end()) {
                     scrPolicyVecIdx = piStateLookup.size();

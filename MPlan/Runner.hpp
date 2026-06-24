@@ -238,7 +238,7 @@ public:
         durations.solutionExtractionTime = timeExtractSols();
         durations.mehrTime = timeMEHR();
     }
-    void FullSolve(std::string &fileOut) {
+    void FullSolve(const std::string &fileOut) {
             FullSolve();
             Log::writeLog(std::format("Total time {} {}", durations.Total(), TIME_METRIC_STR), Info);
             // Save File
@@ -246,7 +246,7 @@ public:
             WriteJSONFile(result, fileOut);
     }
 
-    static void WriteJSONFile(json &data, std::string &fileOut) {
+    static void WriteJSONFile(json &data, const std::string &fileOut) {
         std::ofstream file(fileOut);
         if (file.is_open()) {
             file << data.dump(4);
