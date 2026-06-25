@@ -18,6 +18,7 @@ class SolutionExtracter {
     bool make_history_paths = false;
     unordered_map<size_t, vector<size_t>> forced_actions;
 public:
+    bool prune_dominated = true;
     explicit SolutionExtracter(MDP& _mdp, bool make_history_paths_=false) : mdp(_mdp), make_history_paths(make_history_paths_) { }
 
     void ForceStateAction(size_t state_idx, size_t action_idx) {
@@ -78,6 +79,11 @@ public:
             }
             // Pareto prune combo-policies
             auto PPFQValues = Solver::Pprune(mdp, curr_QValues);
+            if (!prune_dominated) {
+                PPFQValues.resize(curr_QValues.size());
+                std::iota(PPFQValues.begin(), PPFQValues.end(), 0);
+            }
+
             // Find and add unique, pruned combo-policies
             for (auto i : PPFQValues) {
                 auto [qv_it, qv_inserted] =

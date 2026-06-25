@@ -26,6 +26,7 @@ protected:
         MDP mdp(data);
         // Extract all 'policies'
         auto se = SolutionExtracter(mdp);
+        se.prune_dominated = false;
         vector<unique_ptr<Policy>> policies;
         policy_hists histories;
         vector backupOrder = {1,0};
@@ -65,7 +66,7 @@ protected:
                     }
                 }
             }
-            ASSERT_TRUE(found) << "Did not generate policy with action label " << action_name << endl;
+            ASSERT_TRUE(found) << "Did not generate policy with action label " << action_name << " for test " << fileName << endl;
         }
     }
 };
@@ -83,7 +84,7 @@ TEST_F(FromFile_Tests, Acceptability) {
     TestAcceptability("Tests/test_6Theory_2Ranks.json");
     TestAcceptability("Tests/test_7Theory_2Ranks.json");
     TestAcceptability("Tests/test_8Theory_2Ranks.json");
-    //TestAcceptability("Tests/test_9Theory_2Ranks.json");
+    TestAcceptability("Tests/test_9Theory_2Ranks.json");
     // 1 rank; many theories
     TestAcceptability("Tests/test_100Theory.json");
     TestAcceptability("Tests/test_200Theory.json");
