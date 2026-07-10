@@ -93,7 +93,7 @@ public:
             return EXIT_FAILURE;
         }
         mdp = make_shared<MDP>(data);
-        solver = make_shared<Solver>(*mdp);
+        solver = make_shared<Solver>(*mdp, planning_mode == DOMAIN_HEURISTIC);
         stage = INIT_MDP;
         return EXIT_SUCCESS;
     }

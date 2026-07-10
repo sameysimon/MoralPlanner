@@ -15,8 +15,11 @@
 #include "State.hpp"
 #include "Successor.hpp"
 #include "MoralTheory.hpp"
+#include "MPlanRandom.hpp"
 #include <format>
 #include <optional>
+
+
 
 class QValue;
 class Policy;
@@ -56,21 +59,6 @@ public:
     explicit MDP(nlohmann::json& data);
     ~MDP();
 
-    std::vector<Successor*>* getActionSuccessors(const size_t &state_idx, const int stateActionIndex) {
-        if (state_idx> states.size()) {
-            throw std::runtime_error(std::format("getActionSuccessors called with state {} which does not exist.", state_idx));
-        }
-        return states[state_idx]->actionSuccessors[stateActionIndex];
-    }
-
-
-    static std::vector<Successor*>* getActionSuccessors(const State &state, const int stateActionIndex) {
-        if (state.actionSuccessors.empty()) {
-            throw std::runtime_error(std::format("getActionSuccessors called with state {} and state-action Index {} has no successors.", state.id, stateActionIndex));
-        }
-         return state.actionSuccessors[stateActionIndex];
-    }
-
     // Finds state-action index of action with matching label then returns pointer to successors.
     std::vector<Successor*>* getActionSuccessors(const State& state, const Action& action) {
         int i = 0;
@@ -81,6 +69,34 @@ public:
             i++;
         }
         throw std::runtime_error(std::format("MDP::getActionSuccessors State with id {} has no action with label {}", state.id, action.label));
+    }
+    static std::vector<Successor*>* getActionSuccessors(const State &state, const int stateActionIndex) {
+        if (state.actionSuccessors.empty()) {
+            throw std::runtime_error(std::format("getActionSuccessors called with state {} and state-action Index {} has no successors.", state.id, stateActionIndex));
+        }
+        return state.actionSuccessors[stateActionIndex];
+    }
+    std::vector<Successor*>* getActionSuccessors(const size_t &state_idx, const int stateActionIndex) {
+        if (state_idx > states.size()) {
+            throw std::runtime_error(std::format("getActionSuccessors called with state {} which does not exist.", state_idx));
+        }
+        return states[state_idx]->actionSuccessors[stateActionIndex];
+    }
+
+    Successor* SampleSuccessor(const size_t &state_idx, const int stateActionIndex) {
+        auto successors = getActionSuccessors(state_idx, stateActionIndex);
+        if (successors->empty()) {
+            throw std::runtime_error("Cannot sample from empty successor list");
+        }
+        std::vector<double> weights;
+        weights.reserve(successors->size());
+
+        for (const auto& s : *successors) {
+            weights.push_back(s->probability);
+        }
+        std::discrete_distribution<std::size_t> dist(weights.begin(), weights.end());
+        std::size_t index = dist(MPlanRandom::GetGenerator());
+        return successors->at(index);
     }
     std::vector<std::shared_ptr<Action>>* getActions(const State& state) {
         return &(stateActions[state.id]);
@@ -107,14 +123,14 @@ public:
         }
         return std::nullopt;
     }
-
+    QValue MultiJudge(Successor* scr);
     QValue MultiGather(std::vector<Successor*>& successors, std::vector<QValue*>& baseline, bool ignoreProbability = false);
     QValue MultiGather(const std::vector<QValue*>& worth, const std::vector<double> &probs, const std::vector<QValue*>& baseline, bool ignoreProbability=false);
     void AggregateWithCertainSuccessor(QValue& qval, Successor* scr);
     int CompareByTheories(QValue& qv1, QValue& qv2, bool useRanks=false);
     int CompareByConsiderations(QValue& qv1, QValue& qv2);
-    int ParetoCompare(const QValue& qv1, const QValue& qv2);
-    int ParetoCompare(const QValue& qv1, const QValue& qv2, const std::vector<size_t>& consideration_indices);
+    int ParetoCompare(const QValue& qv1, const QValue& qv2) const;
+    int ParetoCompare(const QValue& qv1, const QValue& qv2, const std::vector<size_t>& consideration_indices) const;
     int compareExpectations(QValue& qv1, QValue& qv2, std::vector<int>& forwardTheories, std::vector<int>& reverseTheories);
 
     void blankQValue(QValue& qval);

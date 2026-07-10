@@ -59,7 +59,6 @@ Attack MEHRFairness::CriticalQuestionOne(Attack& a, policy_hists &histories) {
                 continue;
             }
             int result = attack(histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth);
-            Log::writeFormatLog(Trace, "Attacker Policy {} @ Hist {} vs Defender Policy {} @ Hist {}. Result is {}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth.toString(), result);
             if (result==1) {
                 // Store this attack.
                 size_t t = attacks[a.targetPolicyIdx].size();
@@ -69,7 +68,6 @@ Attack MEHRFairness::CriticalQuestionOne(Attack& a, policy_hists &histories) {
                 } else {
                     a.addEdge((size_t)attIdx, (size_t)defIdx);
                 }
-                Log::writeFormatLog(Debug, Green, "***Attacker Policy {} @ Hist {} ATTACKS Defender Policy {} @ Hist {} with Pr={}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth.toString(), histories.at(a.targetPolicyIdx).at(defIdx)->probability);
 
             }
         }

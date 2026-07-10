@@ -27,9 +27,9 @@ int main(int argc, const char * argv[]) {
     std::string outputFolder = OUTPUT_FOLDER_PATH;
     std::string fileIn = dataFolder + "../Experiments/Random/2025-03-21 16:27:23/mdps/0Util_0Law__hor=6_con0.json";
     ushort portIn = 18080;
-    fileIn = "/Users/user/Desktop/MyMoralPlanner/MoralPlanner/Data/Experiments/LostInsulin/2026-06-04 16:18:35/mdps/AU_Multi_con0.json";
+    fileIn = "/Users/user/Desktop/MyMoralPlanner/MoralPlanner/Data/Experiments/SearchRescue/2026-06-30_12:47:51/mdps/Search_Rescue_con0.json";
     std::string fileOut = outputFolder + "MPlan-Out.json";
-    Log::setLogLevel(LogLevel::Info);
+    Log::setLogLevel(LogLevel::Debug);
 
     if (argc==1) {
         std::cout << "Call with a Multi-Moral Markov Decision Process/Stochastic Shortest Path JSON file!" << std::endl;

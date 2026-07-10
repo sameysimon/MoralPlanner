@@ -65,21 +65,21 @@ void Solver::MC_iAO_Star() {
     do {
         expansions++;
         for (const int stateIdx : mBackupOrder) {
-            backup(*mdp.states[stateIdx]);
+            backupTwo(*mdp.states[stateIdx]);
             backups++;
             mExpanded.insert(stateIdx);
         }
         setPostOrderDFS();
-#ifdef DEBUG
         Log::writeFormatLog(LogLevel::Debug, "Reached {} Backups at iteration {}", backups, expansions);
+        Log::writeFormatLog(LogLevel::Debug, "mData[0] has {} items", mData[0].size());
         Log::writeFormatLog(LogLevel::Debug, "Set Post Order DFS. Found {} state-times:", mFoundStates->size());
+#ifdef DEBUG
         for (auto elem : *mFoundStates) { Log::writeFormatLog(LogLevel::Trace, "   t={}, s={};", mdp.states[elem]->time, elem); }
         Log::writeLog("\n", LogLevel::Debug);
 #endif
     } while (checkForUnexpandedStates(mExpanded, mBackupOrder));
     this->expanded_states = mExpanded.size();
 }
-
 void Solver::backup(State& state) {
     // Operations on following
     candidates.clear();
@@ -97,11 +97,54 @@ void Solver::backup(State& state) {
     }
     // Update Action map to current undominated.
     mPi.at(state.id).clear();
-    // Record what actions we're using.
+    // Record what actions we're using.$
     for (auto elem : indicesOfUndominated) {
         mPi.at(state.id).push_back(qValueIdxToAction[elem]);
     }
 }
+
+void Solver::backupTwo(State& state) {
+    list<Candidate> candidates;
+
+    vector<shared_ptr<Action>> actions = *mdp.getActions(state);
+    if (actions.size()==0 || state.time>=mdp.horizon) {
+        return;
+    }
+    bool isStateLocked = mIsActionLock && mLockedActions.find(state.id) != mLockedActions.end();
+    for (int aIdx = 0; aIdx < actions.size(); ++aIdx) {
+        // If state is locked, not to this action, skip backup.
+        if (isStateLocked && aIdx != mLockedActions[state.id]) {
+            continue;
+        }
+        // Get successor QValues and initialise combinations space.
+        vector<Successor*>* successors = MDP::getActionSuccessors(state, aIdx);
+        gatherPFActionWorth(candidates, successors, aIdx);
+    }
+    // Update Data and action map values to current PF.
+    mData.at(state.id).clear();
+    auto curr_pi_entry = &mPi.at(state.id);
+    for (auto &cd : candidates) {
+        mData.at(state.id).push_back(cd.qv);
+        if (std::find(curr_pi_entry->begin(), curr_pi_entry->end(), cd.action) == curr_pi_entry->end()) {
+            curr_pi_entry->push_back(cd.action);
+        }
+    }
+
+}
+
+void Solver::gatherPFActionWorth(list<Candidate>& candidates, vector<Successor*>* successors, int aIdx) {
+    // Generate all combinations of Successor's QValues
+    vector<vector<QValue*>> combos = GetSuccessorQValueCombinations(successors);
+    for (auto & elem : combos) {
+        Candidate cd;
+        cd.action = aIdx;
+        cd.qv = std::move(mdp.MultiGather(*successors, elem));
+        ParetoFilter(mdp, candidates, std::move(cd), [](const Candidate& c) -> const QValue& { return c.qv; });
+
+    }
+}
+
+
 
 // Generate/load undominated sate-action values into candidates.
 // Loads the indices of undominated candidates into indicesOfUndominated.
@@ -142,7 +185,7 @@ void Solver::gatherActionSuccessors(vector<QValue>& candidates, vector<int>& qVa
     vector<vector<QValue*>> combos = GetSuccessorQValueCombinations(successors);
 
     unordered_set<QValue, QValueHash, QValueEqual> uniqueCandidates;
-   // Aggergate/gather for each consideration, for each combination.
+    // Aggergate/gather for each consideration, for each combination.
     for (auto& elem : combos) {
         // TODO can make new_qv a pointer to save copies...
         uniqueCandidates.insert(mdp.MultiGather(*successors, elem));
@@ -153,6 +196,7 @@ void Solver::gatherActionSuccessors(vector<QValue>& candidates, vector<int>& qVa
         qValueIdxToAction.push_back(aIdx);
     }
 }
+
 
 vector<vector<QValue*>> Solver::GetSuccessorQValueCombinations(vector<Successor*>* successors) {
     vector<vector<QValue*>> combs(1);

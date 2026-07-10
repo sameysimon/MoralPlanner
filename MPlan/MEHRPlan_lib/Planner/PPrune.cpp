@@ -1,8 +1,9 @@
 //
 // Created by Simon Kolker on 02/06/2026.
 //
-
 #include "Planner/Solver.hpp"
+
+
 
 std::vector<int> Solver::Pprune(MDP& mdp, std::vector<QValue>& inVector) {
     std::vector<int> result;
@@ -14,6 +15,7 @@ void Solver::Pprune(MDP& mdp, std::vector<QValue>& inVector, std::vector<int>& o
         return q;
     });
 }
+
 template <typename T, typename Accessor>
 std::vector<int> Solver::Pprune(MDP& mdp, const T& inVector, Accessor getQValue) {
     std::vector<int> outVector;

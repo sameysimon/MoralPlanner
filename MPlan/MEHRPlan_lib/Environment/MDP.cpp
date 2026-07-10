@@ -13,6 +13,17 @@
 #include "Utilitarianism.hpp"
 #include <stack>
 
+QValue MDP::MultiJudge(Successor* successor) {
+    QValue qv = QValue();
+    qv.expectations.reserve(considerations.size());
+    for (auto & consideration : considerations) {
+        qv.expectations.emplace_back(
+            consideration->judge(*successor)->clone()
+        );
+    }
+    return qv;
+}
+
 QValue MDP::MultiGather(std::vector<Successor*>& successors, std::vector<QValue*>& baseline, bool ignoreProbability) {
     QValue qv = QValue(*this);
     std::vector<WorthBase*> worth = std::vector<WorthBase*>(successors.size());
@@ -110,58 +121,58 @@ int MDP::CompareByConsiderations(QValue& qv1, QValue& qv2) {
     }
     return result;
 }
-int MDP::ParetoCompare(const QValue& qv1, const QValue& qv2) {
-    bool atLeastOneGreater = false;
-    bool atLeastOneLesser = false;
-    bool allAtLeast = true;
-    bool allAtMost = true;
-    int r = 0;
-    for (auto pCon : considerations) {
-        r = qv1.expectations[pCon->id]->compare(*qv2.expectations[pCon->id]);
-        if (r==1) {
-            atLeastOneGreater = true;
-            allAtMost = false;
-        }
-        if (r==-1) {
-            atLeastOneLesser = true;
-            allAtLeast = false;
-        }
-    }
-    if (atLeastOneGreater and allAtLeast) {
-        return 1;
-    }
-    if (atLeastOneLesser and allAtMost) {
-        return -1;
-    }
-    return 0;
-}
-int MDP::ParetoCompare(const QValue& qv1, const QValue& qv2, const std::vector<size_t>& consideration_indices) {
-    bool atLeastOneGreater = false;
-    bool atLeastOneLesser = false;
-    bool allAtLeast = true;
-    bool allAtMost = true;
-    int r = 0;
-    for (auto con_idx : consideration_indices) {
-        Consideration* pCon = considerations[con_idx];
-        r = qv1.expectations[pCon->id]->compare(*qv2.expectations[pCon->id]);
-        if (r==1) {
-            atLeastOneGreater = true;
-            allAtMost = false;
-        }
-        if (r==-1) {
-            atLeastOneLesser = true;
-            allAtLeast = false;
-        }
-    }
-    if (atLeastOneGreater and allAtLeast) {
-        return 1;
-    }
-    if (atLeastOneLesser and allAtMost) {
-        return -1;
-    }
-    return 0;
-}
+int MDP::ParetoCompare(const QValue& qv1, const QValue& qv2) const {
+    bool greater = false;
+    bool lesser = false;
 
+    const auto& e1 = qv1.expectations;
+    const auto& e2 = qv2.expectations;
+
+    for (size_t i = 0; i < considerations.size(); ++i) {
+        const int r = e1[i]->compare(*e2[i]);
+        if (r > 0) {
+            if (lesser) {
+                return 0;
+            }
+            greater = true;
+        } else if (r < 0) {
+            if (greater) {
+                return 0;
+            }
+            lesser = true;
+        }
+    }
+
+    if (greater) return 1;
+    if (lesser) return -1;
+    return 0;
+}
+int MDP::ParetoCompare(const QValue& qv1, const QValue& qv2, const std::vector<size_t>& consideration_indices) const {
+    bool greater = false;
+    bool lesser = false;
+
+    const auto& e1 = qv1.expectations;
+    const auto& e2 = qv2.expectations;
+
+    for (size_t i : consideration_indices) {
+        const int r = e1[i]->compare(*e2[i]);
+        if (r > 0) {
+            if (lesser) {
+                return 0;
+            }
+            greater = true;
+        } else if (r < 0) {
+            if (greater) {
+                return 0;
+            }
+            lesser = true;
+        }
+    }
+
+    if (greater) return 1;
+    if (lesser) return -1;
+    return 0;
+}
 
 /**
  * Progresses down ranks, searching for earliest inequality.

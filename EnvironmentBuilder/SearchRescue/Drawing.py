@@ -16,7 +16,18 @@ def BuildNxGraph(adj_edge):
 
     return G
 
-def _DrawGraphOnAxes(ax, G, pos, holding="Nothing", current_node=None, community=None, node_status=None, visited=None, traversed_edges=None, timestep=None, current_action=None, current_worth=None, cumulative_worth=None):
+def _DrawGraphOnAxes(ax, G, pos,
+                    curr_props=None, 
+                    community=None, 
+                    visited=None,
+                    traversed_edges=None,
+                    current_action=None, current_worth=None, cumulative_worth=None):
+    if curr_props is None:
+        current_node = None
+    else:
+        current_node = curr_props['curr_tile']
+
+
     if visited is None:
         visited = set()
 
@@ -29,13 +40,13 @@ def _DrawGraphOnAxes(ax, G, pos, holding="Nothing", current_node=None, community
 
     for node in G.nodes:
         if community is not None:
+            
             colour = community[int(node)]
 
             if colour == "":
                 colour = "grey"
 
             node_colours.append(colour)
-
         else:
             if node in visited:
                 node_colours.append("orange")
@@ -62,13 +73,10 @@ def _DrawGraphOnAxes(ax, G, pos, holding="Nothing", current_node=None, community
             ax=ax,
         )
 
-    if node_status is not None:
-        node_labels = {}
-        for node in G.nodes:
-            node_labels[node] = node_status[int(node)]
-            node_labels[node] = node_labels[node].removeprefix("blue:")
-            node_labels[node] = node_labels[node].removeprefix("red:")
-
+    node_labels = {}
+    for node in G.nodes:
+        node_labels[node] = curr_props['tile_type'][int(node)]
+        node_labels[node] = node_labels[node].replace("hospital", "H")
         nx.draw_networkx_labels(
             G,
             pos,
@@ -78,15 +86,7 @@ def _DrawGraphOnAxes(ax, G, pos, holding="Nothing", current_node=None, community
             font_color="white",
             ax=ax
         )
-    else:
-        nx.draw_networkx_labels(
-            G,
-            pos,
-            font_size=12,
-            font_color="white",
-            font_weight="bold",
-            ax=ax,
-        )
+    
 
     nx.draw_networkx_edges(
         G,
@@ -114,37 +114,41 @@ def _DrawGraphOnAxes(ax, G, pos, holding="Nothing", current_node=None, community
             ax=ax,
         )
     if current_node is not None:
-        ax.set_title(f"Node {current_node} at time {timestep}")
+        ax.set_title(f"Node {current_node} at time {curr_props['time']}")
     ax.axis("off")
 
-    ax.text(0.5,-0.08, f"Agent executes {current_action}\nworth {current_worth}\n cumulative {cumulative_worth}\nHolding:{holding}" ,transform=ax.transAxes, ha="center", va="top", fontsize=12, wrap=True)
-    plt.subplots_adjust(bottom=0.18)
+    t = ""
+    if current_action is not None:
+        t += f"Agent executes {current_action}\n"
+    if current_worth is not None:
+        t += f"{current_worth}\n"
+    if cumulative_worth is not None:
+        t+= f"cumulative {cumulative_worth}\n"
+    if curr_props is not None:
+        t+= f"Holding:{curr_props["holding"]}"
+    if t != "":
+        ax.text(0.5,-0.08, t ,transform=ax.transAxes, ha="center", va="top", fontsize=12, wrap=True)
+        plt.subplots_adjust(bottom=0.18)
 
-def DrawGraph(adj_edge, current_node=None, community=None, node_status=None, visited=None):
+def DrawGraph(adj_edge, community=None, curr_props=None, visited=None):
     G = BuildNxGraph(adj_edge)
+    current_node = curr_props['curr_tile']
 
-    if current_node is None:
-        start_node = list(G.nodes)[0]
-    else:
-        start_node = current_node
-
-    pos = nx.bfs_layout(G, start=start_node)
+    pos = nx.bfs_layout(G, start=current_node)
 
     fig, ax = plt.subplots(figsize=(8, 6))
-
     _DrawGraphOnAxes(
         ax=ax,
         G=G,
         pos=pos,
-        current_node=current_node,
+        curr_props=curr_props,
         community=community,
-        node_status=node_status,
-        visited=visited,
+        visited=visited
     )
 
     plt.show()
 
-def AnimateAgent(adj_edge, scr_history=None, scr_tag_sequence=None, community=None, node_status=None, node_status_history=None, action_history=None, worth_history=None, cumulative_worth=None, interval=700):
+def AnimateAgent(adj_edge, scr_history=None, scr_tag_sequence=None, community=None, action_history=None, worth_history=None, cumulative_worth=None, interval=700):
     G = BuildNxGraph(adj_edge)
 
     agent_path = []
@@ -159,29 +163,23 @@ def AnimateAgent(adj_edge, scr_history=None, scr_tag_sequence=None, community=No
     fig, ax = plt.subplots(figsize=(8, 6))
 
     def update(frame):
-        current_node = agent_path[frame]
 
         visited = set(agent_path[:frame + 1])
 
         traversed_edges = list(
             zip(agent_path[:frame], agent_path[1:frame + 1])
         )
-
-        # Choose labels for this frame
-        if node_status_history is not None:
-            frame_node_status = node_status_history[frame]
-        else:
-            frame_node_status = node_status
-
         curr_action = "None"
-        holding = "Nothing"
+        curr_props = None
         curr_worth = "None"
         cum_worth = "None"
         if (frame < len(action_history)):
             curr_action = action_history[frame]
-            holding = scr_tag_sequence[i]["holding"]
             curr_worth = worth_history[frame]
-        
+            curr_props = scr_tag_sequence[frame]
+        else:
+            curr_worth = worth_history[-1]
+
         if (frame >= len(cumulative_worth)):
             cum_worth = cumulative_worth[-1]
         else:
@@ -191,14 +189,11 @@ def AnimateAgent(adj_edge, scr_history=None, scr_tag_sequence=None, community=No
             ax=ax,
             G=G,
             pos=pos,
-            current_node=current_node,
             community=community,
-            node_status=frame_node_status,
+            curr_props=curr_props,
             visited=visited,
             traversed_edges=traversed_edges,
             current_action=curr_action,
-            holding=holding,
-            timestep=frame,
             current_worth=curr_worth,
             cumulative_worth=cum_worth,
         )

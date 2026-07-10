@@ -44,6 +44,8 @@ public:
 
     crow::response HandleCacheSuccessors(const crow::request& req);
     crow::response HandleAggregateCachedSuccessors(const crow::request& req);
+    crow::response HandleClearSuccessorCache(const crow::request& req);
+    crow::response HandleRandomTrajectory(const crow::request& req);
 
 
     REST_App(int port_ = 18080, const string& file_in="", const string &file_out="") {
@@ -112,6 +114,9 @@ public:
         });
         CROW_ROUTE(app, "/AggregateCachedSuccessors").methods(crow::HTTPMethod::POST)([this](const crow::request &req) {
             return HandleAggregateCachedSuccessors(req);
+        });
+        CROW_ROUTE(app, "/RandomTrajectory").methods(crow::HTTPMethod::POST)([this](const crow::request &req) {
+            return HandleRandomTrajectory(req);
         });
 
 

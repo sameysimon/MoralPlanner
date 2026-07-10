@@ -2,9 +2,13 @@ from EnvironmentBuilder.TutorProblem.TeacherProblem import TeacherProblem
 from EnvironmentBuilder.GridWorld.GridWorldProblem import GridWorldProblem
 from EnvironmentBuilder.LostInsulin.Main import LostInsulin
 from EnvironmentBuilder.LostInsulin.Basic import BasicLostInsulin
-from EnvironmentBuilder.SearchRescue.SearchRescueProblem import SearchRescue
 from EnvironmentBuilder.Titanic.TitanicProblem import Titanic
 from EnvironmentBuilder.Elder.ElderProblem import Elder
+
+#from EnvironmentBuilder.SearchRescue.SearchRescueProblem import SearchRescue
+from EnvironmentBuilder.SearchRescue.SearchRescueTwo import SearchRescue
+from EnvironmentBuilder.SearchRescue.Rescue import Rescue
+
 from EnvironmentBuilder.SaveEnvironment import SaveEnvToJSON
 from EnvironmentBuilder.Abstract.AbstractMDP import AbstractMDP
 
@@ -23,6 +27,8 @@ class Domains(str, Enum):
     Elder = "Elder"
     SearchRescue = "SearchRescue"
     Titanic = "Titanic"
+    Rescue = "Rescue"
+    
 
 domains = {
     "WindyDrone": GridWorldProblem,
@@ -32,6 +38,7 @@ domains = {
     "Random": AbstractMDP,
     "Elder": Elder,
     "SearchRescue": SearchRescue,
+    "Rescue": Rescue,
     "Titanic": Titanic
 }
 
@@ -91,6 +98,7 @@ def buildEnvToFile(Domain:str, fileOut:str, **kwargs):
     print(f"Written {Domain} MMMDP with {len(mdp.states)} states and theories {str(kwargs["Theories"])}.")
     print(f"PATH  {fileOut}")
     print(f"")
+    return mdp
 
 
 def main():

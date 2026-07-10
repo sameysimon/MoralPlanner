@@ -5,6 +5,8 @@
 #include <chrono>
 #include <ctime>
 #include <functional>
+#include <random>
+
 
 #define TIME_METRIC_STR "microseconds"
 typedef std::chrono::microseconds time_metric;

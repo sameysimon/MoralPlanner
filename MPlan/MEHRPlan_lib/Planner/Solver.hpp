@@ -9,6 +9,11 @@
 
 using namespace std;
 
+struct Candidate {
+    QValue qv;
+    int action = -1;
+};
+
 class Solver {
     MDP& mdp;
     // Worth vector set Function. It maps state to a list of solutions' possible QValues.
@@ -39,9 +44,9 @@ public:
     int expansions=0;
     int backups=0;
 
-    explicit Solver(MDP& _mdp) : mdp(_mdp) {
+    explicit Solver(MDP& _mdp, bool use_domain_heuristic) : mdp(_mdp) {
         // Initialise Solver data structures
-        mData = build_blank_data();
+        mData = build_blank_data(use_domain_heuristic);
 
         mPi = vector(mdp.states.size(), vector<int>());
 
@@ -83,7 +88,7 @@ public:
         }
         return true;
     }
-    vector<vector<QValue>> build_blank_data(bool use_domain_heuristic=true, size_t time=0);
+    vector<vector<QValue>> build_blank_data(bool use_domain_heuristic=false, size_t time=0);
 
     // Single-Objective VI (for heuristics)
     void BuildIndependentHeuristic();
@@ -91,13 +96,45 @@ public:
     void MCDP();
 
     vector<QValue> EvaluatePolicy(Policy& pi, size_t until_time);
+
+
     // Multi-objective IAO*
     void setPostOrderDFS();
     void MC_iAO_Star();
     void backup(State& state);
+    void backupTwo(State& state);
+
+    void gatherPFActionWorth(list<Candidate>& candidates, vector<Successor*>* successors, int aIdx);
     void gatherActionSuccessors(vector<QValue>& candidates, vector<int>& qValueIdxToAction, int aIdx,
                                 vector<Successor*>* successors);
 
+
+    template <typename T, typename Accessor>
+    bool ParetoFilter(MDP& mdp, std::list<T>& pfVector, T&& new_qv, Accessor getQValue) {
+        const QValue& newValue = getQValue(new_qv);
+        if (!mdp.isQValueInBudget(newValue)) {
+            return false;
+        }
+        auto it = pfVector.begin();
+        while (it != pfVector.end()) {
+            const QValue& existingValue = getQValue(*it);
+            if (existingValue.isEquivalent(newValue)) {
+                return false;
+            }
+            int r = mdp.ParetoCompare(newValue, existingValue);
+            if (r == -1) {
+                return false;
+            }
+            if (r == 1) {
+                it = pfVector.erase(it);
+            } else {
+                ++it;
+            }
+        }
+
+        pfVector.push_front(std::forward<T>(new_qv));
+        return true;
+    }
 
     static std::vector<int> Pprune(MDP& mdp, std::vector<QValue>& inVector);
     static void Pprune(MDP&mdp, std::vector<QValue>& inVector, std::vector<int>& outVector);

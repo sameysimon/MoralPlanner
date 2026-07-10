@@ -14,6 +14,7 @@ import atexit
 from scripts.TexTables import SaveDataFrameToTexTemplate
 import re
 from matplotlib.ticker import MaxNLocator
+import ast
 
 
 def latex_config_name(name):
@@ -79,11 +80,26 @@ class ExperimentRunner:
         if level > self.loglevel:
             print(msg)
 
+    #
+    # File path stuff
+    #
     def makeMdpFileName(self, confName:str, confRep:int=None):
         return f"{self.mdpFolder}/{confName}_con{confRep}.json"
 
     def makePlanOutFileName(self, confName:str, confRep:int, envRep:int):
         return f"{self.rawOutFolder}/{confName}_con{confRep}_rep{envRep}.json"
+    
+    def getAllDataFilePath(self) -> str:
+        return self.outputFolder + "/all_data.csv"
+
+    def getDurationsFilePath(self) -> str:
+        return self.outputFolder + "/durations.csv"
+
+    def getDurationsByTheoryFilePath(self) -> str:
+        return self.outputFolder + "/durations_by_theory.csv"
+    
+    def getTheoryExpectationsFilePath(self) -> str:
+        return self.outputFolder + "/theory_expectations.csv"
 
 
     def run(self, configRepetitions=1, envRepetitions=1):
@@ -101,28 +117,13 @@ class ExperimentRunner:
         # (inefficient reading each file twice.)
         self.extractData(configRepetitions, envRepetitions)
 
-
-    def TexSummary(self, agg_rules:dict, tex_template, tex_output, merge:dict={}, round=3):
-        df = pd.DataFrame(self.data)
-        df = df.replace(["", "N/A", "NA", "nan", "None"], np.nan)
-
-        for new_key, old_keys in merge.items():
-            for k in range(len(old_keys) - 1):
-                df[new_key] = df[old_keys[k]].combine_first(old_keys+1)
-        df = df.replace(np.nan, "SKIP")
-
-        df = df[['Config_name'] + list(agg_rules.keys())].groupby('Config_name', sort=False).agg(agg_rules)
-        df.round(3)
-        SaveDataFrameToTexTemplate(df,
-                                   f"{self.texTablesFolder}/{tex_template}", f"{self.texOutFolder}/{tex_output}", 
-                                   row_template_mode=False,
-                                   timestamp=self.datetimeNow)
-        return df
-
     def buildEnvironments(self, configRepetitions:int=1):
+        mdps = {}
         for i in range(configRepetitions):
             for conf in self.configs:
-                MDPFactory.buildEnvToFile(self.domain, fileOut=self.makeMdpFileName(conf['Name'], i), **conf)
+                mdps.setdefault(conf["Name"], [])
+                mdps[conf["Name"]].append(MDPFactory.buildEnvToFile(self.domain, fileOut=self.makeMdpFileName(conf['Name'], i), **conf))
+        return mdps
     
     def runPlanner(self, configRepetitions=1, envRepetitions=1):
         for conf in self.configs:
@@ -131,11 +132,11 @@ class ExperimentRunner:
                 for env_rep in range(envRepetitions):
                     self.log(f"Config Name: {conf["Name"]}; Env Repetition: {env_rep}",0)
                     outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
-                    result = subprocess.run([self.planner, "--debug", "0", inFile, outFile])
+                    p = [self.planner, "--debug", "0", inFile, outFile]
+                    print('EXECUTE ' + ' '.join(p))
+                    result = subprocess.run(p)
                     result.check_returncode()
             self.log(f"Finished env on {conf["Name"]}.",0)
-
-        
 
     def extractData(self, configRepetitions=1, envRepetitions=1):
         self.con_tags = []
@@ -197,66 +198,6 @@ class ExperimentRunner:
                                 entry[tag] = "N/A"
                         self.data.append(entry)
 
-
-
-    def StartServerAndPost(self, fileName, port=18080):
-        self.StartServer(port)
-        time.sleep(1)
-        self.PostMDPToServer(fileName, port)
-
-    def StartServer(self, port=18080, autoTerminate=True):
-        self.ServerProcess = subprocess.Popen([self.planner, "--server", "--debug", "3", "--port", str(port)])
-        if autoTerminate:
-            atexit.register(self.ServerProcess.terminate)
-
-    def PostMDPToServer(self, fileName, port=18080, fileOut=None, from_data_folder=False):
-        req = {'file_in': fileName, 'from_data_folder':from_data_folder}
-        if not fileOut is None:
-            req['file_out'] = fileOut
-        resp = requests.post(f"http://localhost:{str(port)}/MDP", json=req)
-        if (resp.status_code!=200):
-            self.log(f"MPlan Server Error: {resp.reason}",0)
-            if not self.ServerProcess is None:
-                self.ServerProcess.terminate()
-            return
-        dat = resp.json
-        resp.close()
-        return dat
-
-    def CacheSuccessorsOnServer(self, scrs, actions):
-        scr_states = [0] + [s[1] for s in scrs]
-        req = {'states_index': scr_states, 'actions':actions}
-        resp = requests.post("http://localhost:18080/CacheSuccessors", json=req)
-    
-    def GetCachedSuccessorsFromServer(self) -> requests.Response:
-        return requests.post("http://localhost:18080/AggregateCachedSuccessors")
-        
-
-    def PostNextMDPToServer(self, fileName, policy_idx, history_idx):
-        self.buildEnvironments(1)
-        resp = requests.post("http://localhost:18080/PlanFromHistory", json={'policyIdx': fileName, 'from_data_folder':False})
-        if (resp.status_code!=200):
-            self.log(f"MPlan Server Error: {resp.reason}",0)
-            self.ServerProcess.terminate()
-            return
-        dat = resp.json
-        resp.close()
-        return dat
-
-    
-
-    def getAllDataFilePath(self) -> str:
-        return self.outputFolder + "/all_data.csv"
-
-    def getDurationsFilePath(self) -> str:
-        return self.outputFolder + "/durations.csv"
-
-    def getDurationsByTheoryFilePath(self) -> str:
-        return self.outputFolder + "/durations_by_theory.csv"
-    
-    def getTheoryExpectationsFilePath(self) -> str:
-        return self.outputFolder + "/theory_expectations.csv"
-
     def saveResults(self):
         # Save all data csv
         df = pd.DataFrame(self.data)
@@ -296,8 +237,157 @@ class ExperimentRunner:
         theoryResults.to_csv(self.getTheoryExpectationsFilePath())
         SaveDataFrameToTexTemplate(theoryResults, f"{self.texTablesFolder}/UtilitarianResults.tex", f"{self.texOutFolder}/Utility_table.tex")
 
+    def GetWorthData(self, worth_tags, configRepetitions=1, envRepetitions=1):
+        # Open output file from planner and interpret
+        data = []
+        for conf_rep in range(configRepetitions):
+            for conf in self.configs:
+                for env_rep in range(envRepetitions):
+                    # open file
+                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
+                    with open(outFile, 'r') as file:
+                        json_data = json.load(file)
+                        soln_order = json_data['Solutions_Order']
+                        num_nacc = json_data['Num_Min_Non_Acceptability']
+                        for i in range(num_nacc):
+                            e = {"Config_name": conf['Name'],
+                                "Conf_rep": conf_rep,
+                                "Env_rep": env_rep,
+                                "Horizon": json_data["Horizon"],
+                                "Moral_policy_idx": i,
+                                "Non-acceptability": json_data["Solutions"][soln_order[i]]["Acceptability"],
+                            }
+                            for wt in worth_tags:
+                                if wt in json_data["Solutions"][soln_order[i]]["Expectation"].keys():
+                                    e[wt] = json_data["Solutions"][soln_order[i]]["Expectation"][wt]
+                                else:
+                                    e[wt] = np.nan
+                            data.append(e)
+        return data
 
 
+    #
+    # Server Stuff
+    #
+    def StartServerAndPost(self, fileName, port=18080):
+        self.StartServer(port)
+        time.sleep(1)
+        self.PostMDPToServer(fileName, port)
+
+    def StartServer(self, port=18080, autoTerminate=True):
+        self.ServerProcess = subprocess.Popen([self.planner, "--server", "--debug", "3", "--port", str(port)])
+        if autoTerminate:
+            atexit.register(self.ServerProcess.terminate)
+
+    def PostMDPToServer(self, fileName, port=18080, fileOut=None, from_data_folder=False):
+        req = {'file_in': fileName, 'from_data_folder':from_data_folder}
+        if not fileOut is None:
+            req['file_out'] = fileOut
+        resp = requests.post(f"http://localhost:{str(port)}/MDP", json=req)
+        if (resp.status_code!=200):
+            self.log(f"MPlan Server Error: {resp.reason}",0)
+            if not self.ServerProcess is None:
+                self.ServerProcess.terminate()
+            return
+        dat = resp.json
+        resp.close()
+        return dat
+
+    def CacheSuccessorsOnServer(self, scrs, actions):
+        scr_states = [0] + [s[1] for s in scrs]
+        req = {'states_index': scr_states, 'actions':actions}
+        resp = requests.post("http://localhost:18080/CacheSuccessors", json=req)
+    
+    def GetCachedSuccessorsFromServer(self) -> requests.Response:
+        return requests.post("http://localhost:18080/AggregateCachedSuccessors")
+        
+    #
+    # Lookahead Methods
+    #
+    def PlanWithLookahead(self, 
+                          domain="Rescue", 
+                          filename="", 
+                          real_horizon=20, 
+                          look_ahead=4, 
+                          config_index=0,
+                          act_ahead=1):
+        scr_sequence = []
+        scr_tag_sequence = []
+        action_sequence = []
+        moral_pols = []
+
+        curr_state = 0
+        scr_props = None
+        for i in range(0, real_horizon, act_ahead):
+            # 1. Generate MDP from timestep
+            lookahead_ = look_ahead
+            if "Horizon" in self.configs[config_index].keys():
+                lookahead_ = self.configs[config_index]["Horizon"]
+            mdp = self.makeMDP(domain,
+                        Theories = self.configs[config_index]["Theories"],
+                        Considerations = self.configs[config_index]["Considerations"],
+                        Horizon = lookahead_, 
+                        initialProps=scr_props)
+            mdp.makeAllStatesExplicit()
+            # 2. Save new MDP
+            curr_file = f"{filename}_t={str(i).rjust(2, '0')}.json"
+            mdp_file = f"{self.mdpFolder}/{curr_file}"
+            self.SaveEnvToJSON(mdp, mdp_file, domain)
+            # 3. Plan on MDP
+            fo = f"{self.rawOutFolder}/{curr_file}"
+            self.PostMDPToServer(fileName=mdp_file, fileOut=fo, from_data_folder=False)
+            # 4. Sample random trajectory
+            dat = self.SampleTrajectoryFromServer(act_ahead, add_worth_to_history=True)
+            scrs = []
+            for i in range(len(dat['visited_states'])):
+                curr_scr = [dat['transition_probabilities'][i], dat['visited_states'][i]]
+                for key, val in dat['transition_worth'].items():
+                    curr_scr.extend(val)
+                scrs.append(curr_scr)
+            action_sequence = dat['actions']
+            
+            with open(fo) as f:
+                d = json.load(f)
+                for i in dat['visited_states']:
+                    scr_props = d["State_tags"][[i]]
+                    scr_props = ast.literal_eval(scr_props)
+                    scr_props["time"] = 0
+                    if (i==0):
+                        scr_tag_sequence.append(ast.literal_eval(d["State_tags"][0]))
+                scr_tag_sequence.append(scr_props)
+
+        dat = self.GetCachedSuccessorsFromServer()
+        dat = dat.json()
+        cumulative_worth = dat["Cumulative_Worth"]
+        transitions_worth = dat["Total_History"]
+
+
+
+    def PostNextMDPToServer(self, fileName, policy_idx, history_idx):
+        self.buildEnvironments(1)
+        resp = requests.post("http://localhost:18080/PlanFromHistory", json={'policyIdx': fileName, 'from_data_folder':False})
+        if (resp.status_code!=200):
+            self.log(f"MPlan Server Error: {resp.reason}",0)
+            self.ServerProcess.terminate()
+            return
+        dat = resp.json
+        resp.close()
+        return dat
+
+    def SampleTrajectoryFromServer(self, time_steps:int, add_worth_to_history:bool = True, seed=None):
+        req = {'time_steps': time_steps, 'add_worth_to_history': add_worth_to_history}
+        if not seed is None:
+            req['seed'] = seed
+
+        resp = requests.post("http://localhost:18080/RandomTrajectory", json=req)
+        dat = resp.json
+        resp.close()
+        return dat
+
+
+    #
+    # Data Visualisation
+    #
     def loadResults(self, of):
         self.outputFolder = of
         df = pd.read_csv(self.getAllDataFilePath())
@@ -486,7 +576,6 @@ class ExperimentRunner:
         plt.savefig(f"{self.figuresFolder}/{configName}_{fileName}", dpi=300)
         plt.show()
     
-
     def plotNonAcceptGraph(self, config_names:list, fileName:str="NaccGraph.png"):
 
         config_names = ["(Hal)^0, (Carla)^0",
@@ -524,7 +613,6 @@ class ExperimentRunner:
         plt.savefig(f"{self.figuresFolder}/{fileName}", dpi=300)
         plt.show()
 
-
     def plotTimeChart(self, configs, envRepetitions:int, fileName:str="ConfigsPlot.png"):
         data = []
         for c in configs.keys():
@@ -561,3 +649,21 @@ class ExperimentRunner:
         
         plt.savefig(f"{self.figuresFolder}/{fileName}", dpi=300)
         #plt.show()
+
+
+    def TexSummary(self, agg_rules:dict, tex_template, tex_output, merge:dict={}, round=3):
+        df = pd.DataFrame(self.data)
+        df = df.replace(["", "N/A", "NA", "nan", "None"], np.nan)
+
+        for new_key, old_keys in merge.items():
+            for k in range(len(old_keys) - 1):
+                df[new_key] = df[old_keys[k]].combine_first(old_keys+1)
+        df = df.replace(np.nan, "SKIP")
+
+        df = df[['Config_name'] + list(agg_rules.keys())].groupby('Config_name', sort=False).agg(agg_rules)
+        df.round(3)
+        SaveDataFrameToTexTemplate(df,
+                                   f"{self.texTablesFolder}/{tex_template}", f"{self.texOutFolder}/{tex_output}", 
+                                   row_template_mode=False,
+                                   timestamp=self.datetimeNow)
+        return df

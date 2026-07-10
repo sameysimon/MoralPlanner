@@ -79,65 +79,24 @@ class NeverIgnore(Consideration):
 
     def StateHeuristic(self, state:State):
         return False
-    
-class PositiveWellbeing(Consideration):
-    def __init__(self, group="all", tag='Positive_Well-being'):
-        super().__init__()
-        self.type='Utility'
-        self.rank=0
-        self.tag=tag
-        self.default = 0
-        self.group = group
-
-    def judge(self, successor: Successor):
-        u = 0
-        src_props = successor.sourceState.props
-        tar_props = successor.targetState.props
-
-        for i in range(len(src_props["tile_state"])):
-            if (SearchRescue.Community[i] != self.group and self.group!='all'):
-                continue
-            if src_props["tile_state"][i] == "hunger" and tar_props["tile_state"][i] == "helped":
-                u += 2
-            if src_props["tile_state"][i] == "injured" and tar_props["tile_state"][i] == "helped":
-                u += 3
-            if src_props["tile_state"][i] == "severe" and tar_props["tile_state"][i] == "helped":
-                u += 4
-        return u
-    
-    def StateHeuristic(self, state:State):
-        return 500
 
 class NegativeWellbeing(Consideration):
-    def __init__(self, group="all", tag='Negative_Well-being'):
+    def __init__(self, group="all", group_idx=0, tag='Negative_Well-being'):
         super().__init__()
         self.type='Utility'
         self.rank=0
         self.tag=tag
         self.default = 0
         self.group = group
+        self.group_idx = group_idx
 
     def judge(self, successor: Successor):
-        u = 0
-        src_props = successor.sourceState.props
-        tar_props = successor.targetState.props
-
-        for i in range(len(src_props["tile_state"])):
-            if (SearchRescue.Community[i] != self.group and self.group!='all'):
-                continue
-            if tar_props["tile_state"][i] ==  f"hunger":
-                u -= 1
-
-            if tar_props["tile_state"][i] ==  f"injured":
-                u -= 2
-            
-            if tar_props["tile_state"][i] ==  f"severe":
-                u -= 3
-        return u
+        if self.group=="all":
+            return sum(successor.targetState.props["Comm_wellbeing"])
+        return successor.targetState.props["Comm_wellbeing"][self.group_idx]
     
     def StateHeuristic(self, state:State):
         return 0
-
 
 class Wellbeing(Consideration):
     def __init__(self, group="all", tag='Wellbeing'):
@@ -148,11 +107,10 @@ class Wellbeing(Consideration):
         self.default = 0
         self.groupTag = f"{group}:" if group != "all" else ""
         self.neg = NegativeWellbeing(group)
-        self.pos = PositiveWellbeing(group)
 
 
     def judge(self, successor: Successor):
-        return self.neg.judge(successor) + self.pos.judge(successor)
+        return self.neg.judge(successor)
 
     def StateHeuristic(self, state:State):
         return self.neg.StateHeuristic(state) + self.pos.StateHeuristic(state)
@@ -194,16 +152,14 @@ class Odds:
     Blue_Treat_Success = 0.4
     Blue_Injured_Success = 0.4
 
-
-
 class SearchRescue(MDP):
     AdjEdge = {}
     Community = []
-
+    WaitEnabled = False
     initialProps = {
         "time":0,
-        "tile_state": [], # status of current tile
         "holding": 'None',
+        "Comm_wellbeing": [],
         "curr_tile": 0,
     }
     
@@ -237,138 +193,64 @@ class SearchRescue(MDP):
         self.theorySetup(Theories, Considerations)
         
     @staticmethod
-    def GenerateGraph(
-        nodes: int = 5,
-        edges: int | None = None,
-        red_nodes: int | None = None,
-        blue_nodes: int | None = None,
-        base_nodes: int = 1,
-        seed: int | None = None):
-       
-        if nodes <= 0:
-            raise ValueError("nodes must be at least 1")
+    def GenerateHubSpokeGraph(Communities:list, Spoke_Length:int, active_sites_per_community:int=None):
+        if (active_sites_per_community is None):
+            active_sites_per_community = Spoke_Length
+        hub = 0
+        next_node = 1
+        adj = {hub: []}
+        community = [""]
+        true_tile_states = ["base"]
+        arms: dict[str, list[int]] = {}
+        for com in range(len(Communities)):
+            arms[com] = []
+            previous = hub
 
-        if base_nodes < 1:
-            raise ValueError("base_nodes must be at least 1")
+            for depth in range(1, Spoke_Length + 1):
+                node = next_node
+                next_node += 1
 
-        if base_nodes > nodes:
-            raise ValueError("base_nodes cannot be greater than nodes")
+                arms[com].append(node)
+                adj[node] = []
 
-        non_base_nodes = nodes - base_nodes
+                # Bidirectional corridor edge.
+                adj[previous].append(node)
+                adj[node].append(previous)
 
-        # Work out the red/blue split when one or both values are omitted.
-        if red_nodes is None and blue_nodes is None:
-            red_nodes = non_base_nodes // 2
-            blue_nodes = non_base_nodes - red_nodes
+                community.append(com)
+                true_tile_states.append("none")
+                previous = node
 
-        elif red_nodes is None:
-            red_nodes = non_base_nodes - blue_nodes
+        comm_wellbeing = []
+        # Assign random needs to sites.
+        for com, nodes in arms.items():
+            comm_wellbeing.append(0)
+            for idx, node in enumerate(nodes):
+                if idx >= active_sites_per_community:
+                    true_tile_states[node] = "none"
+                else:
+                    st = random.choice(["injured", "severe", "hunger"])
+                    true_tile_states[node] = st
+                    if st=="severe":
+                        comm_wellbeing[com] -= 3
+                    if st=="injured":
+                        comm_wellbeing[com] -= 2
+                    if st=="hunger":
+                        comm_wellbeing[com] -= 1
+                    
+                    
+        SearchRescue.AdjEdge = adj
+        SearchRescue.DeterministicTileStates = true_tile_states
+        SearchRescue.Community = community
 
-        elif blue_nodes is None:
-            blue_nodes = non_base_nodes - red_nodes
-
-        if red_nodes < 0 or blue_nodes < 0:
-            raise ValueError("red_nodes and blue_nodes cannot be negative")
-
-        if red_nodes + blue_nodes + base_nodes != nodes:
-            raise ValueError(
-                "red_nodes + blue_nodes + base_nodes must equal nodes"
-            )
-
-        # A strongly connected directed graph needs at least one directed
-        # cycle containing every node.
-        if nodes == 1:
-            minimum_edges = 0
-            maximum_edges = 0
-        else:
-            minimum_edges = nodes
-            maximum_edges = nodes * (nodes - 1)
-
-        # Default to about two outgoing edges per node.
-        if edges is None:
-            edges = min(maximum_edges, max(minimum_edges, nodes * 2))
-
-        if not minimum_edges <= edges <= maximum_edges:
-            raise ValueError(
-                f"For {nodes} nodes, edges must be between "
-                f"{minimum_edges} and {maximum_edges} to produce a "
-                "strongly connected directed graph without self-loops."
-            )
-
-        rng = random.Random(seed)
-        node_ids = list(range(nodes))
-
-        # --------------------------------------------------------------
-        # Assign base, red, and blue nodes
-        # --------------------------------------------------------------
-
-        shuffled_nodes = node_ids.copy()
-        rng.shuffle(shuffled_nodes)
-
-        base_set = set(shuffled_nodes[:base_nodes])
-
-        remaining_nodes = shuffled_nodes[base_nodes:]
-        red_set = set(remaining_nodes[:red_nodes])
-        blue_set = set(remaining_nodes[red_nodes:])
-
-        # Reset the arrays rather than appending to old values.
-        SearchRescue.Community = [
-            "" if node in base_set
-            else "red" if node in red_set
-            else "blue"
-            for node in node_ids
-        ]
-
-        SearchRescue.initialProps["tile_state"] = [
-            "base" if node in base_set else "?"
-            for node in node_ids
-        ]
-
-        # The agent must start at one of the bases.
-        SearchRescue.initialProps["curr_tile"] = min(base_set)
-
-        # --------------------------------------------------------------
-        # Generate the graph
-        # --------------------------------------------------------------
-
-        graph = nx.DiGraph()
-        graph.add_nodes_from(node_ids)
-
-        if nodes > 1:
-            # Start with a randomly ordered directed cycle. This guarantees
-            # that every node can reach every other node.
-            cycle = node_ids.copy()
-            rng.shuffle(cycle)
-
-            cycle_edges = [
-                (cycle[i], cycle[(i + 1) % nodes])
-                for i in range(nodes)
-            ]
-
-            graph.add_edges_from(cycle_edges)
-
-        # Find every valid edge not already used by the cycle.
-        candidate_edges = [
-            (source, target)
-            for source in node_ids
-            for target in node_ids
-            if source != target
-            and not graph.has_edge(source, target)
-        ]
-
-        rng.shuffle(candidate_edges)
-
-        number_to_add = edges - graph.number_of_edges()
-        graph.add_edges_from(candidate_edges[:number_to_add])
-
-        # Convert the NetworkX graph into your existing adjacency-list format.
-        SearchRescue.AdjEdge = {
-            node: sorted(graph.successors(node))
-            for node in node_ids
+        SearchRescue.initialProps = {
+            "time": 0,
+            "Comm_wellbeing": comm_wellbeing,
+            "Comm_names": Communities,
+            "holding": "None",
+            "curr_tile": hub,
         }
 
-        return SearchRescue.AdjEdge
-    
     def BuildMyGraph():
         SearchRescue.AdjEdge = {
             0:[1,6],
@@ -386,20 +268,20 @@ class SearchRescue(MDP):
 
     def isGoal(self, state:State) -> bool:
         # returned/remained at original position.
-        return state.props['tile_state'][state.props["curr_tile"]] == "base"
+        return False #state.props['tile_state'][state.props["curr_tile"]] == "base"
 
     
     def getActions(self, state:State) -> list:
         acts = []
         if (state.props['time'] >= self.horizon):
             return acts
-
-        #
+        
         # Add movement actions
-        #
         for next_tile in SearchRescue.AdjEdge[state.props["curr_tile"]]:
             acts.append(f"go_to:{next_tile}")
-        acts.append("wait")
+        
+        if SearchRescue.WaitEnabled:
+            acts.append("wait")
 
         currTile = state.props["tile_state"][state.props["curr_tile"]]
         holding =  state.props["holding"]
@@ -452,7 +334,7 @@ class SearchRescue(MDP):
     
     def InteractHunger(self, props, prob, action:str):
         if action=="feed":
-            props["tile_state"][props["curr_tile"]] = "helped"
+            props["Comm_wellbeing"][SearchRescue.Community[props['curr_tile']]] += 1
             props["holding"] = "None"
         return [(props, prob)]
     
@@ -461,7 +343,7 @@ class SearchRescue(MDP):
             return [(props, prob)]
 
         if action=="medicate":
-            props["tile_state"][props["curr_tile"]] = "helped"
+            props_["Comm_wellbeing"][SearchRescue.Community[props_['curr_tile']]] += 2
             return [(props, prob)]
 
         com = SearchRescue.Community[props["curr_tile"]]
@@ -471,12 +353,11 @@ class SearchRescue(MDP):
 
         o = []
         props_ = deepcopy(props)
-        props_["tile_state"][props_["curr_tile"]] = "helped"
+        props_["Comm_wellbeing"][SearchRescue.Community[props_['curr_tile']]] += 2
         props_["holding"] = ""
         o.append((props_, prob * pr_treat_success))
 
         props_ = deepcopy(props)
-        props_["tile_state"][props_["curr_tile"]] = "failed"
         props_["holding"] = ""
         o.append((props_, prob * (1 - pr_treat_success)))
         return o
@@ -494,11 +375,10 @@ class SearchRescue(MDP):
 
         outcomes = []
         pr = deepcopy(props)
-        pr["tile_state"][tileIdx] = "helped"
+        pr["Comm_wellbeing"][SearchRescue.Community[pr['curr_tile']]] += 3
         outcomes.append((pr, prob * pr_success))
 
         pr = deepcopy(props)
-        pr["tile_state"][tileIdx] = "failed"
         outcomes.append((pr, prob * (1 - pr_success)))
 
         return outcomes
@@ -574,40 +454,8 @@ class SearchRescue(MDP):
     def AdvanceTime(self, props, prob, action):
         props_ = deepcopy(props)
         props_["time"] = props_["time"] + 1
-        
-        #for i in range(len(props["tile_time"])):
-            #props["tile_time"][i] += 1 Disabled for now
-
         return [(props_, prob)]
     
-        outcomes = [(props, prob)]
-        for e in SearchRescue.events:
-            if e["time"]==props["time"]: # Because after AdvanceTime rule
-                tile = e["tile"]
-                # Skip if effect already applied.
-                if props["tile_state"][tile] == e["type"]:
-                    continue
-
-                eventProb = 1
-                if ("probability" in e.keys()):
-                    eventProb = e["probability"]
-                for i in range(len(outcomes)):
-                    if (eventProb < 1):
-                        # Make a copy and apply effect
-                        props_, prob_ = deepcopy(outcomes[i])
-                        props_["tile_time"][tile] = 0
-                        props_["tile_state"][tile] = e["type"]
-                        prob_*= eventProb
-                        outcomes.append((props_, prob_))
-                        # Add reverse probability to unaffected original
-                        outcomes[i][1] *= (1 - eventProb)
-                    else:
-                        # apply effect to original
-                        outcomes[i][0]["tile_time"][tile] = 0
-                        outcomes[i][0]["tile_state"][tile] = e["type"]
-                        outcomes[i][1] *= eventProb
-        return outcomes
-
 
      # Setup stuff.
     def stateString(self, state) -> str:
@@ -629,22 +477,9 @@ class SearchRescue(MDP):
                 mc = Wellbeing(group='red', tag=tag)
             elif 'blue:wellbeing'==tag:
                 mc = Wellbeing(group='blue', tag=tag)
+            elif 'wellbeing'==tag:
+                mc = Wellbeing(group='all', tag=tag)
             
-            elif 'red:pos_wellbeing'==tag:
-                mc = PositiveWellbeing(group='red', tag=tag)
-            elif 'blue:pos_wellbeing'==tag:
-                mc = PositiveWellbeing(group='blue', tag=tag)
-
-            elif 'red:neg_wellbeing'==tag:
-                mc = NegativeWellbeing(group='red', tag=tag)
-            elif 'blue:neg_wellbeing'==tag:
-                mc = NegativeWellbeing(group='blue', tag=tag)
-
-            elif 'pos_wellbeing'==tag:
-                mc = PositiveWellbeing(tag=tag, group="all")
-            elif 'neg_wellbeing'==tag:
-                mc = NegativeWellbeing(tag=tag, group="all")
-
             elif 'Cost'==tag:
                 mc = Cost(deadline=self.horizon)
             elif 'FindInfo'==tag:

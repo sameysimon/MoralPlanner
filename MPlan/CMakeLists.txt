@@ -26,6 +26,7 @@ add_executable(MPlan main.cpp
         JSONBuilder.hpp
         JSONBuilder.cpp
         REST_App.cpp
+        MEHRPlan_lib/MPlanRandom.hpp
 )
 
 # Google Test for unit tests

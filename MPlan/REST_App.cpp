@@ -622,7 +622,87 @@ crow::response REST_App::HandleAggregateCachedSuccessors(const crow::request &re
     for (auto & qv : TotalHistory) {
         resp_payload["Total_History"].push_back(qv.toStringVector());
     }
-    TotalHistory.clear();
     finishedSolving = true;
     return {resp_payload.dump()};
 }
+
+crow::response REST_App::HandleClearSuccessorCache(const crow::request &req) {
+    finishedSolving = false;
+    TotalHistory.clear();
+    finishedSolving = true;
+    return { };
+}
+
+crow::response REST_App::HandleRandomTrajectory(const crow::request &req) {
+    auto json_req = crow::json::load(req.body);
+    if (!finishedSolving) { return {400, "No MDP yet. Use /MDP to pass a problem file."}; }
+    finishedSolving = false;// prevent other requests
+    size_t time_steps=0;
+    unsigned seed = 0;
+    bool add_to_history = false;
+    try {
+        time_steps = json_req["time_steps"].i();
+        if (json_req.has("seed")) {
+            seed = json_req["seed"].i();
+            MPlanRandom::SetSeed(seed);
+        }
+        if (json_req.has("add_worth_to_history")) {
+            add_to_history = json_req["add_worth_to_history"].b();
+        }
+
+    } catch (runtime_error &err) {
+        return {400, format("MPlan failed to read PlanFromHistory request. {}", err.what())};
+    }
+    vector<size_t> states(0,0);
+    states.reserve(time_steps);
+    vector<double> probs;
+    probs.reserve(time_steps);
+    vector<QValue> worth;
+    worth.reserve(time_steps);
+    vector<string> actions;
+    worth.reserve(time_steps);
+
+    auto pol_idx = runner->non_accept->getMinimumNonAcceptPolicyIdxs()[0];
+    auto& pol = runner->policies[pol_idx];
+
+    for (size_t i = 0; i < time_steps; ++i) {
+        auto a_idx = pol->policy[static_cast<int>(states.back())];
+        auto scr = runner->mdp->SampleSuccessor(states.back(), a_idx);
+        actions.push_back(runner->mdp->getActions(*runner->mdp->states[states.back()])->at(a_idx)->label);
+        states.push_back(scr->target);
+        probs.push_back(scr->probability);
+        worth.emplace_back(runner->mdp->MultiJudge(scr));
+        if (add_to_history) {TotalHistory.emplace_back(worth.back());}
+    }
+    json resp_payload = json::object();
+    resp_payload["visited_states"] = states;
+    resp_payload["actions"] = actions;
+    resp_payload["transition_probabilities"] = probs;
+    json js_worth = json::array();
+    for (auto & qv : worth) {
+        js_worth.push_back(JSONBuilder::toJSON(qv));
+    }
+    resp_payload["transition_worth"] = js_worth;
+
+    return {200, resp_payload.dump()};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

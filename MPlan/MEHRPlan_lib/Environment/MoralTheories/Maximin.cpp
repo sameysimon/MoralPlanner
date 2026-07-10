@@ -30,7 +30,8 @@ int MEHRMaximin::attack(QValue& qv1, QValue& qv2) {
     }
     if (qv1_min < qv2_min) {
         return -1;
-    }
+    }        return -1;
+
     // If neither, draw.
     return 0;
 
@@ -57,7 +58,6 @@ Attack MEHRMaximin::CriticalQuestionOne(Attack& a, policy_hists &histories) {
                 continue;
             }
             int result = attack(histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth);
-            Log::writeFormatLog(Trace, "Attacker Policy {} @ Hist {} vs Defender Policy {} @ Hist {}. Result is {}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth.toString(), result);
             if (result==1) {
                 // Store this attack.
                 size_t t = attacks[a.targetPolicyIdx].size();
@@ -70,7 +70,6 @@ Attack MEHRMaximin::CriticalQuestionOne(Attack& a, policy_hists &histories) {
 
                 a.HistoryEdges.emplace_back((size_t)attIdx, (size_t)defIdx);
                 // Add to non-accceptability.
-                Log::writeFormatLog(Debug, Green, "***Attacker Policy {} @ Hist {} ATTACKS Defender Policy {} @ Hist {} with Pr={}", a.sourcePolicyIdx, histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth.toString(), a.targetPolicyIdx, histories.at(a.targetPolicyIdx).at(defIdx)->mWorth.toString(), histories.at(a.targetPolicyIdx).at(defIdx)->probability);
 
             }
         }

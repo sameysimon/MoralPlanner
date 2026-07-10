@@ -14,6 +14,10 @@ using namespace std;
 // Instantiated by calling vectorGather on a Solution. Holds
 // Used to hold/compare/add state-time-action's worth/state's estimation easily.
 class QValue {
+    explicit QValue(std::vector<unique_ptr<WorthBase>> expectations_) {
+        expectations = std::move(expectations_);
+    }
+
 public:
     vector<unique_ptr<WorthBase>> expectations;
     QValue() {
@@ -29,9 +33,7 @@ public:
         }
 
     }
-    explicit QValue(std::vector<unique_ptr<WorthBase>> expectations_) {
-        expectations = std::move(expectations_);
-    }
+
     QValue(const QValue& other) {
         expectations.resize(other.expectations.size());
         for (size_t i = 0; i < other.expectations.size(); ++i) {
@@ -40,6 +42,8 @@ public:
                 : nullptr;
         }
     }
+
+
     QValue& operator=(const QValue& other) {
         if (this == &other) return *this;
         expectations.resize(other.expectations.size());

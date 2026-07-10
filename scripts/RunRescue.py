@@ -1,6 +1,5 @@
 from scripts.AbstractExperiments import ExperimentRunner, GenerateConfigs
-#from EnvironmentBuilder.SearchRescue.SearchRescueProblem import SearchRescue
-from EnvironmentBuilder.SearchRescue.Rescue import SearchRescue
+from EnvironmentBuilder.SearchRescue.Rescue import Rescue
 import EnvironmentBuilder.SearchRescue.Drawing as SearchRescueDraw
 
 from EnvironmentBuilder.SaveEnvironment import SaveEnvToJSON
@@ -9,50 +8,89 @@ from copy import deepcopy
 import time
 import json
 import numpy as np
-import ast
 
 RunWithLookahead = False
-RealHorizon = 6
-Lookahead = 3
-
-# halTheory={"Name":"Hal", "Type":"Utility", "Rank":0}
-# consideration = ["Tag", "Theory_Name"|["Theory_Name", "Theory_Name_2"]]
+RealHorizon = 20
+Lookahead = 4
 
 Rawls =  {"Theories": [["Rawls", "Maximin", 0]], "Considerations": [["red:wellbeing", "Rawls"], ["blue:wellbeing", "Rawls"]]}
 Fair = {"Theories": [["Fair", "Fairness", 0]], "Considerations": [["red:wellbeing", "Fair"], ["blue:wellbeing", "Fair"]]}
 FindInfo = {"Theories": [["FindInfo", "Utility", 0]], "Considerations": [["FindInfo", "Utility"]]}
 
 
-con3 = {"Search_Rescue": {
+additive = {"Additive": {
+        "Theories": [["Add_Util", "Utility", 0]],
+        "Considerations": [["red:wellbeing", "Add_Util"], ["blue:wellbeing", "Add_Util"]],
+        "Horizon": Lookahead if RunWithLookahead else RealHorizon
+    }
+}
+
+balance = {"Equal": {
         "Theories": [["Red", "Utility", 0], ["Blue", "Utility", 0]],
         "Considerations": [["red:wellbeing", "Red"], ["blue:wellbeing", "Blue"]],
         "Horizon": Lookahead if RunWithLookahead else RealHorizon
     }
 }
 
+fair = {"Fairness": {
+        "Theories": [["Fair", "Fairness", 0]],
+        "Considerations": [["red:wellbeing", "Fair"], ["blue:wellbeing", "Fair"]],
+        "Horizon": Lookahead if RunWithLookahead else RealHorizon
+    }
+}
+
+rawls = {"Rawls": {
+        "Theories": [["Rawls", "Maximin", 0]],
+        "Considerations": [["red:wellbeing", "Rawls"], ["blue:wellbeing", "Rawls"]],
+        "Horizon": Lookahead if RunWithLookahead else RealHorizon
+    }
+}
+
+all = {"All": {
+        "Theories": [["Red", "Utility", 0], ["Blue", "Utility", 0], ["Rawls", "Maximin", 0], ["Fair", "Fairness", 0]],
+        "Considerations": [["red:wellbeing", ["Red", "Rawls", "Fair"]], ["blue:wellbeing", ["Blue", "Rawls", "Fair"]]],
+        "Horizon": Lookahead if RunWithLookahead else RealHorizon
+    }
+}
+
+
+s_balance = {"Search": {
+        "Theories": [["Red", "Utility", 0], ["Blue", "Utility", 0]],
+        "Considerations": [["red:search", "Red"], ["blue:search", "Blue"]],
+        "Horizon": Lookahead if RunWithLookahead else RealHorizon
+    }
+}
+sr_balance = {"Search": {
+        "Theories": [["Red", "Utility", 0], ["Blue", "Utility", 0]],
+        "Considerations": [["red:search", "Red"], ["blue:search", "Blue"], ["red:wellbeing", "Red"], ["blue:wellbeing", "Blue"]],
+        "Horizon": Lookahead if RunWithLookahead else RealHorizon
+    }
+}
+
+
 # Creates folder. Starts server.
 
-
 if (not RunWithLookahead):
-    configs = GenerateConfigs(con3, {})
-    er = ExperimentRunner("SearchRescue", configs)
+    configs = GenerateConfigs(s_balance, {})
+    er = ExperimentRunner("Rescue", configs)
 
-    SearchRescue.BuildMyGraph()
-    SearchRescueDraw.DrawGraph(adj_edge=SearchRescue.AdjEdge, 
-                           community=SearchRescue.Community, 
-                           curr_props=SearchRescue.initialProps)
+    Rescue.BuildMyGraph(['red', 'blue', 'green'], 3)
+    SearchRescueDraw.DrawGraph(adj_edge=Rescue.AdjEdge, community=Rescue.Community, curr_props=Rescue.initialProps)
     er.buildEnvironments()
-    #er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
-    er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
+    er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
+    #er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
     input()
     exit()
 
 
-er = ExperimentRunner("SearchRescue", [con3])
+
+configs = GenerateConfigs(s_balance, {})
+er = ExperimentRunner("Rescue", configs)
 er.StartServer()
 time.sleep(1)
-SearchRescue.GenerateGraph(2,edges=2, base_nodes=1)
-#SearchRescue.BuildMyGraph()
+Rescue.BuildMyGraph(10)
+
+#Rescue.BuildMyGraph()
 
 
 
@@ -67,10 +105,14 @@ for trial_idx in range(Trials):
     curr_state = 0
     scr_props = None
     for i in range(0, RealHorizon):
-        mdp = makeMDP("SearchRescue", Theories=con["Search_Rescue"]["Theories"], Considerations=con["Search_Rescue"]["Considerations"], Horizon=con["Search_Rescue"]["Horizon"], initialProps=scr_props)
+        mdp = makeMDP("Rescue",
+                      Theories=configs[0]["Theories"],
+                      Considerations=configs[0]["Considerations"],
+                      Horizon=configs[0]["Horizon"], 
+                      initialProps=scr_props)
         mdp.makeAllStatesExplicit()
         mdp_file = f"{er.mdpFolder}/trial{trial_idx}_t{str(i).rjust(2, '0')}.json"
-        SaveEnvToJSON(mdp, mdp_file, "SearchRescue")
+        SaveEnvToJSON(mdp, mdp_file, "Rescue")
 
         fo = f"{er.rawOutFolder}/trial{trial_idx}_t{str(i).rjust(2, '0')}.json"
         dat = er.PostMDPToServer(fileName=mdp_file, fileOut=fo, from_data_folder=False)
@@ -115,16 +157,14 @@ for trial_idx in range(Trials):
 
         prev_state = scr_sequence[i][1]
 
-    node_hist = [tag["tile_state"] for tag in scr_tag_sequence]
-    ani = SearchRescueDraw.AnimateAgent(adj_edge=SearchRescue.AdjEdge,
+    ani = SearchRescueDraw.AnimateAgent(adj_edge=Rescue.AdjEdge,
                                 scr_history=scr_sequence,
                                 scr_tag_sequence=scr_tag_sequence,
-                                community=SearchRescue.Community, 
-                                node_status_history=node_hist,
+                                community=Rescue.Community, 
                                 action_history=action_sequence,
                                 worth_history=transitions_worth,
                                 cumulative_worth=cumulative_worth
                                 )
-ani.save(f"SearchRescue_Trail{trial_idx}.gif", writer="pillow", fps=0.2)
+ani.save(f"Rescue_Trail{trial_idx}.gif", writer="pillow", fps=0.2)
 
     

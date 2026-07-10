@@ -27,6 +27,7 @@ set(HEADER_FILES
         Environment/MoralTheories/Fairness.cpp
         Environment/MoralTheories/Fairness.hpp
         Planner/Policy_Counter.h
+        MPlanRandom.hpp
 )
 
 set(SOURCE_FILES
