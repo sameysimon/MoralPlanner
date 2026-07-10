@@ -26,6 +26,7 @@ protected:
         MDP mdp(data);
         // Extract all 'policies'
         auto se = SolutionExtracter(mdp);
+        se.prune_dominated = false;
         vector<unique_ptr<Policy>> policies;
         policy_hists histories;
         vector backupOrder = {1,0};
@@ -65,7 +66,7 @@ protected:
                     }
                 }
             }
-            ASSERT_TRUE(found) << "Did not generate policy with action label " << action_name << endl;
+            ASSERT_TRUE(found) << "Did not generate policy with action label " << action_name << " for test " << fileName << endl;
         }
     }
 };

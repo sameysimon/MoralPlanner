@@ -69,6 +69,9 @@ void Solver::MC_iAO_Star() {
             backups++;
             mExpanded.insert(stateIdx);
         }
+        Log::writeFormatLog(LogLevel::Trace, "Backup round {} done. New total expanded states-times {}", expansions, mExpanded.size());
+        Log::writeFormatLog(LogLevel::Trace, "   State 0 has {} QValues.", mData[0].size());
+
         setPostOrderDFS();
         Log::writeFormatLog(LogLevel::Debug, "Reached {} Backups at iteration {}", backups, expansions);
         Log::writeFormatLog(LogLevel::Debug, "mData[0] has {} items", mData[0].size());
