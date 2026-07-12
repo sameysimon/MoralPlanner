@@ -5,6 +5,7 @@
   "version": "0.2.0",
   "configurations": [
 
+
   {
       "name": "RunServer",
       "type": "debugpy",
@@ -45,7 +46,7 @@
       "name": "RunSearchRescue",
       "type": "debugpy",
       "request": "launch",
-      "module": "scripts.RunSearchRescue"
+      "module": "scripts.Rescue"
     },
     {
       "name": "Current Script File",
@@ -70,7 +71,7 @@
       "name": "BuildTest",
       "type": "debugpy",
       "request": "launch",
-      "module": "scripts.BuildTest"
+      "module": "scripts.BuildBandit"
     },
   ]
 }

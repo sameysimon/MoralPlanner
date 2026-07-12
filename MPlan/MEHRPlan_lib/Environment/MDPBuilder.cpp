@@ -106,7 +106,7 @@ void verifyJSON(nlohmann::json& data) {
             int successor_count=0;
             for (auto successor : transition.value()) {
                 if (successor.size() < theories + 2) {
-                    throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + " not enough theory data.");
+                    throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action '" + key + "' successor " + std::to_string(successor_count) + " only " + std::to_string(successor.size()) + " elements; not enough theory data.");
                 }
                 if (not (isJSONNumeric(successor[0]) and isJSONNumeric(successor[1]))) {
                     throw std::runtime_error("MDP::buildFromJSON: under state " + std::to_string(stateID) + ", action " + key + " successor " + std::to_string(successor_count) + "probability, or transition not numeric.");

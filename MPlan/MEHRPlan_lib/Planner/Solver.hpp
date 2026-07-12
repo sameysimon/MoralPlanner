@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Environment/MDP.hpp"
 #include "Policy.hpp"
 #include <vector>
@@ -110,7 +109,7 @@ public:
 
 
     template <typename T, typename Accessor>
-    bool ParetoFilter(MDP& mdp, std::list<T>& pfVector, T&& new_qv, Accessor getQValue) {
+    static bool ParetoFilter(MDP& mdp, std::list<T>& pfVector, T&& new_qv, Accessor getQValue, bool allow_equivalence=true) {
         const QValue& newValue = getQValue(new_qv);
         if (!mdp.isQValueInBudget(newValue)) {
             return false;
@@ -118,7 +117,7 @@ public:
         auto it = pfVector.begin();
         while (it != pfVector.end()) {
             const QValue& existingValue = getQValue(*it);
-            if (existingValue.isEquivalent(newValue)) {
+            if (!allow_equivalence && existingValue.isEquivalent(newValue)) {
                 return false;
             }
             int r = mdp.ParetoCompare(newValue, existingValue);

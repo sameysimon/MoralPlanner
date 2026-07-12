@@ -12,7 +12,7 @@ inline bool isDoubleEqual(double d1, double d2) {
 }
 
 crow::response REST_App::HandleMDP(const crow::request &req) {
-    Log::writeLog("MDP Request", Info);
+    Log::writeLog("MDP Request", LogLevel::Info);
     finishedSolving = false;// prevent other requests
 
     auto json_req = crow::json::load(req.body);
@@ -32,7 +32,7 @@ crow::response REST_App::HandleMDP(const crow::request &req) {
             from_data_folder = json_req["from_data_folder"].b();
         }
     } catch (runtime_error &e) {
-        Log::writeLog(e.what(), Fatal);
+        Log::writeLog(e.what(), LogLevel::Fatal);
         finishedSolving = true;
         return {500, e.what()};
     }

@@ -57,10 +57,10 @@ int main(int argc, const char * argv[]) {
             } else if (mode == "mcdp") {
                 pm = MCDP;
             } else {
-                Log::writeFormatLog(Info, "Planning mode {} does not exist." , mode);
+                Log::writeFormatLog(LogLevel::Info, "Planning mode {} does not exist." , mode);
                 return 0;
             }
-            Log::writeFormatLog(Info, "Planning mode set to {}" , mode);
+            Log::writeFormatLog(LogLevel::Info, "Planning mode set to {}" , mode);
 
         }
         else if (strcmp(argv[i], "--debug") == 0 || strcmp(argv[i], "-D") == 0) {
@@ -68,8 +68,9 @@ int main(int argc, const char * argv[]) {
                 std::cout << "--debug option requires an argument" << std::endl;
                 return 0;
             }
-            Log::setLogLevel(strtol(argv[i+1], nullptr, 10));
-            Log::writeFormatLog(Info, "Debug level set to {}" , argv[3]);
+            uint8_t ll = strtol(argv[i+1], nullptr, 10);
+            Log::setLogLevel(static_cast<LogLevel>(ll));
+            Log::writeFormatLog(LogLevel::Info, "Debug level set to {}" , argv[3]);
             i++;
         } else if (run_as_server && strcmp(argv[i], "--port") == 0 || strcmp(argv[i], "-P") == 0) {
             if (i >= argc - 1) {

@@ -1,15 +1,15 @@
 {
     "Horizon": 2,
-    "Total_states": 2,
+    "Total_states": 3,
     "Actions": ["A", "B"],
     "State_transitions": [
       {
         "A": [[1.0,1, 5, 4]],
-        "B": [[1.0,1, 100, 3]]
-      }, {}
+        "B": [[1.0,2, 100, 3]]
+      }, {},{}
     ],
     "Notes": ["Action A wins because Person_B gets 4 and Person_A gets 3"],
-    "State_time":  [0,1],
+    "State_time":  [0,1,1],
     "Goals":[],
   "Theories": [
     {
@@ -22,12 +22,12 @@
     "Type": "Utility",
     "Component_of": "Rawlsian",
     "Default": 0,
-    "Heuristic": [0,0]
+    "Heuristic": [0,0,0]
   }, {
     "Name": "Person_B",
     "Type": "Utility",
     "Component_of": "Rawlsian",
     "Default": 0,
-    "Heuristic": [0,0]
+    "Heuristic": [0,0,0]
   }]
 }

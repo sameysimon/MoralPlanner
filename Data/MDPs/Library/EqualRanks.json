@@ -1,9 +1,9 @@
 {
   "Horizon": 6,
-  "Total_states": 11,
+  "Total_states": 12,
   "Actions": ["Recommend", "Ignore", "Next"],
   "Notes": ["Two polices.",
-    "Recommend should get 1 non-accept (always loses by theory 2.",
+    "Recommend should get 1 non-accept (always loses by theory 2.)",
     "Ignore should get 0.7 non-accept since 0.3 change student passes anyway."],
   "State_transitions": {
     "0": {
@@ -16,18 +16,18 @@
       "Next": [[0.7, 5, 1, false], [0.3, 6, -1, false]]
     },
     "4": {
-      "Next": [[0.3, 7, 1, false], [0.7, 7, -1, false]]
+      "Next": [[0.3, 7, 1, false], [0.7, 8, -1, false]]
     },
     "5": {"Next":  [[1,9,0,false]] },
     "6": {"Next":  [[1,9,0,false]] },
     "7": {"Next":  [[1,9,0,false]] },
     "8": {"Next":  [[1,9,0,false]] },
     "9": {
-      "Next": [[0.05, 10, -1, false], [0.95, 10, 0, false]]
+      "Next": [[0.05, 10, -1, false], [0.95, 11, 0, false]]
     },
-    "10": {}}
+    "10": {}, "11": {}}
   ,
-  "State_time": [0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4],
+  "State_time": [0, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4],
   "Goals":[],
   "Theories": [
     {
@@ -44,12 +44,12 @@
     "Type": "Utility",
     "Component_of": "Theory_One",
     "Default": 0,
-    "Heuristic": [0,0,0,0,0,0,0,0,0,0,0]
+    "Heuristic": [0,0,0,0,0,0,0,0,0,0,0.0]
   }, {
     "Name": "Con_Two",
     "Type": "Absolutism",
     "Component_of": "Theory_Two",
     "Default": false,
-    "Heuristic": [false, false, false, false, false, false, false, false, false, false, false]
+    "Heuristic": [false, false, false, false, false, false, false, false, false, false, false, false]
   }]
 }

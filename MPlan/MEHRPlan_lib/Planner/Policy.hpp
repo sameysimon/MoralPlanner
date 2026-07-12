@@ -38,45 +38,100 @@ public:
     unordered_map<int, int> policy;
     unordered_map<int, QValue> worth;
     vector<pair<size_t, size_t>> forced_actions;
-    QValue* ptr_policy_value = nullptr;
-    unordered_set<unique_ptr<History>, UHistoryPtrHash, UHistoryPtrEqual> history_set;
-    vector<pair<size_t, size_t>> included_state_actions;
     size_t root_stateIdx = 0;
 
-    explicit Policy(MDP& mdp, size_t root_stateIdx_ = 0) {
-        policy = unordered_map<int, int>();
-        worth = unordered_map<int, QValue>();
-        root_stateIdx = root_stateIdx_;
+    unordered_set<unique_ptr<History>, UHistoryPtrHash, UHistoryPtrEqual> history_set;
+    vector<pair<size_t, size_t>> included_state_actions;
+
+    QValue* ptr_policy_value = nullptr;
+    size_t semantic_hash = 0;
+    bool semantic_hash_valid = false;
+
+    explicit Policy(MDP&, std::size_t rootStateIdx = 0)
+        : root_stateIdx(rootStateIdx) {}
+
+    Policy(Policy& other, MDP& mdp)
+        : Policy(mdp, other.root_stateIdx) {
+        importPolicy(other);
     }
-    Policy(Policy& pi, MDP& mdp) : Policy(mdp) {
-        importPolicy(pi);
-    }
+
     Policy& operator=(const Policy& other) {
         if (this != &other) {
             policy = other.policy;
             worth = other.worth;
+            root_stateIdx = other.root_stateIdx;
+            forced_actions = other.forced_actions;
+            included_state_actions = other.included_state_actions;
+            ptr_policy_value = nullptr;
+            null_semantic_hash();
         }
         return *this;
     }
+    void null_semantic_hash() {
+        semantic_hash_valid = false;
+        semantic_hash = 0;
+    }
+    size_t get_semantic_hash() {
+        if (semantic_hash_valid) {
+            return semantic_hash;
+        }
+        semantic_hash = CalculateSemanticHash();
+        semantic_hash_valid = true;
+        return semantic_hash;
+    }
+
     void importPolicy(Policy& pi) {
         for (auto it : pi.policy) {
             policy[it.first] = it.second;
         }
         worth.insert(pi.worth.begin(), pi.worth.end());
     }
-    void importPolicy(Policy& pi, vector<Successor*>& successors, MDP& mdp) {
-        // Copy simple fields:
-        policy.insert(pi.policy.begin(), pi.policy.end());
-        worth.insert(pi.worth.begin(), pi.worth.end());
-        forced_actions.insert(forced_actions.end(), pi.forced_actions.begin(), pi.forced_actions.end());
 
-        included_state_actions.insert(included_state_actions.end(), pi.included_state_actions.begin(), pi.included_state_actions.end());
+    void setWorth(size_t stateIdx, QValue qv) {
+        worth.insert_or_assign(static_cast<int>(stateIdx), qv );
+        if (stateIdx==root_stateIdx) {
+            ptr_policy_value = nullptr;
+        }
+        null_semantic_hash();
+    }
+    QValue& AddWorth(MDP& mdp, size_t state) {
+        auto [it, inserted] = worth.try_emplace(static_cast<int>(state), mdp);
+        if (inserted) {
+            if (state==root_stateIdx) {
+                ptr_policy_value = nullptr;
+            }
+            null_semantic_hash();
+        }
+        return it->second;
+    }
+    void AddAction(int state, int stateTimeAction) {
+        policy.insert_or_assign(state, stateTimeAction);
+    }
+
+    void MergePolicies(vector<Policy*>& policies, vector<Successor*>& successors, MDP& mdp) {
+        for (auto & pi : policies) {
+            importPolicy(*pi, successors, mdp);
+        }
+    }
+
+    void importPolicy(Policy& incoming, vector<Successor*>& successors, MDP& mdp) {
+        // Copy simple fields:
+        policy.insert(incoming.policy.begin(), incoming.policy.end());
+        worth.insert(incoming.worth.begin(), incoming.worth.end());
+        forced_actions.insert(forced_actions.end(),
+            forced_actions.begin(),
+            forced_actions.end());
+        included_state_actions.insert(included_state_actions.end(),
+            incoming.included_state_actions.begin(),
+            incoming.included_state_actions.end()
+        );
+
         // Copy histories, add current successor:
         for (auto successor : successors) {
-            if (pi.root_stateIdx != successor->target) {
+            if (incoming.root_stateIdx != successor->target) {
                 continue;
             }
-            for (auto &it : pi.history_set) {
+            for (auto &it : incoming.history_set) {
                 unique_ptr<History> h = make_unique<History>(*it);
                 mdp.AggregateWithCertainSuccessor(h->mWorth, successor);
                 h->probability *= successor->probability;
@@ -103,10 +158,27 @@ public:
         }
     }
 
-    void MergePolicies(vector<Policy*>& policies, vector<Successor*>& successors, MDP& mdp) {
-        for (auto & pi : policies) {
-            importPolicy(*pi, successors, mdp);
+    static bool checkActionsCompatible(const std::unordered_map<int,int>& currActionMap, const Policy& newPolicy) {
+        for (const auto& [state, action] : newPolicy.policy) {
+            auto it = currActionMap.find(state);
+            if (it != currActionMap.end() && it->second != action) {
+                return false;
+            }
         }
+        return true;
+    }
+    static bool checkActionsCompatible(const vector<Policy*>& pols) {
+        unordered_map<int, int> combinedActions;
+        for (auto pi : pols) {
+            for (const auto& [state, action] : pi->policy) {
+                auto [it, inserted] = combinedActions.emplace(state,action);
+                if (!inserted && it->second != action) {
+                    return false;
+                }
+            }
+
+        }
+        return true;
     }
 
     optional<int> getAction(int state) {
@@ -115,19 +187,10 @@ public:
         }
         return policy[state];
     }
-    void addAction(int state, int stateTimeAction) {
-        policy[state] = stateTimeAction;
-    }
-    QValue& AddWorth(MDP& mdp, size_t state) {
-        if (worth.find(state)==worth.end()) {
-            auto qv = QValue(mdp);
-            worth.emplace(state, qv);
-        }
-        return worth[state];
-    }
+
     QValue* getExpectationPtr() {
         if (ptr_policy_value==nullptr) {
-            ptr_policy_value = &worth[root_stateIdx];
+            ptr_policy_value = &worth[static_cast<int>(root_stateIdx)];
         }
         return ptr_policy_value;
     }
@@ -137,8 +200,6 @@ public:
         }
         throw runtime_error("ME ERROR--Policy does not exist at time " + to_string(time) + " , state " + to_string(stateIdx));
     }
-
-
     [[nodiscard]] string toString() const {
         string x = "";
         for (auto &it : policy) {
@@ -150,6 +211,9 @@ public:
         return x;
     }
 
+
+
+    // String functions
     string getActionAsString(MDP& mdp, int state) const {
         if (auto acts = mdp.getActions(*mdp.states[state])) {
             return acts->at(policy.at(state))->label;
@@ -179,6 +243,55 @@ public:
         s.resize(s.size()-2);
         s += ")";
         return s;
+    }
+
+
+
+    size_t CalculateSemanticHash() {
+        QValueHash qValHash;
+        size_t result = qValHash(*getExpectationPtr());
+
+        std::vector<std::size_t> hist_hashes;
+        for (auto &hist : history_set) {
+            size_t hist_hash = qValHash(hist->mWorth);
+            int rounded = (int)(hist->probability*1000000.0);
+            QValue::hash_combine(hist_hash, std::hash<int>()(rounded));
+            hist_hashes.push_back(hist_hash);
+        }
+        std::sort(hist_hashes.begin(), hist_hashes.end());
+        QValue::hash_combine(result, hist_hashes.size());
+        for (size_t it : hist_hashes) {
+            QValue::hash_combine(result, it);
+        }
+        hist_hashes.clear();
+        for (auto &it : forced_actions) {
+            size_t acts_hash = std::hash<size_t>()(it.first);
+            QValue::hash_combine(acts_hash, std::hash<size_t>()(it.second));
+            hist_hashes.push_back(acts_hash);
+        }
+        std::sort(hist_hashes.begin(), hist_hashes.end());
+        QValue::hash_combine(result, hist_hashes.size());
+        for (size_t it : hist_hashes) {
+            QValue::hash_combine(result, it);
+        }
+        return result;
+    }
+    size_t CalculateActionMappingHash() {
+        std::vector<std::pair<int, int>> actions;
+        actions.reserve(policy.size());
+        for (const auto& entry : policy) {
+            actions.emplace_back(entry);
+        }
+
+        std::sort(actions.begin(), actions.end());
+
+        std::size_t result = actions.size();
+        for (const auto& [state, action] : actions) {
+            std::size_t entryHash = std::hash<int>{}(state);
+            QValue::hash_combine(entryHash, std::hash<int>{}(action));
+            QValue::hash_combine(result, entryHash);
+        }
+        return result;
     }
 };
 
@@ -218,22 +331,11 @@ struct PolicyPtrEqual {
         return true;
     }
 };
+
 struct PolicyPtrHash {
     size_t operator()(const unique_ptr<Policy>& pi) const {
-        // Combine hash for policy
-        size_t hash = 0;
-        QValueHash qValHash;
-        QValue::hash_combine(hash, qValHash(*pi->getExpectationPtr()));
-        for (auto &hist : pi->history_set) {
-            QValue::hash_combine(hash, qValHash(hist->mWorth));
-            int rounded = (int)(hist->probability*1000.0);
-            QValue::hash_combine(hash, std::hash<int>()(rounded));
-        }
-        for (auto &it : pi->forced_actions) {
-            QValue::hash_combine(hash, std::hash<size_t>()(it.first));
-            QValue::hash_combine(hash, std::hash<size_t>()(it.second));
-        }
-        return hash;
+        return pi->get_semantic_hash();
+
     }
 };
 

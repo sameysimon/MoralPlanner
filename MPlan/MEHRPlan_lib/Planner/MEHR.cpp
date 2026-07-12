@@ -5,7 +5,8 @@
 #include "Logger.hpp"
 #include <iostream>
 #include <chrono>
-#include <ranges>
+#include "../time_config.hpp"
+
 
 
 MEHR::MEHR(MDP& mdp, vector<unique_ptr<Policy>> &policies_, vector<vector<unique_ptr<History>>> &histories_)
@@ -178,7 +179,7 @@ void MEHR::HashPolicyPairs_FindNonAccept(NonAcceptability &non_accept) {
 
 void MEHR::Slow_FindNonAccept(NonAcceptability &non_accept) {
     for (size_t theoryIdx=0; theoryIdx < mdp.mehr_theories.size(); theoryIdx++) {
-        Log::writeFormatLog(Info, "MEHR on moral theory with index {}/{}", theoryIdx, mdp.mehr_theories.size());
+        Log::writeFormatLog(LogLevel::Info, "MEHR on moral theory with index {}/{}", theoryIdx, mdp.mehr_theories.size());
         for (size_t pi_idx1 = 0; pi_idx1 < policies.size(); pi_idx1++) {
             QValue* qv1 = policies[pi_idx1]->getExpectationPtr();
             QValue* qv2;
@@ -194,7 +195,7 @@ void MEHR::Slow_FindNonAccept(NonAcceptability &non_accept) {
             }
         }
     }
-    Log::writeFormatLog(Info, "MEHR on moral theory with index {}/{} -- done!", mdp.mehr_theories.size(), mdp.mehr_theories.size());
+    Log::writeFormatLog(LogLevel::Info, "MEHR on moral theory with index {}/{} -- done!", mdp.mehr_theories.size(), mdp.mehr_theories.size());
     doneMEHR=true;
 }
 // If cq1 attacks cq2 at this theory by CQ2, and no preferred theory attacks in the other direction, then cq1 attacks cq2 (return 1).

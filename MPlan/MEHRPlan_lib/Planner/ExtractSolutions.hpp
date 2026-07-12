@@ -12,6 +12,7 @@
 
 using namespace std;
 
+typedef unordered_set<unique_ptr<Policy>, PolicyPtrHash, PolicyPtrEqual> policy_set;
 
 class SolutionExtracter {
     MDP& mdp;
@@ -26,40 +27,53 @@ public:
         forced_actions[state_idx].push_back(action_idx);
     }
 
-    typedef unordered_set<unique_ptr<Policy>, PolicyPtrHash, PolicyPtrEqual> policy_set;
-
     void Extract(vector<unique_ptr<Policy>>& result, vector<vector<unique_ptr<History>>> &histories, vector<vector<int>>& Pi) {
+        // For some time t and t+1, stores set of policies for each state.
         auto piTable = array<vector<policy_set>, 2>();
+        // For same time t and t+1, stores state index for sets of policies in piTable
         auto piStateTable = array<vector<size_t>, 2>(); // piTable[0 or 1][i] = set of policies for state piStateTable[i].
+
         int currTime = 0;
         int prevPolicies = 0; // index of previous policies in piTable.
         int currStateSetIdx = 0;
-        vector<size_t> all_states(mdp.states.size());
-        std::iota(all_states.begin(), all_states.end(), 0);
-        std::sort(all_states.begin(), all_states.end(), [this](size_t a, size_t b) {
+
+        // Order states by time:
+        vector<size_t> state_order(mdp.states.size());
+        std::iota(state_order.begin(), state_order.end(), 0);
+        std::sort(state_order.begin(), state_order.end(), [this](size_t a, size_t b) {
             return mdp.states[a]->time > mdp.states[b]->time;
         });
-        for (const size_t stateIdx : all_states) {
+
+        for (const size_t stateIdx : state_order) {
+            // Check for new time step; rotate piTable
             if (mdp.states[stateIdx]->time < currTime) {
                 piTable[prevPolicies].clear();
                 piStateTable[prevPolicies].clear();
                 prevPolicies = 1 - prevPolicies;
                 currStateSetIdx = 0;
             }
+            // Update time and policy create set for current state.
             currTime = mdp.states[stateIdx]->time;
             piStateTable[1-prevPolicies].push_back(stateIdx);
             if (((int)piTable[1-prevPolicies].size()) - 1 < currStateSetIdx) {
                 piTable[1-prevPolicies].emplace_back(); // instantiates unordered_set for curr_state
-
             }
             piTable[1-prevPolicies][currStateSetIdx].clear();
 
-            // Generate combo-policies
+            // Pareto filter Policy candidates
             auto stateActions = vector<int>();
             vector<QValue> curr_QValues;
             vector<int> action_index;
-            vector<unique_ptr<Policy>> curr_policies;
+            struct Candidate {
+                int action_idx;
+                vector<Policy*> children;
+                QValue root;
+                vector<Successor*>* successors;
+            };
+            list<Candidate> pcsCandidates;
+            // Iterate through PF actions at current state
             for (const auto a : Pi[stateIdx]) {
+                // Skip copied actions
                 if (find(stateActions.begin(), stateActions.end(), a) != end(stateActions)) { continue; }
                 stateActions.push_back(a);
 
@@ -67,36 +81,34 @@ public:
                 auto scrPolicyCombos = GetSuccessorPolicyCombos(successors, piTable[prevPolicies], piStateTable[prevPolicies]);
 
                 for (auto &combo : scrPolicyCombos) {
-                    // Generate combination policy
-                    curr_policies.emplace_back(make_unique<Policy>(mdp, stateIdx));
-                    curr_policies.back()->MergePolicies(combo, *successors, mdp);
-                    curr_policies.back()->addAction((int)stateIdx, a);
-                    // Find its expected worth
-                    curr_QValues.emplace_back(mdp);
-                    gatherQValue(curr_QValues.back(), successors, *curr_policies.back(), currTime);
-                    action_index.push_back(a);
+                    Candidate c = {a,combo, QValue(mdp), successors};
+                    gatherQValue(c.root, successors, combo, currTime);
+                    if (!prune_dominated) {
+                        pcsCandidates.push_back(c);
+                        continue;
+                    }
+                    Solver::ParetoFilter(mdp, pcsCandidates, std::move(c), [](const Candidate& c) -> const QValue& { return c.root; }, false);
                 }
             }
-            // Pareto prune combo-policies
-            auto PPFQValues = Solver::Pprune(mdp, curr_QValues);
-            if (!prune_dominated) {
-                PPFQValues.resize(curr_QValues.size());
-                std::iota(PPFQValues.begin(), PPFQValues.end(), 0);
-            }
-
+            //
+            vector<unique_ptr<Policy>> curr_policies;
             // Find and add unique, pruned combo-policies
-            for (auto i : PPFQValues) {
-                auto [qv_it, qv_inserted] =
-                    curr_policies[i]->worth.emplace(static_cast<int>(stateIdx), std::move(curr_QValues[i]));
+            for (auto &c : pcsCandidates) {
+                auto pi = make_unique<Policy>(mdp, stateIdx);
+                pi->MergePolicies(c.children, *c.successors, mdp);
+                pi->AddAction((int)stateIdx, c.action_idx);
+                pi->worth[(int)stateIdx] = c.root;
+
                 auto &tab = piTable[1-prevPolicies][currStateSetIdx];
-                auto [pi_it, foundMatchingPolicy] = tab.insert(std::move(curr_policies[i]));
-                if (!foundMatchingPolicy) {
-                    pi_it->get()->included_state_actions.emplace_back(stateIdx, action_index[i]);
+                auto [pi_it, inserted] = tab.insert(std::move(pi));
+                if (!inserted) {
+                    pi_it->get()->included_state_actions.emplace_back(stateIdx, c.action_idx);
                 }
             }
-
             currStateSetIdx++;
         }
+
+
 
         // Construct final policy vector
         auto &solns = piTable[1 - prevPolicies][0];
@@ -107,19 +119,31 @@ public:
             histories.emplace_back();
             histories.back().reserve(result.back()->history_set.size());
             auto &hs = result.back()->history_set;
-            for (auto it = hs.begin(); it != hs.end(); ) {
-                auto histnh = hs.extract(it++);
+            for (auto hist_it = hs.begin(); hist_it != hs.end(); ) {
+                auto histnh = hs.extract(hist_it++);
                 histories.back().emplace_back(std::move(histnh.value()));
             }
             result.back()->history_set.clear();
         }
     }
 
-    vector<vector<Policy*>>
-    GetSuccessorPolicyCombos(vector<Successor*>* successors, vector<policy_set>& piTable, vector<size_t>& piStateLookup) {
+    template <typename Callback>
+    void EnumeratePolicyCombos(const std::vector<const policy_set*>& choices, std::size_t depth, std::vector<const Policy*>& combination, Callback&& callback) {
+        if (depth == choices.size()) {
+            callback(combination);
+            return;
+        }
+        for (const auto& policy : *choices[depth]) {
+            combination[depth] = policy.get();
+            EnumeratePolicyCombos(choices, depth + 1, combination, callback);
+        }
+    }
+    
+    vector<vector<Policy*>> GetSuccessorPolicyCombos(vector<Successor*>* successors, vector<policy_set>& piTable, vector<size_t>& piStateLookup) {
         // Worth vector for each combination of policies useful to successors.
         vector<vector<Policy*>> combs(1);
         vector<size_t> scr_states;
+
         for (auto& scr : *successors) {
             size_t target = scr->target;
             if (find(scr_states.begin(), scr_states.end(), target) != scr_states.end()) {
@@ -185,10 +209,10 @@ private:
         }
         return false;
     }
-    void gatherQValue(QValue& new_qv, vector<Successor*>* successors, Policy& pi, int currentTime) {
+    void gatherQValue(QValue& new_qv, vector<Successor*>* successors, vector<Policy*>& combo, int currentTime) {
         std::vector<QValue*> baselines_ = std::vector<QValue*>(successors->size());
         for (int scrIdx=0; scrIdx < successors->size(); ++scrIdx) {
-            baselines_[scrIdx] = &pi.worth[(*successors)[scrIdx]->target];
+            baselines_[scrIdx] = &combo[scrIdx]->worth[(*successors)[scrIdx]->target];
         }
         new_qv = mdp.MultiGather(*successors, baselines_);
 }

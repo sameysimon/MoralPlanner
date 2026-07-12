@@ -12,7 +12,7 @@ class ExplainTest : public TestBase {
 };
 
 TEST_F(ExplainTest, BasicSecondSearch) {
-    Log::setLogLevel(Trace);
+    Log::setLogLevel(LogLevel::Trace);
     Runner runner = Runner("SecondSearch.json");
     vector<string> actions = {"A", "B"};
     runner.FullSolve();
@@ -37,7 +37,7 @@ TEST_F(ExplainTest, BasicSecondSearch) {
 
 
 TEST_F(ExplainTest, DepthTwoSearch) {
-    Log::setLogLevel(Trace);
+    Log::setLogLevel(LogLevel::Trace);
     Runner runner = Runner("DepthTwoSearch.json");
     vector<string> actions = {"A", "B"};
     runner.FullSolve();

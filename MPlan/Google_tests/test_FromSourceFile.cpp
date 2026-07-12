@@ -29,10 +29,16 @@ protected:
         se.prune_dominated = false;
         vector<unique_ptr<Policy>> policies;
         policy_hists histories;
-        vector backupOrder = {1,0};
-        vector<vector<int>> Pi(2);
+
+        vector backupOrder(mdp.states.size(),0);
+        iota(backupOrder.begin(), backupOrder.end(), 0);
+        backupOrder[0] = backupOrder.back();
+        backupOrder[backupOrder.size()-1] = 0;
+
+        vector<vector<int>> Pi(mdp.states.size());
         Pi[0].resize(mdp.getActions(*mdp.states[0])->size(),0);
         iota(Pi[0].begin(), Pi[0].end(), 0);
+
         se.Extract(policies, histories, Pi);
         // Extract all 'policy' histories
 

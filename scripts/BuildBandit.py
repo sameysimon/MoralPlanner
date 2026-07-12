@@ -11,7 +11,7 @@ def clamp(num, min_, max_):
         return max_
     return num
 
-def Build(filePath:str="", fileName:str="", theories=1, numOfActions=100, minBranches=3, maxBranches=10, numOfRanks=1):
+def Build(fileName:str="", theories=1, numOfActions=100, minBranches=3, maxBranches=10, numOfRanks=1):
     transitions = {}
     solutions = [{"Action_Map":{}, "Acceptability":0,"Expectation":{}} for _ in range(numOfActions)]
     actionAccept = [0] * numOfActions
@@ -29,7 +29,7 @@ def Build(filePath:str="", fileName:str="", theories=1, numOfActions=100, minBra
         solutions[aIdx]["Action_Map"]["0"] = str(aIdx)
         numOfBranches = np.random.randint(minBranches,maxBranches)
         probs = scipy.stats.dirichlet.rvs([0.7] * numOfBranches)[0]
-        transitions[str(aIdx)] = [[probs[i], 1] for i in range(numOfBranches)]
+        transitions[str(aIdx)] = [[probs[i], 1 + i] for i in range(numOfBranches)]
         #totalStates+=numOfBranches
         x = sum(probs)
         assert(0.990 < x and x < 1.001)
@@ -66,28 +66,19 @@ def Build(filePath:str="", fileName:str="", theories=1, numOfActions=100, minBra
         solutions[aIdx]["Acceptability"] = actionAccept[aIdx]
         for thIdx in range(theories):
             solutions[i]["Expectation"][f"M_{thIdx}"] = expUtils[thIdx][i]
-
     output = {"Horizon": 1, 
-              "Total_states": totalStates, 
+              "Total_states": 1 + maxBranches, 
               "Actions":[str(aIdx) for aIdx in range(numOfActions)],
               "Theories": [{"Name":f"M_{thIdx}", "Type":"Utility", "Rank": ranks[thIdx]} for thIdx in range(theories)],
               "Considerations": [{"Name":f"C_{thIdx}", "Type": "Utility", "Component_of":f"M_{thIdx}"} for thIdx in range(theories)],
               "Min_nacc": min(actionAccept),
               "Min_nacc_policies": list(filter(lambda a_ : actionAccept[a_]==min(actionAccept),range(numOfActions))),
-              "State_time": [0,1],
-              "State_transitions":[transitions, {}],
+              "State_time": [0] + [1 for _ in range(maxBranches)],
+              "State_transitions": [transitions] + [{} for _ in range(maxBranches)],
               "Solutions":solutions,
               }
-    fn=""
-    if filePath=="":
-        fn = os.getcwd() + f"/Data/MDPs/Tests/{fileName}"
-    elif fileName=="":
-        fn=filePath
-    else:
-        if filePath[-1] == "/" or filePath[-1] == "\\":
-            filePath += "/"
-        fn = filePath + f"{fileName}"
 
+    fn = os.getcwd() + f"/Data/MDPs/Tests/{fileName}"
     if (not fn.endswith(".json")):
         fn += ".json"
     json_string = myJSON.custom_json_format(output)
@@ -121,7 +112,7 @@ def AssignUtilities(transitions, action:int, actionAccept:list, ExpUtil:float, t
 
     return max(utilities)
 
-if __name__=="main":
+if True:
     np.random.seed(seed=4+8+15+16+23+42)
 
     o = Build("test_1Theory",theories=1)
@@ -131,6 +122,17 @@ if __name__=="main":
     print("Built test_5Theory")
     o= Build("test_10Theory",theories=10)
     print("Built test_10Theory")
+
+    o= Build("test_5Theory_2Ranks",theories=5, numOfRanks=2)
+    print("Built test_5Theory_2Ranks")
+    o= Build("test_6Theory_2Ranks",theories=6, numOfRanks=2)
+    print("Built test_6Theory_2Ranks")
+    o= Build("test_7Theory_2Ranks",theories=7, numOfRanks=2)
+    print("Built test_7Theory_2Ranks")
+    o= Build("test_8Theory_2Ranks",theories=8, numOfRanks=2)
+    print("Built test_8Theory_2Ranks")
+    o= Build("test_9Theory_2Ranks",theories=9, numOfRanks=2)
+    print("Built test_9Theory_2Ranks")
 
 
     o= Build("test_100Theory",theories=100)

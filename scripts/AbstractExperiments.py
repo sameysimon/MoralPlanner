@@ -34,7 +34,6 @@ def GenerateConfigs(inputConfigs, defaultConfig):
         configs.append(c)
     return configs
 
-
 class ExperimentRunner:
     time_columns = ['Total_time', "Heuristic_time", 'Plan_time', 'Mehr_time', 'Sol_time']
     def __init__(self, domain, configs:list=None, outFolder=None, MoralPlanner_Location="/", date_time=None) -> None:
@@ -42,6 +41,7 @@ class ExperimentRunner:
         self.domain = domain
         self.configs = configs
         self.planner = f"{os.getcwd()}{fs_start}MPlan/cmake-build-release-clang/MPlan"
+        self.planner = f"{os.getcwd()}{fs_start}MPlan/cmake-build-release/MPlan"
         
         self.horizon = 3
         self.budget = 18

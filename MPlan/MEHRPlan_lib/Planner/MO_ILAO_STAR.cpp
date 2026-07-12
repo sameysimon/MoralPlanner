@@ -178,7 +178,7 @@ void Solver::getUnDomCandidates(State& state, vector<QValue>& candidates, vector
         auto a = actions.at(qValueIdxToAction[elem]);
         ss <<  (a->label) << " @ {" << candidates[elem].toString() << "}; ";
     }
-    Log::writeLog(ss.str(), Trace);
+    Log::writeLog(ss.str(), LogLevel::Trace);
 #endif
 }
 
@@ -235,7 +235,7 @@ bool Solver::checkForUnexpandedStates(unordered_set<int>& expanded, vector<int>&
 
 // Termination Condition
 bool Solver::checkConverged(vector<vector<QValue>>& d, vector<vector<QValue>>& d_clone) {
-    Log::writeLog("Checking converged states...", Debug);
+    Log::writeLog("Checking converged states...", LogLevel::Debug);
     auto states = d.size();
     for (int s = 0; s < states; ++s) {
         if (d[s].size() != d_clone[s].size()) {
@@ -264,7 +264,7 @@ bool Solver::checkConverged(vector<vector<QValue>>& d, vector<vector<QValue>>& d
 #endif
             return false;
         }
-    }Log::writeFormatLog(Debug, "Data converged!");
+    }Log::writeFormatLog(LogLevel::Debug, "Data converged!");
     return true;
 
 }

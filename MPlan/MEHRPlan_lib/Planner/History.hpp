@@ -60,7 +60,7 @@ public:
     }
     bool isEquivalent(const History& other) const {
         double d = abs(probability - other.probability);
-        return mWorth == other.mWorth && d < 0.001;
+        return mWorth == other.mWorth && d < 0.000001;
     }
 };
 

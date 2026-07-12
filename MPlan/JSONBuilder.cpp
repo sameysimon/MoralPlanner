@@ -86,7 +86,7 @@ json JSONBuilder::toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcce
     for (size_t i =0; i < policies.size(); ++i) {
         auto nacc = non_accept.getPolicyNonAccept(i);
         ar.push_back(toJSON(*policies[i], mdp, nacc, includeActions));
-        if (nacc==min_non_acc) {
+        if (abs(nacc-min_non_acc) < 1e-8) {
             num_of_min_non_acc++;
         }
 

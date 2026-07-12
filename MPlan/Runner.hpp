@@ -196,8 +196,8 @@ public:
         long long d = CPUTime(&SolutionExtracter::Extract, *soln_extractor, policies, histories, solver->mPi);
         undominated_policies = policies.size();
 #ifdef DEBUG
-        Log::writeFormatLog(Warn, "{}", MakePoliciesString());
-        Log::writeFormatLog(Warn, "{}", soln_extractor->stringify(policies, *mdp));
+        Log::writeFormatLog(LogLevel::Warn, "{}", MakePoliciesString());
+        Log::writeFormatLog(LogLevel::Warn, "{}", soln_extractor->stringify(policies, *mdp));
 #endif
         Log::writeLog(std::format("Extracted {} policies.", policies.size()), LogLevel::Info);
         Log::writeLog(std::format("Finished Extracting Solutions in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
@@ -223,7 +223,7 @@ public:
     void Plan(std::string &fileOut) {
         durations.heuristicTime = timeHeuristic();
         durations.planTime = timePlan();
-        Log::writeLog(std::format("Total time {} {}", durations.Total(), TIME_METRIC_STR), Info);
+        Log::writeLog(std::format("Total time {} {}", durations.Total(), TIME_METRIC_STR), LogLevel::Info);
 
 
         json result;
@@ -240,7 +240,7 @@ public:
     }
     void FullSolve(const std::string &fileOut) {
             FullSolve();
-            Log::writeLog(std::format("Total time {} {}", durations.Total(), TIME_METRIC_STR), Info);
+            Log::writeLog(std::format("Total time {} {}", durations.Total(), TIME_METRIC_STR), LogLevel::Info);
             // Save File
             json result = JSONBuilder::toJSON(*this);
             WriteJSONFile(result, fileOut);

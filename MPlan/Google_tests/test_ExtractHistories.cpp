@@ -13,7 +13,7 @@ protected:
         // Make MDP
         MDP* mdp = getMDP(fileName);
         // Solve MDP
-        Solver solver = Solver(*mdp);
+        Solver solver = Solver(*mdp, false);
         solver.MC_iAO_Star();
         // Extract Policies.
         vector<unique_ptr<Policy>> policies;
