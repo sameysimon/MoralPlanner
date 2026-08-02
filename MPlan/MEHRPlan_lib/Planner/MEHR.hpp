@@ -44,6 +44,13 @@ struct NonAcceptability {
         }
         return r;
     }
+    [[nodiscard]] vector<double> getPolicyNonAcceptByTheory(size_t policyIdx) const {
+        vector<double> n(non_accept.size(), 0);
+        for (size_t i = 0; i < non_accept.size(); ++i) {
+            n[i] = non_accept[i][policyIdx];
+        }
+        return  n;
+    }
     [[nodiscard]] size_t getTotalPolicies() {
         return non_accept[0].size();
     }

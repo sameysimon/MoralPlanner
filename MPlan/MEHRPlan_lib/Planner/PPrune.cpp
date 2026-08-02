@@ -38,7 +38,6 @@ void Solver::Pprune(MDP& mdp, const T& inVector, std::vector<int>& outVector, Ac
             }
         }
     }
-
     for (int i = 0; i < inVector.size(); i++) {
         if (anyInBudget && !inBudget[i]) {
             continue; // Over budget QValues cannot be undominated/added to outVector

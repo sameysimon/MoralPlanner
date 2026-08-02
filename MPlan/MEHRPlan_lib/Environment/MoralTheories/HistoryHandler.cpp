@@ -35,13 +35,13 @@ Attack SortHistories::CriticalQuestionOne(Attack& a, policy_hists& histories) {
     // Grab defender histories from the front to get the best defender first.
     for (size_t def_place = 0; def_place < defHistories.size(); ++def_place) {
         size_t defIdx = defHistories[def_place];
+        auto& defenderHistoryW = histories.at(a.targetPolicyIdx).at(defIdx)->mWorth;
         // Grab attacker histories from the back to get worst attacker first.
         // TODO Should this not be att_place <= 0, since we do want to run once w/ 0?
         for (int att_place = attHistories.size()-1; att_place >= 0; --att_place) {
             size_t attIdx = attHistories[att_place];
             // Use the best defender history and worst attacker history.
             auto& attackerHistoryW = histories.at(a.sourcePolicyIdx).at(attIdx)->mWorth;
-            auto& defenderHistoryW = histories.at(a.targetPolicyIdx).at(defIdx)->mWorth;
             int result = rMehrTheory.attack(attackerHistoryW, defenderHistoryW);
             if (result==1) {
                 findAttack=true;

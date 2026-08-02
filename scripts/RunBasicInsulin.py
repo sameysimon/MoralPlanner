@@ -22,8 +22,9 @@ configs = [
 ]
 
 er = ExperimentRunner(Domains.BasicLostInsulin, configs)
-# er.run(configRepetitions=1, envRepetitions=1)
+er.buildEnvironments()
+#er.run(configRepetitions=1, envRepetitions=1)
 # er.saveResults()
-#er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
-er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
+er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
+#er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
 input("Enter to exit...")

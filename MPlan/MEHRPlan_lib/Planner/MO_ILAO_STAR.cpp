@@ -108,6 +108,10 @@ void Solver::backup(State& state) {
 
 void Solver::backupTwo(State& state) {
     list<Candidate> candidates;
+    bool any_in_budget = false;
+    if (mdp.non_moralTheoryIdx==-1) {
+        any_in_budget = true;
+    }
 
     vector<shared_ptr<Action>> actions = *mdp.getActions(state);
     if (actions.size()==0 || state.time>=mdp.horizon) {
@@ -121,7 +125,7 @@ void Solver::backupTwo(State& state) {
         }
         // Get successor QValues and initialise combinations space.
         vector<Successor*>* successors = MDP::getActionSuccessors(state, aIdx);
-        gatherPFActionWorth(candidates, successors, aIdx);
+        gatherPFActionWorth(candidates, successors, aIdx, any_in_budget);
     }
     // Update Data and action map values to current PF.
     mData.at(state.id).clear();
@@ -135,14 +139,21 @@ void Solver::backupTwo(State& state) {
 
 }
 
-void Solver::gatherPFActionWorth(list<Candidate>& candidates, vector<Successor*>* successors, int aIdx) {
+void Solver::gatherPFActionWorth(list<Candidate>& candidates, vector<Successor*>* successors, int aIdx, bool &any_in_budget) {
     // Generate all combinations of Successor's QValues
     vector<vector<QValue*>> combos = GetSuccessorQValueCombinations(successors);
+
     for (auto & elem : combos) {
         Candidate cd;
         cd.action = aIdx;
         cd.qv = std::move(mdp.MultiGather(*successors, elem));
-        ParetoFilter(mdp, candidates, std::move(cd), [](const Candidate& c) -> const QValue& { return c.qv; });
+        ParetoFilter(mdp,
+            candidates,
+            std::move(cd),
+            [](const Candidate& c) -> const QValue& { return c.qv; },
+            true,
+            any_in_budget
+            );
 
     }
 }

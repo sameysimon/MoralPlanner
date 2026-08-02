@@ -20,19 +20,16 @@ CARLA_INTRUDED = -2
 
 
 class Time(Consideration):
-    def __init__(self, horizon_, budget_):
+    def __init__(self, horizon_):
         self.type='Cost'
         self.rank=1
         self.tag='Cost'
         self.default = 0
         self.horizon = horizon_
-        self.budget = budget_
 
     def judge(self, successor: Successor):
         if (successor.targetState.props['Hal_has_insulin']):
             return 0
-        if not successor.targetState.props['Hal_alive']:
-            return -self.budget
         return -1
     
     def StateHeuristic(self, state:State):
@@ -211,6 +208,7 @@ class HalLife(Consideration):
         
     def StateHeuristic(self, state:State):
         return 0   
+
 class HalSmall(Consideration):
     def __init__(self):
         super().__init__()
@@ -229,9 +227,9 @@ class HalSmall(Consideration):
         if (successor.action == 'buy_low' and successor.targetState.props['Carla_reply']=='sold'):
             return HAL_PAYS_LOW
         if (successor.action == 'buy_low'):
-            return HAL_PAYS_LOW
+            return 0
         if (successor.action == 'buy_high'):
-            return HAL_PAYS_HIGH
+            return 0
             
         elif (successor.action == 'attack_Carla'):
             return HAL_WIN

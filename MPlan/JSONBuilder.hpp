@@ -33,6 +33,7 @@ struct FIELD {
     static constexpr const char* MAX_EXPECTATION = "Max_expectation";
     static constexpr const char* MIN_EXPECTATION = "Min_expectation";
 
+    static constexpr const char* NON_ACCEPT_BY_THEROY = "Non_accept_by_theory";
     static constexpr const char* EXPECTED_COST = "Expected_Cost";
     static constexpr const char* EXPECTATION = "Expectation";
     static constexpr const char* DATA = "Data";
@@ -69,9 +70,9 @@ public:
     static json toJSON(explainResult &er, Runner& runner, bool addMEHR);
 
     static json toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcceptability &non_accept, bool includeActions=true);
-    static json toJSON(Policy &pi, MDP &mdp, double non_accept, bool includeActions=true);
-    static json toJSON(Policy& pi, MDP& mdp, double non_accept,
-                       vector<unique_ptr<History>>& policy_histories);
+    static json toJSON(Policy &pi, MDP &mdp, vector<double> &non_accept, bool includeActions = true);
+    static json toJSON(Policy &pi, MDP &mdp, vector<double> &non_accept,
+                       vector<unique_ptr<History>> &policy_histories);
 
     static json toJSON(policy_hists& histories, bool includePaths=false);
     // JSON {probability: double, worth: string, path: [[sourceStateID, targetStateID], ...]}

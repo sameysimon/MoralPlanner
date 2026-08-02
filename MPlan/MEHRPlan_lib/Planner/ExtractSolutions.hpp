@@ -71,6 +71,10 @@ public:
                 vector<Successor*>* successors;
             };
             list<Candidate> pcsCandidates;
+            bool any_in_budget = false;
+            if (mdp.non_moralTheoryIdx==-1) {
+                any_in_budget = true;
+            }
             // Iterate through PF actions at current state
             for (const auto a : Pi[stateIdx]) {
                 // Skip copied actions
@@ -79,7 +83,6 @@ public:
 
                 auto successors = MDP::getActionSuccessors(*mdp.states[stateIdx], a);
                 auto scrPolicyCombos = GetSuccessorPolicyCombos(successors, piTable[prevPolicies], piStateTable[prevPolicies]);
-
                 for (auto &combo : scrPolicyCombos) {
                     Candidate c = {a,combo, QValue(mdp), successors};
                     gatherQValue(c.root, successors, combo, currTime);
@@ -87,7 +90,12 @@ public:
                         pcsCandidates.push_back(c);
                         continue;
                     }
-                    Solver::ParetoFilter(mdp, pcsCandidates, std::move(c), [](const Candidate& c) -> const QValue& { return c.root; }, false);
+                    Solver::ParetoFilter(mdp,
+                        pcsCandidates,
+                        std::move(c),
+                        [](const Candidate& c) -> const QValue& { return c.root; },
+                        false,
+                        any_in_budget);
                 }
             }
             //
@@ -107,8 +115,6 @@ public:
             }
             currStateSetIdx++;
         }
-
-
 
         // Construct final policy vector
         auto &solns = piTable[1 - prevPolicies][0];

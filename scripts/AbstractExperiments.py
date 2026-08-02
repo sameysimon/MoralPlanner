@@ -42,7 +42,8 @@ class ExperimentRunner:
         self.configs = configs
         self.planner = f"{os.getcwd()}{fs_start}MPlan/cmake-build-release-clang/MPlan"
         self.planner = f"{os.getcwd()}{fs_start}MPlan/cmake-build-release/MPlan"
-        
+        self.hasPlannerRun = False
+
         self.horizon = 3
         self.budget = 18
 
@@ -60,7 +61,7 @@ class ExperimentRunner:
         
         self.loglevel = 1
         if not outFolder is None:
-            self.outputFolder = outFolder
+            self.outputFolder = f"{os.getcwd()}{fs_start}Data/Experiments/{domain}/{outFolder}"
         else:
             self.outputFolder = f"{os.getcwd()}{fs_start}Data/Experiments/{domain}/{self.datetimeNow}"
         
@@ -221,7 +222,6 @@ class ExperimentRunner:
         theoryTimes = df.groupby('Config_name', sort=False).agg(agg_rules).reset_index()
         theoryTimes.to_csv(self.getDurationsByTheoryFilePath())
 
-        print(theoryTimes)
         SaveDataFrameToTexTemplate(theoryTimes, f"{self.texTablesFolder}/Time_table.tex", f"{self.texOutFolder}/time_table.tex")
 
         # Check consideration worth is the same across same config.

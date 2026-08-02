@@ -507,7 +507,8 @@ crow::response REST_App::HandleGetNeccMEHR(const crow::request &req) {
     if (didGeneratePolicies) {
         for (auto i : necc_policies) {
             if (i==factPolicy_id) {continue;}
-            resp_payload[FIELD::SOLUTIONS].push_back(JSONBuilder::toJSON(*runner->policies[i], *runner->mdp, runner->non_accept->getPolicyNonAccept(i), true));
+            auto x = runner->non_accept->getPolicyNonAcceptByTheory(i);
+            resp_payload[FIELD::SOLUTIONS].push_back(JSONBuilder::toJSON(*runner->policies[i], *runner->mdp, x, true));
         }
     }
     return {resp_payload.dump()};

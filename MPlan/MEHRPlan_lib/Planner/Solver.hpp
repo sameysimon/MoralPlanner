@@ -103,15 +103,19 @@ public:
     void backup(State& state);
     void backupTwo(State& state);
 
-    void gatherPFActionWorth(list<Candidate>& candidates, vector<Successor*>* successors, int aIdx);
+    void gatherPFActionWorth(list<Candidate> &candidates, vector<Successor *> *successors, int aIdx, bool &any_in_budget);
     void gatherActionSuccessors(vector<QValue>& candidates, vector<int>& qValueIdxToAction, int aIdx,
                                 vector<Successor*>* successors);
 
 
     template <typename T, typename Accessor>
-    static bool ParetoFilter(MDP& mdp, std::list<T>& pfVector, T&& new_qv, Accessor getQValue, bool allow_equivalence=true) {
+    static bool ParetoFilter(MDP& mdp, std::list<T>& pfVector, T&& new_qv, Accessor getQValue, bool allow_equivalence, bool& any_in_budget) {
         const QValue& newValue = getQValue(new_qv);
-        if (!mdp.isQValueInBudget(newValue)) {
+        bool is_new_in_budget = mdp.isQValueInBudget(newValue);
+        if (is_new_in_budget) {
+            any_in_budget = true;
+        }
+        if (!is_new_in_budget && any_in_budget) {
             return false;
         }
         auto it = pfVector.begin();
@@ -120,11 +124,21 @@ public:
             if (!allow_equivalence && existingValue.isEquivalent(newValue)) {
                 return false;
             }
-            int r = mdp.ParetoCompare(newValue, existingValue);
-            if (r == -1) {
-                return false;
+            bool erase_curr = false;
+            if (false && (is_new_in_budget && !any_in_budget)) {
+                erase_curr = true;
+                any_in_budget = true;
+            } else {
+                int r = mdp.ParetoCompare(newValue, existingValue);
+                if (r==-1) {
+                    return false;
+                }
+                if (r==1) {
+                    erase_curr = true;
+                }
             }
-            if (r == 1) {
+
+            if (erase_curr) {
                 it = pfVector.erase(it);
             } else {
                 ++it;

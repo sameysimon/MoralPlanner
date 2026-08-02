@@ -64,9 +64,9 @@ json JSONBuilder::toJSON(explainResult &er, Runner& runner, bool addMEHR) {
     r[FIELD::HISTORIES] = json::object();
     r[FIELD::ATTACKS] = json::object();
     for (size_t i : er.newPolicyIndices) {
-        double nacc = -1;
+        vector<double> nacc;
         if (addMEHR) {
-            nacc = runner.non_accept->getPolicyNonAccept(i);;
+            nacc = runner.non_accept->getPolicyNonAcceptByTheory(i);;
         }
         r[FIELD::FOILSOLUTIONS][std::to_string(i)] = toJSON(*runner.policies[i], *(runner.mdp), nacc, runner.histories.at(i));
         r[FIELD::HISTORIES][std::to_string(i)] = json::array();
@@ -84,12 +84,12 @@ json JSONBuilder::toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcce
     double min_non_acc = non_accept.getPolicyNonAccept(sorted_indices[0]);
     int num_of_min_non_acc = 0;
     for (size_t i =0; i < policies.size(); ++i) {
-        auto nacc = non_accept.getPolicyNonAccept(i);
+        auto nacc = non_accept.getPolicyNonAcceptByTheory(i);
         ar.push_back(toJSON(*policies[i], mdp, nacc, includeActions));
-        if (abs(nacc-min_non_acc) < 1e-8) {
+        auto total_nacc = non_accept.getPolicyNonAccept(i);
+        if (abs(total_nacc-min_non_acc) < 1e-8) {
             num_of_min_non_acc++;
         }
-
     }
     json r = json::object();
     r[FIELD::SOLUTIONS] = ar;
@@ -98,14 +98,17 @@ json JSONBuilder::toJSON(vector<unique_ptr<Policy>>& policies, MDP &mdp, NonAcce
     r[FIELD::NUM_OF_MIN_NON_ACCEPT] = num_of_min_non_acc;
     CountPolicies c(mdp);
     r[FIELD::TOTAL_POLICIES] = c.GetCount();
+    r[FIELD::NON_ACCEPT_BY_THEROY] = json::array();
 
     return r;
 }
 
-json JSONBuilder::toJSON(Policy &pi, MDP &mdp, double non_accept, bool includeActions) {
+json JSONBuilder::toJSON(Policy &pi, MDP &mdp, vector<double>& non_accept, bool includeActions) {
     json r = json::object();
     // Set non-acceptability
-    r[FIELD::NON_ACCEPTABILITY] = non_accept;
+    r[FIELD::NON_ACCEPT_BY_THEROY] = non_accept;
+    double tot_n = reduce(non_accept.begin(), non_accept.end(), static_cast<double>(0));
+    r[FIELD::NON_ACCEPTABILITY] = tot_n;
 
     // Build action map
     if (includeActions) {
@@ -126,7 +129,7 @@ json JSONBuilder::toJSON(Policy &pi, MDP &mdp, double non_accept, bool includeAc
     }
     return r;
 }
-json JSONBuilder::toJSON(Policy &pi, MDP &mdp, double non_accept, vector<unique_ptr<History>>& policy_histories) {
+json JSONBuilder::toJSON(Policy &pi, MDP &mdp, vector<double>& non_accept, vector<unique_ptr<History>>& policy_histories) {
     json r = toJSON(pi, mdp, non_accept);
     r[FIELD::TOTAL_HISTORIES] = policy_histories.size();
     QValue min_qv = policy_histories[0]->mWorth;

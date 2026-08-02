@@ -93,7 +93,6 @@ def UtilityExperiment():
     configs = GenerateConfigs(UtilityConfigs, defaultConfig)
 
     er = ExperimentRunner("LostInsulin", configs)
-    er.buildEnvironments(configRepetitions=Config_repetitions)
     er.run(configRepetitions=Config_repetitions, envRepetitions=Environment_repetitions)
     er.saveResults()
     #
@@ -149,5 +148,7 @@ def LegalExperiment():
     print(df.head())
 
 
-LegalExperiment()
+#LegalExperiment()
+configs = UtilityConfigs
+StartServerAndPost()
 input()

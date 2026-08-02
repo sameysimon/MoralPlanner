@@ -5,11 +5,18 @@ import random
 
 
 class Odds():
-    CARLA_COMPLIES=0.2
-    CARLA_BUYS_LOW=0.3
-    CARLA_BUYS_HIGH=0.4
-    CARLA_INTIMIDATED=0.5
+    HAL_DIES=0.1
 
+    CARLA_GIVES=0.2
+    CARLA_SELLS_LOW=0.25
+    CARLA_SELLS_HIGH=0.3
+    CARLA_INTIMIDATED=0.5
+    CARLA_LOSES_FIGHT=0.7
+    CARLA_LOSES_FIGHT_AFTER_INTIM=0.4
+
+
+    CARLA_DIES=0.1
+    HAL_FINDS_ENTRANCE=0.8
     SNEAK_IN_ARREST=0.2
     BREAK_IN_ARREST=0.4
 
@@ -18,14 +25,6 @@ class Odds():
     COMPENSATE_LOW=0.4
     COMPENSATE_HIGH=0.5
 
-    HAL_DIES=0.1
-    CARLA_DIES=0.1
-
-    HAL_FINDS=0.5
-
-    CARLA_LOSES_FIGHT=0.7
-    CARLA_LOSES_FIGHT_AFTER_INTIM=0.4
-    HAL_FINDS_ENTRANCE=0.8
     
 def SafeRemove(l:list, item):
     if item in l:
@@ -170,11 +169,11 @@ class LostInsulin(MDP):
             p_ = deepcopy(props)
             p_['Carla_reply'] = 'gave'
             p_['Hal_has_insulin'] = True
-            outcomes.append((p_, prob * Odds.CARLA_COMPLIES))
+            outcomes.append((p_, prob * Odds.CARLA_GIVES))
             
             p_ = deepcopy(props)
             p_['Carla_reply'] = 'refused_ask'
-            outcomes.append((p_, prob * (1 - Odds.CARLA_COMPLIES)))
+            outcomes.append((p_, prob * (1 - Odds.CARLA_GIVES)))
         elif (action=='buy_low'):
             p_ = deepcopy(props)
             p_['Carla_sold'] = 'sold'
@@ -182,11 +181,11 @@ class LostInsulin(MDP):
             # Reset these variables since they won't be relevant
             p_['Carla_reply'] = 'na'
             p_['Entry_status'] = 'na'
-            outcomes.append((p_, prob * Odds.CARLA_BUYS_LOW))
+            outcomes.append((p_, prob * Odds.CARLA_SELLS_LOW))
 
             p_ = deepcopy(props)
             p_['Carla_sold'] = 'refused_low'
-            outcomes.append((p_, prob * (1 - Odds.CARLA_BUYS_LOW)))
+            outcomes.append((p_, prob * (1 - Odds.CARLA_SELLS_LOW)))
         elif (action=='buy_high'):
             p_ = deepcopy(props)
             p_['Carla_sold'] = 'sold'
@@ -195,11 +194,11 @@ class LostInsulin(MDP):
             p_['Carla_reply'] = 'na'
             p_['Entry_status'] = 'na'
 
-            outcomes.append((p_, prob * Odds.CARLA_BUYS_HIGH))
+            outcomes.append((p_, prob * Odds.CARLA_SELLS_HIGH))
 
             p_ = deepcopy(props)
             p_['Carla_sold'] = 'refused_high'
-            outcomes.append((p_, prob * (1 - Odds.CARLA_BUYS_HIGH)))
+            outcomes.append((p_, prob * (1 - Odds.CARLA_SELLS_HIGH)))
 
         elif (action=='intimidate'):
             p_ = deepcopy(props)
@@ -365,7 +364,7 @@ class LostInsulin(MDP):
                 mc = CarlaSmall()
             elif 'Cost'==tag:
                 self.isNonMoral=True
-                mc = Time(self.horizon, self.budget)
+                mc = Time(self.horizon)
                 self.CostTheory = mc
             elif 'Necessity'==tag:
                 mc = OrdinalNecessity(0, horizon=self.horizon)
