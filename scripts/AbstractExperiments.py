@@ -257,6 +257,9 @@ class ExperimentRunner:
                                 "Moral_policy_idx": i,
                                 "Non-acceptability": json_data["Solutions"][soln_order[i]]["Acceptability"],
                             }
+                            for mt_i, mt in enumerate(json_data["Theories"]):
+                                e[f"nacc_{mt["Name"]}"] = json_data["Solutions"][soln_order[i]]["Non_accept_by_theory"][mt_i]
+
                             for wt in worth_tags:
                                 if wt in json_data["Solutions"][soln_order[i]]["Expectation"].keys():
                                     e[wt] = json_data["Solutions"][soln_order[i]]["Expectation"][wt]
@@ -265,7 +268,44 @@ class ExperimentRunner:
                             data.append(e)
         return data
 
+    def load_all_policy_data(er, config_repetitions=1, environment_repetitions=1,):
+        """Read every ordered policy from each raw planner result."""
+        records = []
 
+        for conf_rep in range(config_repetitions):
+            for config in er.configs:
+                for env_rep in range(environment_repetitions):
+                    output_file = er.makePlanOutFileName(config["Name"], conf_rep, env_rep)
+
+                    with open(output_file, "r") as file:
+                        result = json.load(file)
+
+                    theory_names = [ theory["Name"] for theory in result["Theories"] ]
+                    solution_order = result.get("Solutions_Order", range(len(result["Solutions"])))
+
+                    for policy_order, solution_index in enumerate(solution_order):
+                        solution = result["Solutions"][int(solution_index)]
+
+                        record = {
+                            "Config_name": config["Name"],
+                            "Conf_rep": conf_rep,
+                            "Env_rep": env_rep,
+                            "Horizon": result["Horizon"],
+                            "Policy_order": policy_order,
+                            "Solution_index": int(solution_index),
+                            "Total_NACC": solution["Acceptability"],
+                        }
+
+                        theory_nacc_values = solution.get("Non_accept_by_theory", [])
+                        for theory_name, nacc_value in zip(theory_names, theory_nacc_values):
+                            record[f"nacc_{theory_name}"] = nacc_value
+
+                        # Retain every expectation rather than guessing in advance
+                        # which wellbeing tags a configuration will contain.
+                        record.update(solution.get("Expectation", {}))
+                        records.append(record)
+
+        return pd.DataFrame(records)
     #
     # Server Stuff
     #
