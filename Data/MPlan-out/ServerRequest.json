@@ -1,0 +1,1866 @@
+{
+    "Actions": [
+        "go_to:0",
+        "go_to:1",
+        "go_to:5",
+        "heal",
+        "go_to:2",
+        "go_to:3",
+        "go_to:4"
+    ],
+    "Average_histories": 6,
+    "Backups": 89,
+    "Best_subgraph_size": 67,
+    "Considerations": [
+        {
+            "Component_of": [
+                "Rawls",
+                "Add_Util"
+            ],
+            "Default": 0,
+            "Heuristic": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "Name": "red:wellbeing",
+            "Type": "Utility"
+        },
+        {
+            "Component_of": [
+                "Rawls",
+                "Add_Util"
+            ],
+            "Default": 0,
+            "Heuristic": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "Name": "blue:wellbeing",
+            "Type": "Utility"
+        },
+        {
+            "Component_of": [
+                "Rawls",
+                "Add_Util"
+            ],
+            "Default": 0,
+            "Heuristic": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "Name": "green:wellbeing",
+            "Type": "Utility"
+        }
+    ],
+    "Domain": "Rescue",
+    "Duration_CQ1": 0,
+    "Duration_CQ2": 0,
+    "Duration_Heuristic": 37,
+    "Duration_MEHR": 78,
+    "Duration_Outs": 0,
+    "Duration_Plan": 383,
+    "Duration_Sols": 295,
+    "Duration_Sols_Reduce": 0,
+    "Duration_Total": 793,
+    "Expanded": 41,
+    "Goals": [],
+    "Histories": {},
+    "Horizon": 5,
+    "Iterations": 6,
+    "Max_histories": 8,
+    "Min_histories": 4,
+    "Non_accept_by_theory": [],
+    "Num_Min_Non_Acceptability": 1,
+    "SolutionTotal": 12,
+    "Solutions": [
+        {
+            "Acceptability": 1.619047619047619,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:2",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "35": "heal",
+                "36": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.7976",
+                "green:wellbeing": "0.9405",
+                "red:wellbeing": "0.75"
+            },
+            "Non_accept_by_theory": [
+                0.8571428571428572,
+                0.7619047619047619
+            ]
+        },
+        {
+            "Acceptability": 1.5238095238095237,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:3",
+                "36": "heal",
+                "4": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.5",
+                "green:wellbeing": "1.0714",
+                "red:wellbeing": "0.5"
+            },
+            "Non_accept_by_theory": [
+                0.8095238095238095,
+                0.7142857142857143
+            ]
+        },
+        {
+            "Acceptability": 1.6904761904761905,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:1",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "34": "heal",
+                "36": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.75",
+                "green:wellbeing": "0.9405",
+                "red:wellbeing": "0.7738"
+            },
+            "Non_accept_by_theory": [
+                0.9047619047619048,
+                0.7857142857142857
+            ]
+        },
+        {
+            "Acceptability": 0.8095238095238095,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:3",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "36": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.75",
+                "green:wellbeing": "1.0357",
+                "red:wellbeing": "0.75"
+            },
+            "Non_accept_by_theory": [
+                0.8095238095238095,
+                0.0
+            ]
+        },
+        {
+            "Acceptability": 0.8333333333333333,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:1",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "34": "heal",
+                "35": "heal",
+                "36": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.7976",
+                "green:wellbeing": "0.8452",
+                "red:wellbeing": "0.7738"
+            },
+            "Non_accept_by_theory": [
+                0.0,
+                0.8333333333333333
+            ]
+        },
+        {
+            "Acceptability": 1.619047619047619,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:2",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "35": "heal",
+                "36": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.8452",
+                "green:wellbeing": "0.8452",
+                "red:wellbeing": "0.75"
+            },
+            "Non_accept_by_theory": [
+                0.8095238095238095,
+                0.8095238095238095
+            ]
+        },
+        {
+            "Acceptability": 1.8333333333333333,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:1",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "34": "heal",
+                "36": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.75",
+                "green:wellbeing": "0.8452",
+                "red:wellbeing": "0.7976"
+            },
+            "Non_accept_by_theory": [
+                0.9761904761904762,
+                0.8571428571428571
+            ]
+        },
+        {
+            "Acceptability": 1.761904761904762,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:2",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "35": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.8929",
+                "green:wellbeing": "0.75",
+                "red:wellbeing": "0.75"
+            },
+            "Non_accept_by_theory": [
+                0.9047619047619049,
+                0.8571428571428572
+            ]
+        },
+        {
+            "Acceptability": 1.833333333333333,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:1",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "34": "heal",
+                "35": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.7976",
+                "green:wellbeing": "0.75",
+                "red:wellbeing": "0.7976"
+            },
+            "Non_accept_by_theory": [
+                0.9285714285714285,
+                0.9047619047619047
+            ]
+        },
+        {
+            "Acceptability": 1.8333333333333335,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:1",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "34": "heal",
+                "35": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.8452",
+                "green:wellbeing": "0.75",
+                "red:wellbeing": "0.7738"
+            },
+            "Non_accept_by_theory": [
+                0.9523809523809524,
+                0.8809523809523809
+            ]
+        },
+        {
+            "Acceptability": 1.880952380952381,
+            "Action_Map": {
+                "0": "go_to:4",
+                "15": "go_to:1",
+                "16": "go_to:4",
+                "17": "go_to:4",
+                "18": "go_to:4",
+                "19": "go_to:4",
+                "34": "heal",
+                "37": "go_to:5",
+                "38": "go_to:0",
+                "39": "go_to:0",
+                "4": "go_to:5",
+                "40": "go_to:0",
+                "5": "go_to:0",
+                "6": "go_to:0",
+                "7": "go_to:0"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0.75",
+                "green:wellbeing": "0.75",
+                "red:wellbeing": "0.8214"
+            },
+            "Non_accept_by_theory": [
+                0.9523809523809523,
+                0.9285714285714285
+            ]
+        },
+        {
+            "Acceptability": 2.0,
+            "Action_Map": {
+                "0": "go_to:3",
+                "13": "heal",
+                "14": "heal",
+                "25": "heal",
+                "3": "heal",
+                "33": "heal"
+            },
+            "Expectation": {
+                "blue:wellbeing": "0",
+                "green:wellbeing": "1.7143",
+                "red:wellbeing": "0"
+            },
+            "Non_accept_by_theory": [
+                1.0,
+                1.0
+            ]
+        }
+    ],
+    "Solutions_Order": [
+        3,
+        4,
+        1,
+        0,
+        5,
+        2,
+        7,
+        8,
+        6,
+        9,
+        10,
+        11
+    ],
+    "State_tags": [
+        "{'time': 0, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 1, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 1, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 1, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 1, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 1, 'curr_tile': 4, 'success': False, 'holding': 'red', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 1, 'curr_tile': 4, 'success': False, 'holding': 'blue', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 1, 'curr_tile': 4, 'success': False, 'holding': 'green', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 2, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 3, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': 'red', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': 'blue', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': 'green', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': 'red', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': 'blue', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': 'green', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'red', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'blue', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'green', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 2, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 3, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'red', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'blue', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'green', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 2, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 3, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '?', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'red', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'blue', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'green', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'red', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'blue', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'green', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 4, 'success': False, 'holding': 'red', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 4, 'success': False, 'holding': 'blue', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 4, 'success': False, 'holding': 'green', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 2, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 3, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', '?'], 'horizon': 4}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital', '', ''], 'horizon': 4}"
+    ],
+    "State_time": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+    ],
+    "State_transitions": [
+        {
+            "go_to:1": [
+                [
+                    1,
+                    1,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    2,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    3,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    4,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    5,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    6,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    7,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    8,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.14285714285714285,
+                    9,
+                    1,
+                    0,
+                    0
+                ],
+                [
+                    0.8571428571428572,
+                    10,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    8,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.2857142857142857,
+                    11,
+                    0,
+                    1,
+                    0
+                ],
+                [
+                    0.7142857142857143,
+                    12,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    8,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.5714285714285714,
+                    13,
+                    0,
+                    0,
+                    1
+                ],
+                [
+                    0.4285714285714286,
+                    14,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    15,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    16,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    17,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    18,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    19,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    15,
+                    3,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    20,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    15,
+                    0,
+                    3,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    21,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    15,
+                    0,
+                    0,
+                    3
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    22,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    23,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    24,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    25,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    26,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    27,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    28,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    29,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    30,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.14285714285714285,
+                    31,
+                    1,
+                    0,
+                    0
+                ],
+                [
+                    0.8571428571428572,
+                    23,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    30,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.14285714285714285,
+                    31,
+                    1,
+                    0,
+                    0
+                ],
+                [
+                    0.8571428571428572,
+                    23,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    30,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.2857142857142857,
+                    32,
+                    0,
+                    1,
+                    0
+                ],
+                [
+                    0.7142857142857143,
+                    24,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    30,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.2857142857142857,
+                    32,
+                    0,
+                    1,
+                    0
+                ],
+                [
+                    0.7142857142857143,
+                    24,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    30,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.5714285714285714,
+                    33,
+                    0,
+                    0,
+                    1
+                ],
+                [
+                    0.4285714285714286,
+                    25,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    30,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.5714285714285714,
+                    33,
+                    0,
+                    0,
+                    1
+                ],
+                [
+                    0.4285714285714286,
+                    25,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    34,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    35,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    36,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    26,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    37,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    38,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    39,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    40,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    27,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    28,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    29,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    41,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.14285714285714285,
+                    42,
+                    1,
+                    0,
+                    0
+                ],
+                [
+                    0.8571428571428572,
+                    43,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    41,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.2857142857142857,
+                    44,
+                    0,
+                    1,
+                    0
+                ],
+                [
+                    0.7142857142857143,
+                    45,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    41,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.5714285714285714,
+                    46,
+                    0,
+                    0,
+                    1
+                ],
+                [
+                    0.4285714285714286,
+                    47,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    48,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    49,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    50,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    51,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    52,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    48,
+                    3,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    53,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    48,
+                    0,
+                    3,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    54,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    48,
+                    0,
+                    0,
+                    3
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    55,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    43,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    45,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    47,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    56,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    57,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    58,
+                    0,
+                    0,
+                    0
+                ],
+                [
+                    0.16666666666666666,
+                    59,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    41,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.14285714285714285,
+                    42,
+                    1,
+                    0,
+                    0
+                ],
+                [
+                    0.8571428571428572,
+                    43,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    41,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.2857142857142857,
+                    44,
+                    0,
+                    1,
+                    0
+                ],
+                [
+                    0.7142857142857143,
+                    45,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    41,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.5714285714285714,
+                    46,
+                    0,
+                    0,
+                    1
+                ],
+                [
+                    0.4285714285714286,
+                    47,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    48,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.14285714285714285,
+                    60,
+                    1,
+                    0,
+                    0
+                ],
+                [
+                    0.8571428571428572,
+                    61,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    48,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.2857142857142857,
+                    62,
+                    0,
+                    1,
+                    0
+                ],
+                [
+                    0.7142857142857143,
+                    63,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    48,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.5714285714285714,
+                    64,
+                    0,
+                    0,
+                    1
+                ],
+                [
+                    0.4285714285714286,
+                    65,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    66,
+                    0,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    49,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    66,
+                    3,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    50,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    66,
+                    0,
+                    3,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    51,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    66,
+                    0,
+                    0,
+                    3
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    52,
+                    0,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
+    "Theories": [
+        {
+            "Name": "Rawls",
+            "Rank": 0,
+            "Type": "Maximin"
+        },
+        {
+            "Name": "Add_Util",
+            "Rank": 0,
+            "Type": "Utility"
+        }
+    ],
+    "Total_Attacks": 159,
+    "Total_reachable_policies": 24258,
+    "Total_states": 67
+}

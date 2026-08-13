@@ -197,11 +197,12 @@ class Rescue(MDP):
 
     def Deliver(self, props, prob, action:str):
         curr_type = props['tile_type'][props['curr_tile']]
-        if (curr_type != "hospital" and curr_type != "base"):
+        if (curr_type == "base"):
+            props["holding"] = "nothing"
             return [(props, prob)]
-        if (curr_type == "hospital" and props['holding'] != self.Community[props['curr_tile']]):
+        if (curr_type == "hospital" and props['holding'] == self.Community[props['curr_tile']]):
+            props["holding"] = "nothing"
             return [(props, prob)]
-        props["holding"] = "nothing"
         return [(props, prob)]
 
         
