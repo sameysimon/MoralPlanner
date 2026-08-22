@@ -59,11 +59,11 @@ class Rescue(MDP):
         "curr_tile": 0,
         "success": False,
         "holding": "nothing",
-        "tile_type": []
+        "tile_type": [],
     }
     
-    def __init__(self, Theories, Considerations, initialProps=None, Horizon=5, Budget=5, RequireSearch=False,
-                  Teams=['red', 'blue'], unknown_depth=1, link_back_dist=4, Odds=None, **kwargs):
+    def __init__(self, Theories, Considerations, initialProps=None, initialWorth=None, Horizon=5, 
+                  Budget=5, Teams=['red', 'blue'], unknown_depth=1, link_back_dist=4, Odds=None, **kwargs):
         super().__init__()
         
         if initialProps != None:
@@ -72,10 +72,10 @@ class Rescue(MDP):
         if Horizon != None:
             self.initialProps['horizon'] = Horizon
 
+        self.initialWorth = initialWorth
+
         self.BuildMyGraph(Teams, unknown_depth, link_back_dist, Odds)
 
-        
-        self.RequireSearch = RequireSearch
 
         self.stateFactory(self.initialProps) # Create at least one initial state
 
@@ -129,15 +129,14 @@ class Rescue(MDP):
                 self.AdjEdge[0].append(i)
             self.initialProps["tile_type"].append("?")
             self.Community.append("")
-
-
-        
-
+     
     def isGoal(self, state:State) -> bool:
         return False
 
-    
     def getActions(self, state:State) -> list:
+        if (not self.initialWorth is None and state.props["time"]==0):
+            return ['dummy']
+        
         acts = []
         if (state.props['time'] >= self.horizon):
             return acts
@@ -152,6 +151,7 @@ class Rescue(MDP):
             acts.append('heal')
         
         return acts
+
 
     def ResetVars(self, props, prob, action:str):
         props['success'] = False
@@ -208,9 +208,10 @@ class Rescue(MDP):
         
     # time advances each transition
     def AdvanceTime(self, props, prob, action):
-        props_ = deepcopy(props)
-        props_["time"] = props_["time"] + 1
-        return [(props_, prob)]
+        if (action == "dummy"):
+            return [(props, prob)]
+        props["time"] = props["time"] + 1
+        return [(props, prob)]
     
 
      # Setup stuff.

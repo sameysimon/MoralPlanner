@@ -15,7 +15,7 @@ config = {"Name": "Test",
 
 er = ExperimentRunner(domain, [config])
 er.buildEnvironments(1)
-mdpFile = er.makeMdpFileName("Test",0)
+mdpFile = er.getMdpFileName("Test",0)
 proc = subprocess.Popen([er.planner, "--server", "3"])
 
 time.sleep(3) # give planner a chance to setup

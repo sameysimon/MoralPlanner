@@ -77,8 +77,19 @@ void Solver::MC_iAO_Star() {
         Log::writeFormatLog(LogLevel::Debug, "mData[0] has {} items", mData[0].size());
         Log::writeFormatLog(LogLevel::Debug, "Set Post Order DFS. Found {} state-times:", mFoundStates->size());
 #ifdef DEBUG
-        for (auto elem : *mFoundStates) { Log::writeFormatLog(LogLevel::Trace, "   t={}, s={};", mdp.states[elem]->time, elem); }
-        Log::writeLog("\n", LogLevel::Debug);
+        string x = "";
+        int i = 0;
+        for (auto& elem : mData[0]) {
+            Log::writeFormatLog(LogLevel::Trace, "{} : {}", i, elem.toString());
+            i+=1;
+        }
+        Log::writeLog(x, LogLevel::Trace);
+        x = "";
+        for (auto elem : *mFoundStates) {
+            x += format("t={} s={}; ", mdp.states[elem]->time, elem);
+        }
+        x+= '\n';
+        Log::writeLog(x, LogLevel::Trace);
 #endif
     } while (checkForUnexpandedStates(mExpanded, mBackupOrder));
     this->expanded_states = mExpanded.size();

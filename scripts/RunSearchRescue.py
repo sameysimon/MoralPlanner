@@ -43,7 +43,7 @@ if (not RunWithLookahead):
                            curr_props=SearchRescue.initialProps)
     er.buildEnvironments()
     #er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
-    er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
+    er.PostMDPToServer(er.getMdpFileName(configs[0]["Name"], 0))
     input()
     exit()
 

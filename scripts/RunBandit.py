@@ -74,7 +74,7 @@ for el in configs:
         actions = el["actions"]
         minBranches = el["minBranches"]
         maxBranches = el["maxBranches"]
-        o = Build(filePath=er.makeMdpFileName(el["Name"], con_rep),
+        o = Build(filePath=er.getMdpFileName(el["Name"], con_rep),
             theories=theories, numOfRanks=ranks, 
             numOfActions=actions, minBranches=minBranches, 
             maxBranches=maxBranches)

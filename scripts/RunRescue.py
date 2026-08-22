@@ -77,7 +77,7 @@ if (not RunWithLookahead):
     Rescue.BuildMyGraph(['red', 'blue', 'green'], 3)
     SearchRescueDraw.DrawGraph(adj_edge=Rescue.AdjEdge, community=Rescue.Community, curr_props=Rescue.initialProps)
     er.buildEnvironments()
-    er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
+    er.StartServerAndPost(er.getMdpFileName(configs[0]["Name"], 0))
     #er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
     input()
     exit()

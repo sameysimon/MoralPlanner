@@ -36,7 +36,7 @@ public:
             throw std::invalid_argument("Expected WorthBase to be of type ExpectedUtility");
             return false;
         }
-        return (std::abs(value - eu->value) < 1e-3);
+        return (std::abs(value - eu->value) < 1e-4);
     }
     [[nodiscard]] unique_ptr<WorthBase> clone() const override {
         return make_unique<ExpectedUtility>(*this);

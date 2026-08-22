@@ -26,7 +26,32 @@ public:
         forced_actions.insert_or_assign(state_idx, vector<size_t>());
         forced_actions[state_idx].push_back(action_idx);
     }
-
+    [[nodiscard]] string MakePoliciesString(policy_set &policies) const {
+        string s;
+        int i = 0;
+        for (auto &pi : policies) {
+            s += format("Policy {} expects {}\n", i, pi->getExpectationPtr()->toString());
+            double pr=0;
+            int j = 0;
+            for (auto &h : pi->history_set) {
+                s += format("   History {} expects {} at p={}", j, h->mWorth.toString(), h->probability);
+                if (h->hasPath) {
+                    s += "w/ path [";
+                    for (auto st : *h->path) {
+                        s += format(" {}, ", st);
+                    }
+                    s+= "]\n";
+                } else {
+                    s += "\n";
+                }
+                pr+=h->probability;
+                j++;
+            }
+            i++;
+            s += format("Total Probability = {}\n\n", pr);
+        }
+        return s;
+    }
     void Extract(vector<unique_ptr<Policy>>& result, vector<vector<unique_ptr<History>>> &histories, vector<vector<int>>& Pi) {
         // For some time t and t+1, stores set of policies for each state.
         auto piTable = array<vector<policy_set>, 2>();
@@ -47,10 +72,20 @@ public:
         for (const size_t stateIdx : state_order) {
             // Check for new time step; rotate piTable
             if (mdp.states[stateIdx]->time < currTime) {
+#ifdef DEBUG
+                Log::writeFormatLog(LogLevel::Trace, "****Policies rooted at time {}****", currTime);
+                for (size_t i = 0; i < piTable[1 - prevPolicies].size(); ++i) {
+                    Log::writeFormatLog(LogLevel::Trace, "ROOTED AT STATE={}", piStateTable[1 - prevPolicies][i]);
+                    Log::writeLog(MakePoliciesString(piTable[1 - prevPolicies][i]),LogLevel::Trace);
+                    Log::writeLog("END", LogLevel::Trace);
+                }
+#endif
                 piTable[prevPolicies].clear();
                 piStateTable[prevPolicies].clear();
                 prevPolicies = 1 - prevPolicies;
                 currStateSetIdx = 0;
+
+
             }
             // Update time and policy create set for current state.
             currTime = mdp.states[stateIdx]->time;
@@ -86,6 +121,10 @@ public:
                 for (auto &combo : scrPolicyCombos) {
                     Candidate c = {a,combo, QValue(mdp), successors};
                     gatherQValue(c.root, successors, combo, currTime);
+                    auto x = c.root.toStringVector();
+                    //if (x[1]=="0" && x[2]=="0" && x[3]=="0") {
+                    //    Log::writeLog("here");
+                    //}
                     if (!prune_dominated) {
                         pcsCandidates.push_back(c);
                         continue;

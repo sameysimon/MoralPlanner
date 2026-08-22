@@ -84,10 +84,10 @@ class ExperimentRunner:
     #
     # File path stuff
     #
-    def makeMdpFileName(self, confName:str, confRep:int=None):
+    def getMdpFileName(self, confName:str, confRep:int=None):
         return f"{self.mdpFolder}/{confName}_con{confRep}.json"
 
-    def makePlanOutFileName(self, confName:str, confRep:int, envRep:int):
+    def getPlanOutFileName(self, confName:str, confRep:int, envRep:int):
         return f"{self.rawOutFolder}/{confName}_con{confRep}_rep{envRep}.json"
     
     def getAllDataFilePath(self) -> str:
@@ -123,29 +123,32 @@ class ExperimentRunner:
         for i in range(configRepetitions):
             for conf in self.configs:
                 mdps.setdefault(conf["Name"], [])
-                mdps[conf["Name"]].append(MDPFactory.buildEnvToFile(self.domain, fileOut=self.makeMdpFileName(conf['Name'], i), **conf))
+                mdps[conf["Name"]].append(MDPFactory.buildEnvToFile(self.domain, fileOut=self.getMdpFileName(conf['Name'], i), **conf))
         return mdps
     
     def runPlanner(self, configRepetitions=1, envRepetitions=1):
         for conf in self.configs:
             for conf_rep in range(configRepetitions):
-                inFile = self.makeMdpFileName(conf['Name'], conf_rep)
+                inFile = self.getMdpFileName(conf['Name'], conf_rep)
                 for env_rep in range(envRepetitions):
                     self.log(f"Config Name: {conf["Name"]}; Env Repetition: {env_rep}",0)
-                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
+                    outFile = self.getPlanOutFileName(conf['Name'], conf_rep, env_rep)
                     p = [self.planner, "--debug", "0", inFile, outFile]
                     print('EXECUTE ' + ' '.join(p))
                     result = subprocess.run(p)
                     result.check_returncode()
             self.log(f"Finished env on {conf["Name"]}.",0)
 
-    def extractData(self, configRepetitions=1, envRepetitions=1):
+    def extractData(self, configRepetitions=1, envRepetitions=1, config_indices=None):
+        cons_to_extract = self.configs
+        if not config_indices is None:
+            cons_to_extract = [self.configs[i] for i in config_indices]
         self.con_tags = []
         for conf_rep in range(configRepetitions):
-            for conf in self.configs:
+            for conf in cons_to_extract:
                 for env_rep in range(envRepetitions):
                     # open file
-                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
+                    outFile = self.getPlanOutFileName(conf['Name'], conf_rep, env_rep)
                     with open(outFile, 'r') as file:
                         json_data = json.load(file)
                         for tag in json_data["Solutions"][0]["Expectation"].keys():
@@ -155,49 +158,52 @@ class ExperimentRunner:
         # Open output file from planner and interpret
         self.data = []
         for conf_rep in range(configRepetitions):
-            for conf in self.configs:
+            for conf in cons_to_extract:
                 for env_rep in range(envRepetitions):
-                    # open file
-                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
-                    with open(outFile, 'r') as file:
-                        json_data = json.load(file)
-                        bestPolicyIdx = json_data['Solutions_Order'][0]
-                        entry = {
-                            "Config_name": conf['Name'],
-                            "Conf_rep": conf_rep,
-                            "Env_rep": env_rep,
-                            "Theories": str(conf['Theories']),
-                            "Considerations": str(conf['Considerations']),
-                            "Total_time": json_data['Duration_Total'],
-                            "Heuristic_time": json_data['Duration_Heuristic'],
-                            "Plan_time": json_data['Duration_Plan'],
-                            "Sol_time": json_data['Duration_Sols'],
-                            "Mehr_time": json_data['Duration_MEHR'],
-                            "CQ1_time": json_data['Duration_CQ1'],
-                            "CQ2_time": json_data['Duration_CQ2'],
-                            "Out_time": json_data['Duration_Outs'],
-                            "Sol_reduce_time": json_data['Duration_Sols_Reduce'],
-                            "Expanded_states": json_data['Expanded'],
-                            "BSG_states": json_data['Best_subgraph_size'],
-                            "Average_histories": json_data['Average_histories'],
-                            "Max_histories": json_data['Max_histories'],
-                            "Min_histories": json_data['Min_histories'],
-                            "Total_states": json_data['Total_states'],
-                            "Backups": json_data['Backups'],
-                            "Iterations": json_data['Iterations'],
-                            "Horizon": json_data['Horizon'] - 1,
-                            "Min_non_accept": json_data["Solutions"][bestPolicyIdx]["Acceptability"],
-                            "Num_of_min_non_accept": json_data['Num_Min_Non_Acceptability'],
-                            "Num_of_sols": len(json_data["Solutions"]),
-                            "Total_Attacks": json_data["Total_Attacks"],
-                            "Total_reachable_policies": json_data["Total_reachable_policies"]
-                        }
-                        for tag in self.con_tags:
-                            if (tag in json_data["Solutions"][bestPolicyIdx]["Expectation"].keys()):
-                                entry[tag] = json_data["Solutions"][bestPolicyIdx]["Expectation"][tag]
-                            else:
-                                entry[tag] = "N/A"
-                        self.data.append(entry)
+                    self.data.append(self.extractSolutionFile(conf, conf_rep, env_rep, self.con_tags))
+
+    def extractSolutionFile(self, conf, conf_rep=1, env_rep=1, con_tags=None):
+        outFile = self.getPlanOutFileName(conf['Name'], conf_rep, env_rep)
+        with open(outFile, 'r') as file:
+            json_data = json.load(file)
+        bestPolicyIdx = json_data['Solutions_Order'][0]
+        entry = {
+            "Config_name": conf['Name'],
+            "Conf_rep": conf_rep,
+            "Env_rep": env_rep,
+            "Theories": str(conf['Theories']),
+            "Considerations": str(conf['Considerations']),
+            "Total_time": json_data['Duration_Total'],
+            "Heuristic_time": json_data['Duration_Heuristic'],
+            "Plan_time": json_data['Duration_Plan'],
+            "Sol_time": json_data['Duration_Sols'],
+            "Mehr_time": json_data['Duration_MEHR'],
+            "CQ1_time": json_data['Duration_CQ1'],
+            "CQ2_time": json_data['Duration_CQ2'],
+            "Out_time": json_data['Duration_Outs'],
+            "Sol_reduce_time": json_data['Duration_Sols_Reduce'],
+            "Expanded_states": json_data['Expanded'],
+            "BSG_states": json_data['Best_subgraph_size'],
+            "Average_histories": json_data['Average_histories'],
+            "Max_histories": json_data['Max_histories'],
+            "Min_histories": json_data['Min_histories'],
+            "Total_states": json_data['Total_states'],
+            "Backups": json_data['Backups'],
+            "Iterations": json_data['Iterations'],
+            "Horizon": json_data['Horizon'] - 1,
+            "Min_non_accept": json_data["Solutions"][bestPolicyIdx]["Acceptability"],
+            "Num_of_min_non_accept": json_data['Num_Min_Non_Acceptability'],
+            "Num_of_sols": len(json_data["Solutions"]),
+            "Total_Attacks": json_data["Total_Attacks"],
+            "Total_reachable_policies": json_data["Total_reachable_policies"]
+        }
+        if not con_tags is None:
+            for tag in self.con_tags:
+                if (tag in json_data["Solutions"][bestPolicyIdx]["Expectation"].keys()):
+                    entry[tag] = json_data["Solutions"][bestPolicyIdx]["Expectation"][tag]
+                else:
+                    entry[tag] = "N/A"
+        return entry
 
     def saveResults(self):
         # Save all data csv
@@ -244,7 +250,7 @@ class ExperimentRunner:
             for conf in self.configs:
                 for env_rep in range(envRepetitions):
                     # open file
-                    outFile = self.makePlanOutFileName(conf['Name'], conf_rep, env_rep)
+                    outFile = self.getPlanOutFileName(conf['Name'], conf_rep, env_rep)
                     with open(outFile, 'r') as file:
                         json_data = json.load(file)
                         soln_order = json_data['Solutions_Order']
@@ -275,7 +281,7 @@ class ExperimentRunner:
         for conf_rep in range(config_repetitions):
             for config in er.configs:
                 for env_rep in range(environment_repetitions):
-                    output_file = er.makePlanOutFileName(config["Name"], conf_rep, env_rep)
+                    output_file = er.getPlanOutFileName(config["Name"], conf_rep, env_rep)
 
                     with open(output_file, "r") as file:
                         result = json.load(file)
@@ -344,13 +350,29 @@ class ExperimentRunner:
     #
     # Lookahead Methods
     #
-    def PlanWithLookahead(self, 
-                          domain="Rescue", 
-                          filename="", 
-                          real_horizon=20, 
-                          look_ahead=4, 
-                          config_index=0,
-                          act_ahead=1):
+    def runLookaheadPlanner(self, envRepetitions=1):
+        import os
+        for c in self.configs:
+            conf_mdp_folder = f"{self.mdpFolder}/{c["Name"]}/"
+            os.makedirs(conf_mdp_folder, exist_ok=True)
+            conf_out_folder = f"{self.rawOutFolder}/{c["Name"]}/"
+            os.makedirs(conf_out_folder, exist_ok=True)
+            for t in range(envRepetitions):
+                self.StartServer()
+                mdp_folder = f"{conf_mdp_folder}/trial_{t}/"
+                os.makedirs(mdp_folder, exist_ok=True)
+                out_folder = f"{conf_out_folder}/trial_{t}/"
+                os.makedirs(out_folder, exist_ok=True)
+                self.LookaheadPlan(c, mdp_folder, out_folder)
+                #self.extractData()
+                self.ServerProcess.terminate()
+
+
+
+    def LookaheadPlan(self, config:dict, mdp_folder:str, soln_folder:str):
+        real_horizon = config("Horizon", 10)
+        look_ahead = config.get("look_ahead", 3)
+        act_ahead = config.get("act_ahead", 2)
         scr_sequence = []
         scr_tag_sequence = []
         action_sequence = []
@@ -358,43 +380,61 @@ class ExperimentRunner:
 
         curr_state = 0
         scr_props = None
+        past_worth = None
+        final_dat = {}
         for i in range(0, real_horizon, act_ahead):
             # 1. Generate MDP from timestep
-            lookahead_ = look_ahead
-            if "Horizon" in self.configs[config_index].keys():
-                lookahead_ = self.configs[config_index]["Horizon"]
-            mdp = self.makeMDP(domain,
-                        Theories = self.configs[config_index]["Theories"],
-                        Considerations = self.configs[config_index]["Considerations"],
-                        Horizon = lookahead_, 
-                        initialProps=scr_props)
+            mdp = self.makeMDP(self.domain,
+                        Theories = config["Theories"],
+                        Considerations = config["Considerations"],
+                        Horizon = look_ahead, 
+                        initialProps=scr_props, initalWorth=past_worth)
             mdp.makeAllStatesExplicit()
             # 2. Save new MDP
-            curr_file = f"{filename}_t={str(i).rjust(2, '0')}.json"
-            mdp_file = f"{self.mdpFolder}/{curr_file}"
-            self.SaveEnvToJSON(mdp, mdp_file, domain)
+            curr_file = f"t={str(i).rjust(2, '0')}.json"
+            mdp_file = f"{mdp_folder}/{curr_file}"
+            self.SaveEnvToJSON(mdp, mdp_file, self.domain)
             # 3. Plan on MDP
-            fo = f"{self.rawOutFolder}/{curr_file}"
+            fo = f"{soln_folder}/{curr_file}"
             self.PostMDPToServer(fileName=mdp_file, fileOut=fo, from_data_folder=False)
-            # 4. Sample random trajectory
+            # 4. Get and augment datadata 
+            with open(fo) as f:
+                d = json.load(f)
+            if i==0:
+                final_dat = d
+            else:
+                final_dat["Total_time"] += d["Total_time"]
+                final_dat["Duration_Total"] += d["Duration_Total"]
+                final_dat["Duration_Heuristic"] += d["Duration_Heuristic"]
+                final_dat["Duration_Plan"] += d["Duration_Plan"]
+                final_dat["Duration_Sols"] += d["Duration_Sols"]
+                final_dat["Duration_MEHR"] += d["Duration_MEHR"]
+                final_dat["Expanded"] += d["Expanded"]
+                final_dat["Best_subgraph_size"] += d["Best_subgraph_size"]
+                final_dat["Average_histories"] += d["Average_histories"]
+                final_dat["Total_states"] += d["Total_states"]
+                final_dat["Backups"] += d["Backups"]
+                final_dat["Iterations"] += d["Iterations"]
+                final_dat["Total_Attacks"] += d["Total_Attacks"]
+
+            # 5. Sample random trajectory and get info
             dat = self.SampleTrajectoryFromServer(act_ahead, add_worth_to_history=True)
             scrs = []
             for i in range(len(dat['visited_states'])):
-                curr_scr = [dat['transition_probabilities'][i], dat['visited_states'][i]]
+                # curr_scr = [scr_prob, scr_state, worth_1, worth_2...]
+                visit_prob = dat['transition_probabilities'][i]
+                visited_state = dat['visited_states'][i]
+                curr_scr = [visit_prob, visited_state]
                 for key, val in dat['transition_worth'].items():
                     curr_scr.extend(val)
                 scrs.append(curr_scr)
-            action_sequence = dat['actions']
-            
-            with open(fo) as f:
-                d = json.load(f)
-                for i in dat['visited_states']:
-                    scr_props = d["State_tags"][[i]]
-                    scr_props = ast.literal_eval(scr_props)
-                    scr_props["time"] = 0
-                    if (i==0):
-                        scr_tag_sequence.append(ast.literal_eval(d["State_tags"][0]))
-                scr_tag_sequence.append(scr_props)
+                # Setup successor state props
+                scr_props = d["State_tags"][visited_state]
+                scr_props = ast.literal_eval(scr_props)
+                scr_props["time"] = 0
+                past_worth = dat["transition_worth"]
+                
+            action_sequence += dat["actions"]
 
         dat = self.GetCachedSuccessorsFromServer()
         dat = dat.json()
@@ -580,7 +620,7 @@ class ExperimentRunner:
         plt.legend(loc=legend_loc)
 
     def plotParetoGraph(self, configName:str, conf_rep:int, con_one_label:str, con_two_label:str, env_rep:int=0, fileName:str="ParetoGraph.png"):
-        outFile = self.makePlanOutFileName(configName, conf_rep, env_rep)
+        outFile = self.getPlanOutFileName(configName, conf_rep, env_rep)
 
         with open(outFile, 'r') as file:
             json_data = json.load(file)
@@ -625,7 +665,7 @@ class ExperimentRunner:
 
         for c in config_names:
             # Assuming self.makePlanOutFileName exists
-            outFile = self.makePlanOutFileName(c, 0, 0)
+            outFile = self.getPlanOutFileName(c, 0, 0)
             with open(outFile, 'r') as file:
                 json_data = json.load(file)
                 nacc = [sol["Acceptability"] for sol in json_data["Solutions"]]  
@@ -658,7 +698,7 @@ class ExperimentRunner:
         for c in configs.keys():
             for env_rep in range(envRepetitions):
                 # Assuming self.makePlanOutFileName exists
-                outFile = self.makePlanOutFileName(c, 0, env_rep)
+                outFile = self.getPlanOutFileName(c, 0, env_rep)
                 with open(outFile, 'r') as file:
                     json_data = json.load(file)
                     data.append([c, env_rep, 

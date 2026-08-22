@@ -138,7 +138,7 @@ def LegalExperiment():
     Config_repetitions=1
     Environment_repetitions=1
     er.buildEnvironments(configRepetitions=Config_repetitions)
-    er.StartServerAndPost(er.makeMdpFileName(configs[2]["Name"], 0))
+    er.StartServerAndPost(er.getMdpFileName(configs[2]["Name"], 0))
     input()
     er.run(configRepetitions=Config_repetitions, envRepetitions=Environment_repetitions)
     er.saveResults()

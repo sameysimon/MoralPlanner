@@ -27,7 +27,7 @@ int main(int argc, const char * argv[]) {
     std::string outputFolder = OUTPUT_FOLDER_PATH;
     std::string fileIn = dataFolder + "../Experiments/Random/2025-03-21 16:27:23/mdps/0Util_0Law__hor=6_con0.json";
     ushort portIn = 18080;
-    fileIn = "/home/psiko/Programming/MoralPlanner/Data/Experiments/LostInsulin/2026-07-28_14:37:11/mdps/(Hal)^0, (Carla)^0_con0.json";
+    fileIn = "/home/psiko/Programming/MoralPlanner/Data/Experiments/Rescue/Rescue/mdps/4_h5_Rawls + Separate_con0.json";
     std::string fileOut = outputFolder + "MPlan-Out.json";
     Log::setLogLevel(LogLevel::Debug);
 
@@ -112,6 +112,7 @@ int main(int argc, const char * argv[]) {
     Runner run = Runner();
     run.planning_mode = pm;
     run.make_history_paths=true;
+    Log::setLogLevel(LogLevel::Trace);
     int x = run.SetInputFile(fileIn);
     if (x==1) {
         return x;
