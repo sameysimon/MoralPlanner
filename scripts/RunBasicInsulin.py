@@ -16,8 +16,8 @@ configs = [
     },
     {
         "Name": "Cost+Carla", "Horizon": 2, "Budget": 2,
-        "Theories": [["Act-Utilitarianism", "Utility", 0], ["Egoism from Hal", "Utility", 1]],
-        "Considerations": [["CarlaLife", ["Altruism for Carla", "Act-Utilitarianism"]], ["HalLife", ["Egoism from Hal", "Act-Utilitarianism"]], ['ToSteal', 'No Stealing']]
+        "Theories": [["Altruism for Hal", "Utility", 0]],
+        "Considerations": [["CarlaLife", "Altruism for Carla"], ['Cost']]
     }
 ]
 
@@ -25,6 +25,6 @@ er = ExperimentRunner(Domains.BasicLostInsulin, configs)
 er.buildEnvironments()
 #er.run(configRepetitions=1, envRepetitions=1)
 # er.saveResults()
-er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
+er.StartServerAndPost(er.makeMdpFileName("Cost+Carla", 0))
 #er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
 input("Enter to exit...")
