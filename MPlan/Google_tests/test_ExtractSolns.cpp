@@ -13,11 +13,11 @@ protected:
         // Make MDP
         MDP mdp = MDP(fileName);
         // Solve MDP
-        Solver solver = Solver(mdp);
+        Solver solver = Solver(mdp, false);
         solver.MC_iAO_Star();
         // Extract Policies.
         auto soln_extractor = SolutionExtracter(mdp);
-        soln_extractor.Extract(policies, histories, solver.mPi);
+        soln_extractor.Extract(policies, histories, solver.mPi, solver.mBackupOrder);
     }
     vector<size_t> findPoliciesWithUtility(list<size_t>& policy_indices, vector<double>& util_vector) {
         vector<size_t> matches;
@@ -92,10 +92,3 @@ protected:
 
 };
 
-TEST_F(ExtractSolutionsTest, NewTest) {
-    test_against_json_oracle("/Users/user/Desktop/MyMoralPlanner/MoralPlanner/simple_two_objective_front.json");
-    test_against_json_oracle("/Users/user/Desktop/MyMoralPlanner/MoralPlanner/two_level_tree_combinations.json");
-    test_against_json_oracle("/Users/user/Desktop/MyMoralPlanner/MoralPlanner/semantic_duplicate_actions.json");
-    test_against_json_oracle("/Users/user/Desktop/MyMoralPlanner/MoralPlanner/reconvergent_action_compatibility.json");
-    test_against_json_oracle("/Users/user/Desktop/MyMoralPlanner/MoralPlanner/Data/MDPs/reconvergent_witness_required.json");
-}

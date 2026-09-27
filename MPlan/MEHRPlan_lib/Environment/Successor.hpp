@@ -60,7 +60,7 @@ public:
                     const Successor* rhs) const noexcept {
         return lhs->source == rhs->source &&
                lhs->target == rhs->target &&
-               abs(lhs->probability - rhs->probability) < 0.000001 &&
+               std::abs(lhs->probability - rhs->probability) < 0.000001 &&
                lhs->action_idx == rhs->action_idx;
     }
 };
