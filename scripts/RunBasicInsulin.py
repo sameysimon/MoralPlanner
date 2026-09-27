@@ -16,8 +16,8 @@ configs = [
     },
     {
         "Name": "Cost+Carla", "Horizon": 2, "Budget": 2,
-        "Theories": [["Act-Utilitarianism", "Utility", 0], ["Egoism from Hal", "Utility", 1]],
-        "Considerations": [["CarlaLife", ["Altruism for Carla", "Act-Utilitarianism"]], ["HalLife", ["Egoism from Hal", "Act-Utilitarianism"]], ['ToSteal', 'No Stealing']]
+        "Theories": [["Altruism for Hal", "Utility", 0]],
+        "Considerations": [["CarlaLife", "Altruism for Carla"], ['Cost']]
     }
 ]
 

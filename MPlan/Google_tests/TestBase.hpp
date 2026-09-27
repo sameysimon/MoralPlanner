@@ -68,6 +68,15 @@ protected:
         }
         return qv;
     }
+    static QValue BuildUtilityQValue(std::vector<double>& values) {
+        auto qv = QValue(values.size());
+        auto v = values.begin();
+        for (int i = 0; i < values.size(); ++i) {
+            qv.expectations[i] = make_unique<ExpectedUtility>(*v);
+            ++v;
+        }
+        return qv;
+    }
 
 };
 

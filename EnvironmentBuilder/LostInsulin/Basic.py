@@ -2,6 +2,22 @@ from copy import deepcopy
 from EnvironmentBuilder.BaseMDP import MDP, Theory, Successor, Consideration, State
 import random
 
+class Cost(Consideration):
+    def __init__(self):
+        super().__init__()
+        self.type='Cost'
+        self.rank=0
+        self.tag="Cost"
+        self.default = 0
+
+    def judge(self, successor: Successor):
+        if (successor.targetState.props['Stolen']):
+            return 0
+        return -1
+    
+    def StateHeuristic(self, state:State):
+        return 0
+
 class HalLife(Consideration):
     def __init__(self):
         super().__init__()
@@ -170,6 +186,8 @@ class BasicLostInsulin(MDP):
                 mc = HalLife()
             elif 'CarlaLife'==tag:
                 mc = CarlaLife()
+            elif 'Cost'==tag:
+                mc = Cost()
             else:
                 raise Exception(f"Moral theory with tag {tag} at rank {str(rank)} invalid.")
             mc.componentOf=c["Component_of"]
