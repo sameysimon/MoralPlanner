@@ -18,7 +18,7 @@ protected:
         // Extract Policies.
         vector<unique_ptr<Policy>> policies;
         auto soln_extractor = SolutionExtracter(*mdp);
-        soln_extractor.Extract(policies, histories, solver.mPi);
+        soln_extractor.Extract(policies, histories, solver.mPi, solver.mBackupOrder);
 
         delete mdp;
     }
@@ -106,4 +106,27 @@ TEST_F(ExtractHistoriesTest, Tree) {
 
     ASSERT_TRUE(findPolicyWithExpectedHistories(unfoundPolicies, histories, expectedHistories));
 
+}
+
+TEST_F(ExtractHistoriesTest, RejectsIncompatibleSuccessorPolicies) {
+    unique_ptr<MDP> mdp(getMDP("my_test.json"));
+    SolutionExtracter extractor(*mdp);
+
+    vector<policy_set> successorPolicies(2);
+    vector<size_t> successorStates = {1, 2};
+    Successor firstSuccessor(0, 1, 0.5, 0);
+    Successor secondSuccessor(0, 2, 0.5, 0);
+    vector<Successor*> successors = {&firstSuccessor, &secondSuccessor};
+
+    auto firstPolicy = make_unique<Policy>(*mdp, 1);
+    firstPolicy->AddAction(7, 0);
+    successorPolicies[0].insert(std::move(firstPolicy));
+
+    auto conflictingPolicy = make_unique<Policy>(*mdp, 2);
+    conflictingPolicy->AddAction(7, 1);
+    successorPolicies[1].insert(std::move(conflictingPolicy));
+
+    auto combinations = extractor.GetSuccessorPolicyCombos(
+        &successors, successorPolicies, successorStates);
+    ASSERT_TRUE(combinations.empty());
 }

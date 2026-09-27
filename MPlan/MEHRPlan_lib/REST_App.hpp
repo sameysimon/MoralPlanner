@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "crow_all.h"
+#include "../crow_all.h"
 #include <nlohmann/json.hpp>
 #include "Runner.hpp"
 #include "Solver.hpp"
@@ -114,6 +114,9 @@ public:
         });
         CROW_ROUTE(app, "/AggregateCachedSuccessors").methods(crow::HTTPMethod::POST)([this](const crow::request &req) {
             return HandleAggregateCachedSuccessors(req);
+        });
+        CROW_ROUTE(app, "/ClearSuccessorCache").methods(crow::HTTPMethod::POST)([this](const crow::request &req) {
+            return HandleClearSuccessorCache(req);
         });
         CROW_ROUTE(app, "/RandomTrajectory").methods(crow::HTTPMethod::POST)([this](const crow::request &req) {
             return HandleRandomTrajectory(req);

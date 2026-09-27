@@ -85,17 +85,17 @@ er.extractData(5, 5)
 df = pd.DataFrame(er.data)
 df.to_csv(er.getAllDataFilePath())
 agg_rules = {
-    'Mehr_time': 'mean',
+    'MEHR Time': 'mean',
 }
 
 def ProcessValue(val_name='Action', plural=None):
     plural = val_name + 's' if plural == None else plural
-    # Filter dataframe for Config_name starting with 'Action_'
-    filtered_df = df[df['Config_name'].str.startswith(f"{val_name}_", na=False)].copy()
+    # Filter dataframe for Configuration starting with 'Action_'
+    filtered_df = df[df['Configuration'].str.startswith(f"{val_name}_", na=False)].copy()
 
-    # Add actions column extracted from Config_name (first number between underscores)
+    # Add actions column extracted from Configuration (first number between underscores)
     regex = rf"^{val_name}_(\d+)_"
-    filtered_df[val_name] = filtered_df['Config_name'].str.extract(regex)[0].astype(float)
+    filtered_df[val_name] = filtered_df['Configuration'].str.extract(regex)[0].astype(float)
     if val_name=='Action':
         filtered_df['N'] = filtered_df[val_name] * DefaultBranches * DefaultTheories
     if val_name=='Theories':
@@ -104,20 +104,20 @@ def ProcessValue(val_name='Action', plural=None):
         filtered_df['N'] = filtered_df[val_name] * DefaultTheories * DefaultActions
     df.loc[filtered_df.index, 'N'] = filtered_df['N']
 
-    # Group by actions only and compute summary statistics for Mehr_time
+    # Group by actions only and compute summary statistics for MEHR Time
     summary_df = filtered_df.groupby([val_name], as_index=False).agg({
-        'Mehr_time': ['mean', 'min', 'max']
+        'MEHR Time': ['mean', 'min', 'max']
     })
-    summary_df.columns = [val_name, 'Mehr_time_mean', 'Mehr_time_min', 'Mehr_time_max']
+    summary_df.columns = [val_name, 'MEHR Time Mean', 'MEHR Time Minimum', 'MEHR Time Maximum']
 
-    # Plot number of actions against average Mehr_time with min/max bars
+    # Plot number of actions against average MEHR Time with min/max bars
     plt.figure(figsize=(6, 6))
     plt.errorbar(
         summary_df[val_name],
-        summary_df['Mehr_time_mean'],
+        summary_df['MEHR Time Mean'],
         yerr=[
-            summary_df['Mehr_time_mean'] - summary_df['Mehr_time_min'],
-            summary_df['Mehr_time_max'] - summary_df['Mehr_time_mean']
+            summary_df['MEHR Time Mean'] - summary_df['MEHR Time Minimum'],
+            summary_df['MEHR Time Maximum'] - summary_df['MEHR Time Mean']
         ],
         fmt='o',
         capsize=5,
@@ -133,7 +133,7 @@ def ProcessValue(val_name='Action', plural=None):
         return c * np.power(x, k)
     
     try:
-        popt, _ = curve_fit(power_law, summary_df[val_name], summary_df['Mehr_time_mean'])
+        popt, _ = curve_fit(power_law, summary_df[val_name], summary_df['MEHR Time Mean'])
         c, k = popt
         
         # Plot fitted line
@@ -148,7 +148,7 @@ def ProcessValue(val_name='Action', plural=None):
         return m * x + b
     
     try:
-        popt_lin, _ = curve_fit(linear, summary_df[val_name], summary_df['Mehr_time_mean'])
+        popt_lin, _ = curve_fit(linear, summary_df[val_name], summary_df['MEHR Time Mean'])
         m, b = popt_lin
         
         # Plot fitted line
@@ -164,7 +164,7 @@ def ProcessValue(val_name='Action', plural=None):
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.xlabel(f"Total {plural}")
     plt.ylabel('Average MEHR time (microseconds)')
-    plt.title(f"Relationship between Number of {plural} and Average Mehr_time")
+    plt.title(f"Relationship between Number of {plural} and Average MEHR Time")
     plt.grid(True)
     plt.savefig(f"{er.figuresFolder}/{val_name}_VS_Time.png")  # Save the plot
     plt.show()
@@ -175,17 +175,17 @@ ProcessValue('Theories', 'Theories')
 ProcessValue('Branches', 'Branches')
 
 summary_N = df.groupby(['N'], as_index=False).agg({
-    'Mehr_time': ['mean', 'min', 'max']
+    'MEHR Time': ['mean', 'min', 'max']
 })
-summary_N.columns = ['N', 'Mehr_time_mean', 'Mehr_time_min', 'Mehr_time_max']
+summary_N.columns = ['N', 'MEHR Time Mean', 'MEHR Time Minimum', 'MEHR Time Maximum']
 
 plt.figure(figsize=(6, 6))
 plt.errorbar(
     summary_N['N'],
-    summary_N['Mehr_time_mean'],
+    summary_N['MEHR Time Mean'],
     yerr=[
-        summary_N['Mehr_time_mean'] - summary_N['Mehr_time_min'],
-        summary_N['Mehr_time_max'] - summary_N['Mehr_time_mean']
+        summary_N['MEHR Time Mean'] - summary_N['MEHR Time Minimum'],
+        summary_N['MEHR Time Maximum'] - summary_N['MEHR Time Mean']
     ],
     fmt='o',
     capsize=5,
@@ -200,7 +200,7 @@ def power_law(x, c, k):
     return c * np.power(x, k)
 
 try:
-    popt, _ = curve_fit(power_law, summary_N['N'], summary_N['Mehr_time_mean'])
+    popt, _ = curve_fit(power_law, summary_N['N'], summary_N['MEHR Time Mean'])
     c, k = popt
     
     # Plot fitted line
@@ -215,7 +215,7 @@ def linear(x, m, b):
     return m * x + b
 
 try:
-    popt_lin, _ = curve_fit(linear, summary_N['N'], summary_N['Mehr_time_mean'])
+    popt_lin, _ = curve_fit(linear, summary_N['N'], summary_N['MEHR Time Mean'])
     m, b = popt_lin
     
     # Plot fitted line

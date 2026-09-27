@@ -342,9 +342,7 @@ class LostInsulin(MDP):
         mc = 0
         for c in considerations:
             tag = c["Type"]
-            if 'time'==tag:
-                mc = Time(self.horizon)
-            elif 'Overall'==tag:
+            if 'Overall'==tag:
                 mc = OverallUtility()
             elif 'ToSteal'==tag:
                 mc = ToSteal()

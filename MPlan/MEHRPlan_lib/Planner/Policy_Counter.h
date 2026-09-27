@@ -13,7 +13,7 @@ private:
     MDP* pMdp;
     vector<__int128> memo;
     __int128 CountAtPair(size_t state_idx) {
-        if (pMdp->states[state_idx]->time == pMdp->horizon - 1) {
+        if (pMdp->states[state_idx]->time == pMdp->horizon) {
             return 1;
         }
         if (memo[state_idx] != -1) {

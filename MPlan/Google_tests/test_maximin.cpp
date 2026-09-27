@@ -12,7 +12,6 @@ protected:
 
 TEST_F(MaximinTestFixture, OneOutcome) {
     Runner runner = Runner("Maximin_Tests/OneDepth_OneTheory_OneOutcome.json");
-    //Log::setLogLevel(LogLevel::Trace);
     runner.FullSolve();
 
     vector<string> actions = {"A", "B"};
@@ -38,8 +37,8 @@ TEST_F(MaximinTestFixture, Bandit) {
     auto piIdx = getPolicyIdsByStateAction(runner, 0, actions);
 
     // Action A wins.
-    ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["A"]), 0.3, tolerance)
-        << "Action A should have one attack on [P=0.3, s'=1, -3, 0], causing 0.3 non-acceptability, but it has "
+    ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["A"]), 0.35, tolerance)
+        << "Action A should be attacked on [P=0.3, -3, 0] and [P=0.05, 0, 1], causing 0.35 leximin non-acceptability, but it has "
         << runner.non_accept->getPolicyNonAccept(piIdx["A"])
         << " non-acceptability.";
     ASSERT_NEAR(runner.non_accept->getPolicyNonAccept(piIdx["B"]), 0, tolerance)

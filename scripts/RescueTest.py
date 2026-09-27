@@ -95,7 +95,7 @@ er.run(envRepetitions=1)
 
 
 df = pd.DataFrame(er.data)
-df = df.drop(labels=['Conf_rep', 'Theories', 'Considerations', 'CQ1_time', 'CQ2_time', 'Out_time', 'Sol_reduce_time'], axis=1)
+df = df.drop(labels=['Configuration Repetition', 'Theories', 'Considerations', 'CQ1 Time', 'CQ2 Time', 'Output Time', 'Solution Reduction Time'], axis=1)
 df = df.replace(["", "N/A", "NA", "nan", "None"], np.nan)
 
 cols = [f"{t}:wellbeing" for t in teams]
@@ -110,13 +110,13 @@ for c in cols:
 agg_rules = agg_rules | {
     "range": 'first',
     "Sum wellbeing": 'first',
-    "Num_of_min_non_accept": 'first',
-    "Num_of_sols": 'first',
-    "Min_non_accept": 'first',
-    'Total_time': 'mean',
+    "Number of Minimal Non-Acceptability Policies": 'first',
+    "Number of Solutions": 'first',
+    "Minimal Non-Acceptability": 'first',
+    'Total Time': 'mean',
 }
 
-df = df.groupby('Config_name', sort=False).agg(agg_rules)
-df = df[cols + ['range', 'Sum wellbeing', 'Num_of_min_non_accept', 'Num_of_sols', 'Min_non_accept', 'Total_time']]
+df = df.groupby('Configuration', sort=False).agg(agg_rules)
+df = df[cols + ['range', 'Sum wellbeing', 'Number of Minimal Non-Acceptability Policies', 'Number of Solutions', 'Minimal Non-Acceptability', 'Total Time']]
 
 print(df.head(1000))

@@ -19,14 +19,7 @@ include_directories(MEHRPlan_lib/Planner)
 
 
 add_executable(MPlan main.cpp
-        time_config.hpp
-        Runner.hpp
         crow_all.h
-        REST_App.hpp
-        JSONBuilder.hpp
-        JSONBuilder.cpp
-        REST_App.cpp
-        MEHRPlan_lib/MPlanRandom.hpp
 )
 
 # Google Test for unit tests
@@ -60,9 +53,6 @@ add_subdirectory(MEHRPlan_lib)
 
 
 target_link_libraries(MPlan PUBLIC MEHRPlan_lib PRIVATE nlohmann_json::nlohmann_json)
-
-target_compile_definitions(MPlan PRIVATE DATA_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data/MDPs/")
-target_compile_definitions(MPlan PRIVATE OUTPUT_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data/MPlan-out/")
 
 enable_testing()
 add_subdirectory(Google_tests)

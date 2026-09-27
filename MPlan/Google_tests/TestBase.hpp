@@ -8,7 +8,7 @@
 #include "MDP.hpp"
 #include "Utilitarianism.hpp"
 #include "Solver.hpp"
-#include "../Runner.hpp"
+#include "../MEHRPlan_lib/Runner.hpp"
 
 #include <MEHR.hpp>
 

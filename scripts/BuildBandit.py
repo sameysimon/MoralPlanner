@@ -11,7 +11,7 @@ def clamp(num, min_, max_):
         return max_
     return num
 
-def Build(fileName:str="", theories=1, numOfActions=100, minBranches=3, maxBranches=10, numOfRanks=1):
+def Build(fileName:str="", theories=1, numOfActions=100, minBranches=3, maxBranches=10, numOfRanks=1, fileAbsolute=False):
     transitions = {}
     solutions = [{"Action_Map":{}, "Acceptability":0,"Expectation":{}} for _ in range(numOfActions)]
     actionAccept = [0] * numOfActions
@@ -49,6 +49,7 @@ def Build(fileName:str="", theories=1, numOfActions=100, minBranches=3, maxBranc
         for a_idx in range(len(shuffledActions)):
             a = shuffledActions[a_idx]
             expUtils[thIdx][a] = x[a_idx]
+
         for i in range(numOfActions):
             currA = shuffledActions[i]
             if i>0:
@@ -78,7 +79,9 @@ def Build(fileName:str="", theories=1, numOfActions=100, minBranches=3, maxBranc
               "Solutions":solutions,
               }
 
-    fn = os.getcwd() + f"/Data/MDPs/Tests/{fileName}"
+    fn = fileName
+    if fileAbsolute==False:
+        fn = os.getcwd() + f"/Data/MDPs/Tests/{fileName}"
     if (not fn.endswith(".json")):
         fn += ".json"
     json_string = myJSON.custom_json_format(output)
@@ -112,7 +115,7 @@ def AssignUtilities(transitions, action:int, actionAccept:list, ExpUtil:float, t
 
     return max(utilities)
 
-if True:
+if False:
     np.random.seed(seed=4+8+15+16+23+42)
 
     o = Build("test_1Theory",theories=1)

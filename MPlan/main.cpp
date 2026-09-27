@@ -9,8 +9,8 @@
 #include <nlohmann/json.hpp>
 #include <chrono>
 #include "MEHRPlan_lib/Logger.hpp"
-#include "REST_App.hpp"
-#include "Runner.hpp"
+#include "MEHRPlan_lib/REST_App.hpp"
+#include "MEHRPlan_lib/Runner.hpp"
 using json = nlohmann::json;
 
 /**
@@ -22,27 +22,29 @@ int main(int argc, const char * argv[]) {
     bool run_as_server = false;
     bool have_file_input = false;
     bool plan_only = false;
+    bool mehr_only = false;
     Planning_Mode pm = Planning_Mode::INDEPENDENT_HEURISTIC;
     std::string dataFolder = DATA_FOLDER_PATH;
     std::string outputFolder = OUTPUT_FOLDER_PATH;
     std::string fileIn = dataFolder + "../Experiments/Random/2025-03-21 16:27:23/mdps/0Util_0Law__hor=6_con0.json";
     ushort portIn = 18080;
-    fileIn = "/home/psiko/Programming/MoralPlanner/Data/Experiments/Rescue/Rescue/mdps/4_h5_Rawls + Separate_con0.json";
+    fileIn = "/home/psiko/Programming/MoralPlanner/Data/Experiments/Rescue/Profile_Search/mdps/c3_h6_d1_Rawls_con0.json";
     std::string fileOut = outputFolder + "MPlan-Out.json";
-    Log::setLogLevel(LogLevel::Debug);
+    Log::setLogLevel(LogLevel::Warn);
 
     if (argc==1) {
         std::cout << "Call with a Multi-Moral Markov Decision Process/Stochastic Shortest Path JSON file!" << std::endl;
     }
-#ifdef DEBUG
-    Log::setLogLevel(LogLevel::Debug);
-#endif
+
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--server") == 0 || strcmp(argv[i], "-S") == 0) {
             run_as_server = true;
         }
         else if (strcmp(argv[i], "--plan_only") == 0 || strcmp(argv[i], "-PO") == 0) {
             plan_only = true;
+        }
+        else if (strcmp(argv[i], "--mehr_only") == 0 || strcmp(argv[i], "-MO") == 0) {
+            mehr_only = true;
         }
         else if (strcmp(argv[i], "--plan_mode") == 0 || strcmp(argv[i], "-PM") == 0) {
             if (i >= argc - 1) {
@@ -68,9 +70,10 @@ int main(int argc, const char * argv[]) {
                 std::cout << "--debug option requires an argument" << std::endl;
                 return 0;
             }
-            uint8_t ll = strtol(argv[i+1], nullptr, 10);
+            long int ll = strtol(argv[i+1], nullptr, 10);
             Log::setLogLevel(static_cast<LogLevel>(ll));
-            Log::writeFormatLog(LogLevel::Info, "Debug level set to {}" , argv[3]);
+            Log::writeFormatLog(LogLevel::Info, "Debug level set to {}" , ll);
+
             i++;
         } else if (run_as_server && strcmp(argv[i], "--port") == 0 || strcmp(argv[i], "-P") == 0) {
             if (i >= argc - 1) {
@@ -87,6 +90,7 @@ int main(int argc, const char * argv[]) {
             fileOut = argv[i];
         }
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-H") == 0) {
+            std::cout << "Compile Date and Time: " << __DATE__ << " " << __TIME__ << std::endl;
             std::cout << "Usage: MPlan [options] [mmmdp_file_input] [mmmdp_file_output]" << std::endl;
             std::cout << "  Options:" << std::endl;
             std::cout << "  -H, --help          Shows help" << std::endl;
@@ -95,6 +99,7 @@ int main(int argc, const char * argv[]) {
             std::cout << "  -PO, --plan_only     Plan only mode skips argumentation and policy extraction.." << std::endl;
             std::cout << "  -PM, --plan_mode [mode]    Planning modes include 'mcdp', 'independent' and 'domain'" << std::endl;
             std::cout << "  -D, --debug [level] Set debug level" << std::endl;
+            return 0;
         }
     }
 
@@ -112,13 +117,16 @@ int main(int argc, const char * argv[]) {
     Runner run = Runner();
     run.planning_mode = pm;
     run.make_history_paths=true;
-    Log::setLogLevel(LogLevel::Trace);
+
     int x = run.SetInputFile(fileIn);
     if (x==1) {
         return x;
     }
     if (plan_only) {
-        run.Plan(fileOut);
+        run.Plan_Only(fileOut);
+    } else if (mehr_only) {
+        run.make_history_paths=false;
+        run.MEHR_Only(fileOut);
     } else {
         run.FullSolve(fileOut);
     }

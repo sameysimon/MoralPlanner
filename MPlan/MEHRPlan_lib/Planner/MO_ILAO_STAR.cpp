@@ -8,6 +8,7 @@
 #include "Utilitarianism.hpp"
 #include "ExtractSolutions.hpp"
 #include "Logger.hpp"
+#include "Stats.h"
 using namespace std;
 
 // Setup Data to store Domain-Dependent Heuristic QValues
@@ -51,7 +52,7 @@ void Solver::MCDP() {
     mExpanded.clear();
     for (auto stateIdx : statesByTime) {
         backup(*mdp.states[stateIdx]);
-        backups++;
+        Stats::backups++;
     }
 }
 
@@ -63,18 +64,15 @@ void Solver::MC_iAO_Star() {
     mBackupOrder.clear();
     mExpanded.clear();
     do {
-        expansions++;
+        Stats::iAOStarLoops++;
         for (const int stateIdx : mBackupOrder) {
             backupTwo(*mdp.states[stateIdx]);
-            backups++;
+            Stats::backups++;
             mExpanded.insert(stateIdx);
         }
-        Log::writeFormatLog(LogLevel::Trace, "Backup round {} done. New total expanded states-times {}", expansions, mExpanded.size());
-        Log::writeFormatLog(LogLevel::Trace, "   State 0 has {} QValues.", mData[0].size());
-
-        setPostOrderDFS();
-        Log::writeFormatLog(LogLevel::Debug, "Reached {} Backups at iteration {}", backups, expansions);
-        Log::writeFormatLog(LogLevel::Debug, "mData[0] has {} items", mData[0].size());
+        Log::writeFormatLog(LogLevel::Info, "AO* Loop Number {} -- State 0 has {} QValues.", Stats::iAOStarLoops, mData[0].size());
+        setPostOrderDFS(mBackupOrder);
+        Log::writeFormatLog(LogLevel::Debug, "Reached {} Backups at iteration {}", Stats::backups, Stats::iAOStarLoops);
         Log::writeFormatLog(LogLevel::Debug, "Set Post Order DFS. Found {} state-times:", mFoundStates->size());
 #ifdef DEBUG
         string x = "";
@@ -92,7 +90,7 @@ void Solver::MC_iAO_Star() {
         Log::writeLog(x, LogLevel::Trace);
 #endif
     } while (checkForUnexpandedStates(mExpanded, mBackupOrder));
-    this->expanded_states = mExpanded.size();
+    Stats::expandedStates = mExpanded.size();
 }
 void Solver::backup(State& state) {
     // Operations on following
@@ -121,10 +119,10 @@ void Solver::backupTwo(State& state) {
     list<Candidate> candidates;
     bool any_in_budget = false;
     if (mdp.non_moralTheoryIdx==-1) {
-        any_in_budget = true;
+       any_in_budget = true;
     }
 
-    vector<shared_ptr<Action>> actions = *mdp.getActions(state);
+    vector<shared_ptr<Action>>& actions = *mdp.getActions(state);
     if (actions.size()==0 || state.time>=mdp.horizon) {
         return;
     }
@@ -138,9 +136,14 @@ void Solver::backupTwo(State& state) {
         vector<Successor*>* successors = MDP::getActionSuccessors(state, aIdx);
         gatherPFActionWorth(candidates, successors, aIdx, any_in_budget);
     }
+
+    // Optional. CCS Prune candidates.
+
+
     // Update Data and action map values to current PF.
     mData.at(state.id).clear();
     auto curr_pi_entry = &mPi.at(state.id);
+    curr_pi_entry->clear();
     for (auto &cd : candidates) {
         mData.at(state.id).push_back(cd.qv);
         if (std::find(curr_pi_entry->begin(), curr_pi_entry->end(), cd.action) == curr_pi_entry->end()) {
@@ -153,19 +156,17 @@ void Solver::backupTwo(State& state) {
 void Solver::gatherPFActionWorth(list<Candidate>& candidates, vector<Successor*>* successors, int aIdx, bool &any_in_budget) {
     // Generate all combinations of Successor's QValues
     vector<vector<QValue*>> combos = GetSuccessorQValueCombinations(successors);
-
     for (auto & elem : combos) {
         Candidate cd;
         cd.action = aIdx;
         cd.qv = std::move(mdp.MultiGather(*successors, elem));
+        Stats::iAOStarParetoFilters++;
         ParetoFilter(mdp,
             candidates,
             std::move(cd),
             [](const Candidate& c) -> const QValue& { return c.qv; },
-            true,
-            any_in_budget
-            );
-
+            false,
+            any_in_budget);
     }
 }
 

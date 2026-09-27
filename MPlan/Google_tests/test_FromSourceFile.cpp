@@ -21,32 +21,15 @@ protected:
         return data;
     }
     void TestAcceptability(std::string fileName) {
+        Runner runner = Runner(fileName);
+        string fo = "-1";
+        runner.MEHR_Only(fo);
         auto f = Runner::OpenFile(fileName);
         auto data = GetJSON(f);
-        MDP mdp(data);
-        // Extract all 'policies'
-        auto se = SolutionExtracter(mdp);
-        se.prune_dominated = false;
-        vector<unique_ptr<Policy>> policies;
-        policy_hists histories;
 
-        vector backupOrder(mdp.states.size(),0);
-        iota(backupOrder.begin(), backupOrder.end(), 0);
-        backupOrder[0] = backupOrder.back();
-        backupOrder[backupOrder.size()-1] = 0;
-
-        vector<vector<int>> Pi(mdp.states.size());
-        Pi[0].resize(mdp.getActions(*mdp.states[0])->size(),0);
-        iota(Pi[0].begin(), Pi[0].end(), 0);
-
-        se.Extract(policies, histories, Pi);
-        // Extract all 'policy' histories
-
-        NonAcceptability nacc(mdp.mehr_theories.size(), policies.size());
-        MEHR mehr(mdp, policies, histories);
-        mehr.Slow_FindNonAccept(nacc);
-        //std::cout << mehr.ToString(nacc) << std::endl;
-
+        auto& policies = runner.policies;
+        auto& mdp = *runner.mdp;
+        auto& nacc = *runner.non_accept;
         for (auto& soln : data["Solutions"]) {
             bool found = false;
             string action_name = soln["Action_Map"]["0"];

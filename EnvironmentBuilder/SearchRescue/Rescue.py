@@ -4,6 +4,24 @@ import numpy as np
 import random
 import networkx as nx
 
+class Cost(Consideration):
+    def __init__(self, mdp):
+        super().__init__()
+        self.type='cost'
+        self.rank=0
+        self.tag='cost'
+        self.default = 0
+        self.mdp = mdp
+
+    def judge(self, successor: Successor):
+        if (successor.targetState.props['tile_type'][successor.targetState.props['curr_tile']]=='G'):
+            return 0
+        
+        if successor.targetState.props['time']==self.mdp.horizon:
+            return self.mdp.budget
+        return -1
+
+
 class Wellbeing(Consideration):
     def __init__(self, mdp, group="all", group_idx=0, tag='Wellbeing'):
         super().__init__()
@@ -16,6 +34,8 @@ class Wellbeing(Consideration):
         self.mdp = mdp
 
     def judge(self, successor: Successor):
+        if self.mdp.initialWorth!=False:
+            return float(self.mdp.initialWorth[self.tag])
         u = 0
         if self.group == self.mdp.Community[successor.targetState.props["curr_tile"]] or self.group=="all":
             if successor.action =='heal' and successor.targetState.props["success"]==True:
@@ -29,9 +49,8 @@ class Wellbeing(Consideration):
     def StateHeuristic(self, state:State):
         return 0
     
-
 class Searcher(Consideration):
-    def __init__(self, group="all", group_idx=0, tag='Searcher'):
+    def __init__(self, mdp, group="all", group_idx=0, tag='Searcher'):
         super().__init__()
         self.type='Utility'
         self.rank=0
@@ -39,8 +58,11 @@ class Searcher(Consideration):
         self.default = 0
         self.group = group
         self.group_idx = group_idx
+        self.mdp = mdp
 
     def judge(self, successor: Successor):
+        if self.mdp.initialWorth!=False:
+            return float(self.mdp.initialWorth[self.tag])
         u = 0
         if self.group == successor.sourceState.props['holding'] and successor.targetState.props['holding'] == "nothing":
             u += 3
@@ -62,22 +84,21 @@ class Rescue(MDP):
         "tile_type": [],
     }
     
-    def __init__(self, Theories, Considerations, initialProps=None, initialWorth=None, Horizon=5, 
-                  Budget=5, Teams=['red', 'blue'], unknown_depth=1, link_back_dist=4, Odds=None, **kwargs):
+    def __init__(self, Theories, Considerations, initialProps=None, initialWorth=None, Horizon=5, Budget=5, 
+                  Teams=['red', 'blue'], unknown_depth=1, link_back_dist=4, Odds=None, build_graph=True, **kwargs):
         super().__init__()
-        
+
+        self.budget = Budget
+        self.isNonMoral = False
+
         if initialProps != None:
             self.initialProps = deepcopy(initialProps)
 
         if Horizon != None:
             self.initialProps['horizon'] = Horizon
 
-        self.initialWorth = initialWorth
-
-        self.BuildMyGraph(Teams, unknown_depth, link_back_dist, Odds)
-
-
-        self.stateFactory(self.initialProps) # Create at least one initial state
+        if build_graph:
+            self.BuildMyGraph(Teams, unknown_depth, link_back_dist, Odds)
 
         self.rules = [Rescue.ResetVars,
                       Rescue.Move, 
@@ -91,8 +112,18 @@ class Rescue(MDP):
 
         self.Theories = []
         self.theorySetup(Theories, Considerations)
+
+        self.initialWorth = False
+        if not initialWorth is None:
+            self.initialWorth = {}
+            for (i, c) in enumerate(self.Considerations):
+                self.initialWorth[c.tag] = initialWorth[i]
+
+        self.stateFactory(self.initialProps) # Create at least one initial state
+
+
         
-    def BuildMyGraph(self, teams=['red', 'blue'], unknown_depth=1, link_back_dist=4, Odds=None):
+    def BuildMyGraph(self, teams=['red', 'blue'], unknown_depth=1, link_back_dist=-1, Odds=None):
         self.Teams = teams
         self.Odds = {}
         for t in teams:
@@ -124,17 +155,26 @@ class Rescue(MDP):
         for i in range(unknown_start + 1 , unknown_depth + unknown_start):
             self.AdjEdge[i] = [i-1]
             self.AdjEdge[i-1].append(i)
-            if (i % link_back_dist ==0):
+            if link_back_dist!= -1 and (i % link_back_dist ==0):
                 self.AdjEdge[i].append(0)
                 self.AdjEdge[0].append(i)
             self.initialProps["tile_type"].append("?")
             self.Community.append("")
+        if (self.isNonMoral):
+            goal_node = unknown_depth + unknown_start
+            self.AdjEdge[goal_node] = []
+            self.AdjEdge[i-1].append(goal_node)
+            self.initialProps["tile_type"].append("G")
+            self.Community.append("")
+        
      
     def isGoal(self, state:State) -> bool:
+        if (state.props['tile_type'][state.props['curr_tile']]=='G'):
+            return True
         return False
 
     def getActions(self, state:State) -> list:
-        if (not self.initialWorth is None and state.props["time"]==0):
+        if (self.initialWorth != False and state.props["time"]==0):
             return ['dummy']
         
         acts = []
@@ -208,8 +248,6 @@ class Rescue(MDP):
         
     # time advances each transition
     def AdvanceTime(self, props, prob, action):
-        if (action == "dummy"):
-            return [(props, prob)]
         props["time"] = props["time"] + 1
         return [(props, prob)]
     
@@ -240,6 +278,10 @@ class Rescue(MDP):
                 if len(g)==0:
                     g='all'
                 mc = Wellbeing(self, group=g, tag=tag)
+            elif 'Cost'==tag:
+                self.isNonMoral=True
+                mc = Cost(self.horizon)
+                self.CostTheory = mc
             else:
                 raise Exception('Moral theory with tag ' + tag + ' at rank ' + str(rank) + ' invalid.')
             mc.componentOf = c["Component_of"]

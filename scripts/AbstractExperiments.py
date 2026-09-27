@@ -15,6 +15,51 @@ from scripts.TexTables import SaveDataFrameToTexTemplate
 import re
 from matplotlib.ticker import MaxNLocator
 import ast
+import random
+
+EXPERIMENT_COLUMN_NAMES = {
+    "Config_name": "Configuration",
+    "Conf_rep": "Configuration Repetition",
+    "Env_rep": "Environment Repetition",
+    "Total_time": "Total Time",
+    "Heuristic_time": "Heuristic Time",
+    "Plan_time": "Planning Time",
+    "Sol_time": "Solution Extraction Time",
+    "Mehr_time": "MEHR Time",
+    "CQ1_time": "CQ1 Time",
+    "CQ2_time": "CQ2 Time",
+    "Out_time": "Output Time",
+    "Sol_reduce_time": "Solution Reduction Time",
+    "Expanded_states": "Expanded States",
+    "BSG_states": "BSG States",
+    "Average_histories": "Average Histories",
+    "Max_histories": "Maximum Histories",
+    "Min_histories": "Minimum Histories",
+    "Total_states": "Total States",
+    "Min_non_accept": "Minimal Non-Acceptability",
+    "Num_of_min_non_accept": "Number of Minimal Non-Acceptability Policies",
+    "Num_of_sols": "Number of Solutions",
+    "Total_Attacks": "Total Attacks",
+    "Total_reachable_policies": "Total Reachable Policies",
+    "Moral_policy_idx": "Policy Index",
+    "Policy_order": "Policy Order",
+    "Solution_index": "Solution Index",
+    "Total_NACC": "Total Non-Acceptability",
+}
+
+
+def humanise_experiment_columns(data):
+    """Return experiment data with the canonical human-readable column names.
+
+    Both records and data frames are accepted so older saved CSV files can be
+    normalised at the point where they are loaded.
+    """
+    if isinstance(data, pd.DataFrame):
+        return data.rename(columns=EXPERIMENT_COLUMN_NAMES)
+    return {
+        EXPERIMENT_COLUMN_NAMES.get(column, column): value
+        for column, value in data.items()
+    }
 
 
 def latex_config_name(name):
@@ -35,7 +80,7 @@ def GenerateConfigs(inputConfigs, defaultConfig):
     return configs
 
 class ExperimentRunner:
-    time_columns = ['Total_time', "Heuristic_time", 'Plan_time', 'Mehr_time', 'Sol_time']
+    time_columns = ['Total Time', "Heuristic Time", 'Planning Time', 'MEHR Time', 'Solution Extraction Time']
     def __init__(self, domain, configs:list=None, outFolder=None, MoralPlanner_Location="/", date_time=None) -> None:
         fs_start = MoralPlanner_Location
         self.domain = domain
@@ -125,19 +170,35 @@ class ExperimentRunner:
                 mdps.setdefault(conf["Name"], [])
                 mdps[conf["Name"]].append(MDPFactory.buildEnvToFile(self.domain, fileOut=self.getMdpFileName(conf['Name'], i), **conf))
         return mdps
-    
-    def runPlanner(self, configRepetitions=1, envRepetitions=1):
+
+    def runMEHR(self, configRepetitions=1, envRepetitions=1, debug_level=0):
+            i=0
+            for conf in self.configs:
+                for conf_rep in range(configRepetitions):
+                    inFile = self.getMdpFileName(conf['Name'], conf_rep)
+                    for env_rep in range(envRepetitions):
+                        i+=1
+                        print(f"Start {i}/{len(self.configs)*configRepetitions*envRepetitions} -- {inFile}")
+                        outFile = self.getPlanOutFileName(conf['Name'], conf_rep, env_rep)
+                        p = [self.planner, "-MO", "--debug", str(debug_level), inFile, outFile]
+                        result = subprocess.run(p)
+                        result.check_returncode()
+                self.log(f"Finished env on {conf["Name"]}.",0)
+            print("Finished running MEHR!")
+
+    def runPlanner(self, configRepetitions=1, envRepetitions=1, debug_level=0):
+        i=0
         for conf in self.configs:
             for conf_rep in range(configRepetitions):
                 inFile = self.getMdpFileName(conf['Name'], conf_rep)
                 for env_rep in range(envRepetitions):
-                    self.log(f"Config Name: {conf["Name"]}; Env Repetition: {env_rep}",0)
+                    i+=1
+                    print(f"Start {i}/{len(self.configs)*configRepetitions*envRepetitions} -- {inFile}")
                     outFile = self.getPlanOutFileName(conf['Name'], conf_rep, env_rep)
-                    p = [self.planner, "--debug", "0", inFile, outFile]
-                    print('EXECUTE ' + ' '.join(p))
+                    p = [self.planner, "--debug", str(debug_level), inFile, outFile]
                     result = subprocess.run(p)
                     result.check_returncode()
-            self.log(f"Finished env on {conf["Name"]}.",0)
+        print("Finished running MEHR Planner!")
 
     def extractData(self, configRepetitions=1, envRepetitions=1, config_indices=None):
         cons_to_extract = self.configs
@@ -172,7 +233,7 @@ class ExperimentRunner:
             "Conf_rep": conf_rep,
             "Env_rep": env_rep,
             "Theories": str(conf['Theories']),
-            "Considerations": str(conf['Considerations']),
+            "Considerations": str([cons["Name"] for cons in json_data["Considerations"]]),
             "Total_time": json_data['Duration_Total'],
             "Heuristic_time": json_data['Duration_Heuristic'],
             "Plan_time": json_data['Duration_Plan'],
@@ -203,7 +264,7 @@ class ExperimentRunner:
                     entry[tag] = json_data["Solutions"][bestPolicyIdx]["Expectation"][tag]
                 else:
                     entry[tag] = "N/A"
-        return entry
+        return humanise_experiment_columns(entry)
 
     def saveResults(self):
         # Save all data csv
@@ -211,35 +272,39 @@ class ExperimentRunner:
         df.to_csv(self.getAllDataFilePath())
 
         # Save durations csv
-        cols = ExperimentRunner.time_columns + ['Num_of_sols']
+        cols = ExperimentRunner.time_columns + ['Number of Solutions']
         average_durations = df.groupby('Horizon')[cols].mean().reset_index()
         average_durations.to_csv(self.getDurationsFilePath())
         
         # Save durations by theory csv
         agg_rules = {
-            'Heuristic_time': 'mean',
-            'Plan_time': 'mean',
-            'Sol_time': 'mean',
-            'Mehr_time': 'mean',
-            'Total_time': 'mean',
+            'Heuristic Time': 'mean',
+            'Planning Time': 'mean',
+            'Solution Extraction Time': 'mean',
+            'MEHR Time': 'mean',
+            'Total Time': 'mean',
             'Backups': 'mean',
-            'Num_of_sols': 'mean'
+            'Number of Solutions': 'mean'
         }
-        theoryTimes = df.groupby('Config_name', sort=False).agg(agg_rules).reset_index()
+        theoryTimes = df.groupby('Configuration', sort=False).agg(agg_rules).reset_index()
         theoryTimes.to_csv(self.getDurationsByTheoryFilePath())
 
         SaveDataFrameToTexTemplate(theoryTimes, f"{self.texTablesFolder}/Time_table.tex", f"{self.texOutFolder}/time_table.tex")
 
         # Check consideration worth is the same across same config.
-        cols = ["Config_name", "Conf_rep", "Env_rep", "Min_non_accept", "Num_of_min_non_accept"]
+        cols = ["Configuration", "Configuration Repetition", "Environment Repetition",
+                "Minimal Non-Acceptability", "Number of Minimal Non-Acceptability Policies"]
         cols.extend(self.con_tags)
-        u = df[cols].groupby(["Config_name", "Conf_rep", "Env_rep"], sort=False)
+        u = df[cols].groupby(
+            ["Configuration", "Configuration Repetition", "Environment Repetition"],
+            sort=False,
+        )
         self.log(u.head(),0)
         uniqueValues = u.nunique()
         if (not (uniqueValues==1).all().all()):
             raise Exception("Sim: Different iterations returned different expected worth!")
 
-        theoryResults = df[cols].groupby('Config_name', sort=False).first()
+        theoryResults = df[cols].groupby('Configuration', sort=False).first()
         theoryResults.to_csv(self.getTheoryExpectationsFilePath())
         SaveDataFrameToTexTemplate(theoryResults, f"{self.texTablesFolder}/UtilitarianResults.tex", f"{self.texOutFolder}/Utility_table.tex")
 
@@ -271,7 +336,7 @@ class ExperimentRunner:
                                     e[wt] = json_data["Solutions"][soln_order[i]]["Expectation"][wt]
                                 else:
                                     e[wt] = np.nan
-                            data.append(e)
+                            data.append(humanise_experiment_columns(e))
         return data
 
     def load_all_policy_data(er, config_repetitions=1, environment_repetitions=1,):
@@ -311,7 +376,7 @@ class ExperimentRunner:
                         record.update(solution.get("Expectation", {}))
                         records.append(record)
 
-        return pd.DataFrame(records)
+        return humanise_experiment_columns(pd.DataFrame(records))
     #
     # Server Stuff
     #
@@ -346,101 +411,127 @@ class ExperimentRunner:
     
     def GetCachedSuccessorsFromServer(self) -> requests.Response:
         return requests.post("http://localhost:18080/AggregateCachedSuccessors")
-        
+
+    def ClearCachedSuccessorsFromServer(self) -> requests.Response:
+        return requests.post("http://localhost:18080/ClearSuccessorCache")
+            
     #
     # Lookahead Methods
     #
-    def runLookaheadPlanner(self, envRepetitions=1):
+    def runLookaheadPlanner(self, envRepetitions=1, seed=123):
+        d = []
+        random.seed(seed)
         import os
         for c in self.configs:
             conf_mdp_folder = f"{self.mdpFolder}/{c["Name"]}/"
             os.makedirs(conf_mdp_folder, exist_ok=True)
             conf_out_folder = f"{self.rawOutFolder}/{c["Name"]}/"
             os.makedirs(conf_out_folder, exist_ok=True)
+            self.StartServer()
             for t in range(envRepetitions):
-                self.StartServer()
                 mdp_folder = f"{conf_mdp_folder}/trial_{t}/"
                 os.makedirs(mdp_folder, exist_ok=True)
                 out_folder = f"{conf_out_folder}/trial_{t}/"
                 os.makedirs(out_folder, exist_ok=True)
-                self.LookaheadPlan(c, mdp_folder, out_folder)
-                #self.extractData()
-                self.ServerProcess.terminate()
+                row = self.LookaheadPlan(c, mdp_folder, out_folder, seed)
+                row['Configuration'] = c["Name"]
+                row['Trial'] = t
+            self.ServerProcess.terminate()
+        return d
 
 
 
-    def LookaheadPlan(self, config:dict, mdp_folder:str, soln_folder:str):
-        real_horizon = config("Horizon", 10)
+    def LookaheadPlan(self, config:dict, mdp_folder:str, soln_folder:str, seed:any):
+        real_horizon = config.get("Horizon", 10)
         look_ahead = config.get("look_ahead", 3)
         act_ahead = config.get("act_ahead", 2)
-        scr_sequence = []
-        scr_tag_sequence = []
+        props_sequence = []
         action_sequence = []
-        moral_pols = []
-
-        curr_state = 0
-        scr_props = None
-        past_worth = None
+        worth_sequence = []
         final_dat = {}
         for i in range(0, real_horizon, act_ahead):
             # 1. Generate MDP from timestep
-            mdp = self.makeMDP(self.domain,
+            curr_file = f"t={str(i).rjust(2, '0')}.json"
+            mdp_file = f"{mdp_folder}/{curr_file}"
+            if (i == 0):
+                past_worth = None
+                scr_props = None
+            else:
+                past_worth = worth_sequence[-1]
+                scr_props = copy.deepcopy(props_sequence[-1])
+                scr_props['time']=0
+
+            MDPFactory.buildEnvToFile(self.domain, fileOut=mdp_file,
                         Theories = config["Theories"],
                         Considerations = config["Considerations"],
                         Horizon = look_ahead, 
-                        initialProps=scr_props, initalWorth=past_worth)
-            mdp.makeAllStatesExplicit()
-            # 2. Save new MDP
-            curr_file = f"t={str(i).rjust(2, '0')}.json"
-            mdp_file = f"{mdp_folder}/{curr_file}"
-            self.SaveEnvToJSON(mdp, mdp_file, self.domain)
+                        initialProps=scr_props, initialWorth=past_worth, build_graph=True)#i==0)
+        
             # 3. Plan on MDP
             fo = f"{soln_folder}/{curr_file}"
             self.PostMDPToServer(fileName=mdp_file, fileOut=fo, from_data_folder=False)
-            # 4. Get and augment datadata 
-            with open(fo) as f:
-                d = json.load(f)
-            if i==0:
-                final_dat = d
-            else:
-                final_dat["Total_time"] += d["Total_time"]
-                final_dat["Duration_Total"] += d["Duration_Total"]
-                final_dat["Duration_Heuristic"] += d["Duration_Heuristic"]
-                final_dat["Duration_Plan"] += d["Duration_Plan"]
-                final_dat["Duration_Sols"] += d["Duration_Sols"]
-                final_dat["Duration_MEHR"] += d["Duration_MEHR"]
-                final_dat["Expanded"] += d["Expanded"]
-                final_dat["Best_subgraph_size"] += d["Best_subgraph_size"]
-                final_dat["Average_histories"] += d["Average_histories"]
-                final_dat["Total_states"] += d["Total_states"]
-                final_dat["Backups"] += d["Backups"]
-                final_dat["Iterations"] += d["Iterations"]
-                final_dat["Total_Attacks"] += d["Total_Attacks"]
 
-            # 5. Sample random trajectory and get info
-            dat = self.SampleTrajectoryFromServer(act_ahead, add_worth_to_history=True)
+            # 4. Get and augment data
+            with open(fo) as f:
+                newData = json.load(f)
+            self.AugmentData(final_dat, newData)
+            # 5 Pick random minimal non-acceptability policy idx.
+            min_nacc_pols = newData['Solutions_Order'][:newData["Num_Min_Non_Acceptability"]]
+            policy_idx = min_nacc_pols[random.randint(0,len(min_nacc_pols) - 1)]
+
+            # 6. Sample random trajectory and get info
+            dat = self.SampleTrajectoryFromServer(act_ahead, policy_idx, add_worth_to_history=True)
             scrs = []
-            for i in range(len(dat['visited_states'])):
+            for i in range(len(dat['visited_states']) - 1):
                 # curr_scr = [scr_prob, scr_state, worth_1, worth_2...]
                 visit_prob = dat['transition_probabilities'][i]
-                visited_state = dat['visited_states'][i]
+                visited_state = dat['visited_states'][i+1]
                 curr_scr = [visit_prob, visited_state]
-                for key, val in dat['transition_worth'].items():
+                for val in dat['transition_worth']:
                     curr_scr.extend(val)
                 scrs.append(curr_scr)
                 # Setup successor state props
-                scr_props = d["State_tags"][visited_state]
+                scr_props = newData["State_tags"][visited_state]
                 scr_props = ast.literal_eval(scr_props)
-                scr_props["time"] = 0
-                past_worth = dat["transition_worth"]
-                
+                props_sequence.append(scr_props)
+            worth_sequence.append(dat["cumulative_worth"])
+
             action_sequence += dat["actions"]
 
         dat = self.GetCachedSuccessorsFromServer()
         dat = dat.json()
-        cumulative_worth = dat["Cumulative_Worth"]
-        transitions_worth = dat["Total_History"]
+        final_dat["Total History"] =    dat["Total_History"]
+        final_dat["Props_Sequence"] =   props_sequence
 
+        self.ClearCachedSuccessorsFromServer()
+        return final_dat
+
+
+    def AugmentData(self, d:dict, newData:dict):
+        d.setdefault("Total Time", 0)
+        d.setdefault("Heuritic Time", 0)
+        d.setdefault("Planning Time", 0)
+        d.setdefault("Solution Extraction Time", 0)
+        d.setdefault("MEHR Time", 0)
+        d.setdefault("Expanded States", 0)
+        d.setdefault("BSG States", 0)
+        d.setdefault("Average Histories", 0)
+        d.setdefault("Total States", 0)
+        d.setdefault("Backups", 0)
+        d.setdefault("Iterations", 0)
+        d.setdefault("Total Attacks", 0)
+        d["Total Time"] +=                  newData["Duration_Total"]
+        d["Heuritic Time"] +=               newData["Duration_Heuristic"]
+        d["Planning Time"] +=               newData["Duration_Plan"]
+        d["Solution Extraction Time"] +=    newData["Duration_Sols"]
+        d["MEHR Time"] +=                   newData["Duration_MEHR"]
+        d["Expanded States"] +=             newData["Expanded"]
+        d["BSG States"] +=                  newData["Best_subgraph_size"]
+        d["Average Histories"] +=           newData["Average_histories"]
+        d["Total States"] +=                newData["Total_states"]
+        d["Backups"] +=                     newData["Backups"]
+        d["Iterations"] +=                  newData["Iterations"]
+        d["Total Attacks"] +=               newData["Total_Attacks"]
 
 
     def PostNextMDPToServer(self, fileName, policy_idx, history_idx):
@@ -450,17 +541,17 @@ class ExperimentRunner:
             self.log(f"MPlan Server Error: {resp.reason}",0)
             self.ServerProcess.terminate()
             return
-        dat = resp.json
+        dat = resp.json()
         resp.close()
         return dat
 
-    def SampleTrajectoryFromServer(self, time_steps:int, add_worth_to_history:bool = True, seed=None):
-        req = {'time_steps': time_steps, 'add_worth_to_history': add_worth_to_history}
+    def SampleTrajectoryFromServer(self, time_steps:int, policy_idx:int = 0, add_worth_to_history:bool = True, seed=None):
+        req = {'time_steps': time_steps, 'policy_idx': policy_idx, 'add_worth_to_history': add_worth_to_history}
         if not seed is None:
             req['seed'] = seed
 
         resp = requests.post("http://localhost:18080/RandomTrajectory", json=req)
-        dat = resp.json
+        dat = resp.json()
         resp.close()
         return dat
 
@@ -470,7 +561,7 @@ class ExperimentRunner:
     #
     def loadResults(self, of):
         self.outputFolder = of
-        df = pd.read_csv(self.getAllDataFilePath())
+        df = humanise_experiment_columns(pd.read_csv(self.getAllDataFilePath()))
         self.data = df.to_dict()
 
     def plotConfigsAgainstHorizon(self, configs, 
@@ -495,7 +586,7 @@ class ExperimentRunner:
 
         for i, config_name in enumerate(configs):
             group = (
-                df[df["Config_name"] == config_name]
+                df[df["Configuration"] == config_name]
                 .groupby("Horizon", as_index=False)[dep_var]
                 .mean()
                 .sort_values("Horizon")
@@ -534,12 +625,12 @@ class ExperimentRunner:
             df = pd.DataFrame(self.data)
 
         if (config_names is None):
-            config_names = sorted(df['Config_name'].unique())
+            config_names = sorted(df['Configuration'].unique())
         elif isinstance(config_names, str):
             config_names = [config_names]
 
-        average_durations = df.groupby(['Config_name', 'Horizon'])[ExperimentRunner.time_columns].mean().reset_index()
-        average_durations['Mehr_time'] = average_durations['Mehr_time'].replace(0, 0.0001)
+        average_durations = df.groupby(['Configuration', 'Horizon'])[ExperimentRunner.time_columns].mean().reset_index()
+        average_durations['MEHR Time'] = average_durations['MEHR Time'].replace(0, 0.0001)
 
         plt.figure(figsize=(12, 7))
 
@@ -552,7 +643,7 @@ class ExperimentRunner:
         markers = ['o', 's', '^', 'D', 'x', '*', 'P', 'X']
         
         for config_idx, config_name in enumerate(config_names):
-            config_group = average_durations[average_durations['Config_name'] == config_name]
+            config_group = average_durations[average_durations['Configuration'] == config_name]
             if config_group.empty:
                 continue
 
@@ -596,18 +687,18 @@ class ExperimentRunner:
         
         average_durations = df.copy()
         if (not (config_name is None)):
-            average_durations = average_durations[average_durations['Config_name']==config_name]
+            average_durations = average_durations[average_durations['Configuration'] == config_name]
 
         average_durations = average_durations.groupby('Horizon')[ExperimentRunner.time_columns].mean().reset_index()
         cols = copy.deepcopy(ExperimentRunner.time_columns)
-        cols.remove('Total_time')
+        cols.remove('Total Time')
         for column in cols:
-            average_durations[f'{column}_percent'] = (average_durations[column] / average_durations['Total_time']) * 100
+            average_durations[f'{column} Percentage'] = (average_durations[column] / average_durations['Total Time']) * 100
 
         plt.figure(figsize=(10, 6))
-        cols_percent = [c + "_percent" for c in cols]
+        cols_percent = [c + " Percentage" for c in cols]
         for column in cols_percent:
-            l = column.replace('_percent', '')
+            l = column.removesuffix(' Percentage')
             if not (labels is None):
                 l = labels[l]
             plt.plot(average_durations['Horizon'], average_durations[column], marker='o', label=l)
@@ -708,10 +799,10 @@ class ExperimentRunner:
                                  json_data["Duration_MEHR"],
                                  json_data["Duration_Total"]])
                                  
-        df = pd.DataFrame(data, columns=["Config_name", "Env_rep", "Heuristic", "Plan", "Solution Extraction", "MEHR", "Total"])
-        time_categories = ['Heuristic', 'Plan', 'Solution Extraction', 'MEHR', 'Total']
+        df = pd.DataFrame(data, columns=["Configuration", "Environment Repetition", "Heuristic", "Planning", "Solution Extraction", "MEHR", "Total"])
+        time_categories = ['Heuristic', 'Planning', 'Solution Extraction', 'MEHR', 'Total']
         
-        averages = df.groupby('Config_name', sort=False)[time_categories].mean()
+        averages = df.groupby('Configuration', sort=False)[time_categories].mean()
 
         fig, ax = plt.subplots(layout='constrained', figsize=(10, 6))
         
@@ -740,7 +831,7 @@ class ExperimentRunner:
                 df[new_key] = df[old_keys[k]].combine_first(old_keys+1)
         df = df.replace(np.nan, "SKIP")
 
-        df = df[['Config_name'] + list(agg_rules.keys())].groupby('Config_name', sort=False).agg(agg_rules)
+        df = df[['Configuration'] + list(agg_rules.keys())].groupby('Configuration', sort=False).agg(agg_rules)
         df.round(3)
         SaveDataFrameToTexTemplate(df,
                                    f"{self.texTablesFolder}/{tex_template}", f"{self.texOutFolder}/{tex_output}", 

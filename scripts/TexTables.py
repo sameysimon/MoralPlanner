@@ -1,12 +1,13 @@
 import re
 import pandas as pd
 
-def SaveDataFrameToTexTemplate(df:pd.DataFrame, template_file:str, output_file:str, timestamp="Not provided", row_template_mode:bool=True, title:str=None):
+def SaveDataFrameToTexTemplate(df:pd.DataFrame, template_file:str, output_file:str, timestamp="Not provided", row_template_mode:bool=True, title:str=None, remove_mid_rules=False):
     with open(template_file, encoding='utf-8') as f:
         content = f.read()
+    print(f"Loaded tex template from {template_file}")
     
     if row_template_mode:
-        final_content = TemplateMode(df, content)
+        final_content = TemplateMode(df, content, row_template_mode)
     else:
         final_content = FindReplaceMode(df, content)
     
@@ -16,39 +17,39 @@ def SaveDataFrameToTexTemplate(df:pd.DataFrame, template_file:str, output_file:s
     with open(output_file, 'w') as f:
         f.write(final_content)
         f.write(f"\n % From experiment with timestamp {timestamp}")
-        
+    
     print(f"Successfully saved populated LaTeX to {output_file}")
 
-def FindReplaceMode(df:pd.DataFrame, content:str):
-    c = f"{content}"
+def FindReplaceMode(df: pd.DataFrame, content: str):
+    c = content
     for _, df_row in df.iterrows():
         i = 0
         for col_idx in range(len(df.columns)):
-            if (str(df_row.iloc[col_idx]) == "SKIP"):
+            if str(df_row.iloc[col_idx]) == "SKIP":
                 continue
             placeholder = f"§{i}"
             real_val = str(df_row.iloc[col_idx])
-            c = re.sub(placeholder, real_val, c, count=1)
+            c = c.replace(placeholder, real_val, 1 )
             i += 1
     return c
 
-def TemplateMode(df:pd.DataFrame, content:str):
+
+def TemplateMode(df: pd.DataFrame, content: str, remove_mid_rules:bool):
     rows = content.split(r'\\')
-    template_row_index = -1
     template_row_index = len(rows) - 2
     if template_row_index < 0:
         print("Not enough rows.")
         return
-    
     template_row = rows[template_row_index]
     new_rows = []
-
     for _, df_row in df.iterrows():
         current_row = template_row
+        if remove_mid_rules:
+            current_row = current_row.replace('\\midrule', '')
         for col_idx in range(len(df.columns)):
             placeholder = f"§{col_idx}"
-            current_row = re.sub(placeholder, str(df_row.iloc[col_idx]), current_row)
+            real_val = str(df_row.iloc[col_idx])
+            current_row = current_row.replace(placeholder, real_val)
         new_rows.append(current_row)
-    
-    rows[template_row_index : template_row_index + 1] = new_rows
-    return "\\\\".join(rows)
+    rows[template_row_index:template_row_index + 1] = new_rows
+    return r"\\".join(rows)

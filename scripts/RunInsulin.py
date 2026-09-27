@@ -98,7 +98,7 @@ def UtilityExperiment():
     #
     # Utilities Summary Table
     #
-    cols = ["Config_name", 'Hal_Utility', 'Carla_Utility', "Min_non_accept", "Num_of_min_non_accept", "Num_of_sols", "Total_time"]
+    cols = ["Configuration", 'Hal_Utility', 'Carla_Utility', "Minimal Non-Acceptability", "Number of Minimal Non-Acceptability Policies", "Number of Solutions", "Total Time"]
     df = pd.DataFrame(er.data)
     df = df.replace(["", "N/A", "NA", "nan", "None"], np.nan)
     if 'Carla' in df.columns and 'CarlaLife' in df.columns:
@@ -111,13 +111,13 @@ def UtilityExperiment():
     agg_rules = {
                 'Hal_Utility': 'first',
                 'Carla_Utility': 'first',
-                "Num_of_sols": 'first',
-                "Num_of_min_non_accept": 'first',
-                "Min_non_accept": 'first',
-                'Total_time': 'mean',
+                "Number of Solutions": 'first',
+                "Number of Minimal Non-Acceptability Policies": 'first',
+                "Minimal Non-Acceptability": 'first',
+                'Total Time': 'mean',
             }
-    df = df[cols].groupby('Config_name', sort=False).agg(agg_rules)
-    df = df[['Hal_Utility', 'Carla_Utility', 'Num_of_min_non_accept', 'Num_of_sols', 'Min_non_accept', 'Total_time']]
+    df = df[cols].groupby('Configuration', sort=False).agg(agg_rules)
+    df = df[['Hal_Utility', 'Carla_Utility', 'Number of Minimal Non-Acceptability Policies', 'Number of Solutions', 'Minimal Non-Acceptability', 'Total Time']]
     df = df.round(3)
 
     SaveDataFrameToTexTemplate(df, f"{er.texTablesFolder}/UtilitarianResults.tex", f"{er.texOutFolder}/Utility_table.tex", row_template_mode=False)
@@ -142,8 +142,8 @@ def LegalExperiment():
     input()
     er.run(configRepetitions=Config_repetitions, envRepetitions=Environment_repetitions)
     er.saveResults()
-    agg_rules={"Hal": "first", "Necessity":'first', "Legality":'first', "Num_of_min_non_accept": 'first', "Num_of_sols": 'first',
-                "Min_non_accept": 'first', 'Total_time': 'mean'}
+    agg_rules={"Hal": "first", "Necessity":'first', "Legality":'first', "Number of Minimal Non-Acceptability Policies": 'first', "Number of Solutions": 'first',
+                "Minimal Non-Acceptability": 'first', 'Total Time': 'mean'}
     df = er.TexSummary(agg_rules=agg_rules, tex_template='LI_LawResults.tex', tex_output='LI_LawResults.tex')
     print(df.head())
 

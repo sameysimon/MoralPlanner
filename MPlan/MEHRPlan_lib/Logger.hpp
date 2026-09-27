@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    inline static LogLevel currentLevel = LogLevel::Trace;
+    inline static LogLevel currentLevel = LogLevel::Warn;
 
     static bool shouldLog(LogLevel messageLevel) {
         return static_cast<std::uint8_t>(messageLevel) <= static_cast<std::uint8_t>(currentLevel);

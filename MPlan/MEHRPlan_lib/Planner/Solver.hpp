@@ -5,6 +5,8 @@
 #include <vector>
 #include <unordered_set>
 
+#include "Stats.h"
+
 
 using namespace std;
 
@@ -19,7 +21,6 @@ class Solver {
     vector<vector<QValue>> mData;
     vector<vector<QValue>>* pTempData = nullptr;
 
-    vector<int> mBackupOrder;
     unique_ptr<unordered_set<int>> mFoundStates;// Explicitly encountered states
     unordered_set<int> mExpanded;
 
@@ -30,18 +31,15 @@ class Solver {
     vector<QValue> candidates = vector<QValue>();// The QValue candidates (corresponding to state-actions)
     vector<int> indicesOfUndominated = vector<int>();// Indices of candidate QValues that are undominated.
     vector<int> qValueIdxToAction = vector<int>();// Maps QValue index to action index.
-
+    unordered_set<int> mVisitedStates;
 
     bool checkForUnexpandedStates(unordered_set<int>& expanded, vector<int>& bpsg);
-    bool PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unique_ptr<unordered_set<int>>& foundStates);
+    bool PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unique_ptr<unordered_set<int>>& foundStates, vector<int>& backupOrder);
 
 public:
     // Multi-policy. Maps state
     vector<vector<int>> mPi;
-
-    size_t expanded_states=0;
-    int expansions=0;
-    int backups=0;
+    vector<int> mBackupOrder;
 
     explicit Solver(MDP& _mdp, bool use_domain_heuristic) : mdp(_mdp) {
         // Initialise Solver data structures
@@ -54,12 +52,14 @@ public:
         mFoundStates->insert(0);
 
         mExpanded = unordered_set<int>();
+        mVisitedStates = unordered_set<int>();
 
         mBackupOrder = vector<int>(); // Ordered Best partial sub-graph.
         mBackupOrder.emplace_back(0);
 
-        backups = 0;
-        expansions = 0;
+
+        Stats::backups = 0;
+        Stats::iAOStarLoops = 0;
 
         candidates.reserve(mdp.actions.size());
         indicesOfUndominated.reserve(mdp.actions.size());
@@ -98,7 +98,7 @@ public:
 
 
     // Multi-objective IAO*
-    void setPostOrderDFS();
+    void setPostOrderDFS(vector<int> &backupOrder);
     void MC_iAO_Star();
     void backup(State& state);
     void backupTwo(State& state);
@@ -112,9 +112,7 @@ public:
     static bool ParetoFilter(MDP& mdp, std::list<T>& pfVector, T&& new_qv, Accessor getQValue, bool allow_equivalence, bool& any_in_budget) {
         const QValue& newValue = getQValue(new_qv);
         bool is_new_in_budget = mdp.isQValueInBudget(newValue);
-        if (is_new_in_budget) {
-            any_in_budget = true;
-        }
+
         if (!is_new_in_budget && any_in_budget) {
             return false;
         }
@@ -125,7 +123,7 @@ public:
                 return false;
             }
             bool erase_curr = false;
-            if (false && (is_new_in_budget && !any_in_budget)) {
+            if (is_new_in_budget && !mdp.isQValueInBudget(existingValue)) {
                 erase_curr = true;
                 any_in_budget = true;
             } else {
@@ -144,7 +142,9 @@ public:
                 ++it;
             }
         }
-
+        if (is_new_in_budget) {
+            any_in_budget = true;
+        }
         pfVector.push_front(std::forward<T>(new_qv));
         return true;
     }

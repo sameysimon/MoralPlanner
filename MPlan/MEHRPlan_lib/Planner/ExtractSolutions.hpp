@@ -52,7 +52,7 @@ public:
         }
         return s;
     }
-    void Extract(vector<unique_ptr<Policy>>& result, vector<vector<unique_ptr<History>>> &histories, vector<vector<int>>& Pi) {
+    void Extract(vector<unique_ptr<Policy>>& result, vector<vector<unique_ptr<History>>> &histories, vector<vector<int>>& Pi, vector<int>& state_order) {
         // For some time t and t+1, stores set of policies for each state.
         auto piTable = array<vector<policy_set>, 2>();
         // For same time t and t+1, stores state index for sets of policies in piTable
@@ -63,8 +63,9 @@ public:
         int currStateSetIdx = 0;
 
         // Order states by time:
-        vector<size_t> state_order(mdp.states.size());
-        std::iota(state_order.begin(), state_order.end(), 0);
+        //state_order.clear();
+        //state_order = vector<int>(mdp.states.size());
+        //std::iota(state_order.begin(), state_order.end(), 0);
         std::sort(state_order.begin(), state_order.end(), [this](size_t a, size_t b) {
             return mdp.states[a]->time > mdp.states[b]->time;
         });
@@ -84,8 +85,6 @@ public:
                 piStateTable[prevPolicies].clear();
                 prevPolicies = 1 - prevPolicies;
                 currStateSetIdx = 0;
-
-
             }
             // Update time and policy create set for current state.
             currTime = mdp.states[stateIdx]->time;
@@ -139,6 +138,7 @@ public:
             }
             //
             vector<unique_ptr<Policy>> curr_policies;
+
             // Find and add unique, pruned combo-policies
             for (auto &c : pcsCandidates) {
                 auto pi = make_unique<Policy>(mdp, stateIdx);
@@ -214,23 +214,24 @@ public:
                 piTable[scrPolicyVecIdx].insert(std::move(newPi));
             }
 
-            size_t init_combo_size = combs.size();
-            // Update existing combinations for this successor's first policy.
-            // For every policy this successor uses past the first, copy previous combinations and add policy.
-            auto scrPolicyIt = piTable[scrPolicyVecIdx].begin();
-            ++scrPolicyIt;
-            while (scrPolicyIt != piTable[scrPolicyVecIdx].end()) {
-                for (size_t combo_idx = 0; combo_idx < init_combo_size; ++combo_idx) {
-                    combs.push_back(combs[combo_idx]);
-                    combs.back().push_back(scrPolicyIt->get());
+            vector<vector<Policy*>> compatibleCombs;
+            for (const auto& combo : combs) {
+                for (const auto& successorPolicy : piTable[scrPolicyVecIdx]) {
+                    const bool compatible = std::all_of(
+                        combo.begin(), combo.end(),
+                        [&successorPolicy](const Policy* existingPolicy) {
+                            return Policy::checkActionsCompatible(
+                                existingPolicy->policy, *successorPolicy);
+                        });
+                    if (!compatible) {
+                        continue;
+                    }
+
+                    compatibleCombs.push_back(combo);
+                    compatibleCombs.back().push_back(successorPolicy.get());
                 }
-                ++scrPolicyIt;
             }
-            // Add first policy this successor uses to the first combination.
-            scrPolicyIt = piTable[scrPolicyVecIdx].begin();
-            for (size_t comb_idx = 0; comb_idx < init_combo_size; ++comb_idx) {
-                combs[comb_idx].push_back(scrPolicyIt->get());
-            }
+            combs = std::move(compatibleCombs);
         }
         return combs;
     }

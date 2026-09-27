@@ -2,7 +2,7 @@
 // Created by Simon Kolker on 08/04/2025.
 //
 
-#include "REST_App.hpp"
+#include "../REST_App.hpp"
 #include "JSONBuilder.hpp"
 #include <algorithm>
 #include "Utilitarianism.hpp"
@@ -50,8 +50,6 @@ void REST_App::HandleMDP(const string &file_in, const string &file_out) {
     runner->make_history_paths = true;
     runner->FullSolve(file_out);
 }
-
-
 crow::response REST_App::HandleQueryFoilAction(const crow::request &req) {
     auto json_req = crow::json::load(req.body);
     if (auto resp = BasicCheckValidRequest(json_req)) {
@@ -88,12 +86,38 @@ crow::response REST_App::HandleQueryFoilAction(const crow::request &req) {
     nlohmann::json bod = nlohmann::json::object();
 
     //
-    // 1. Check for Pareto dominance in foil policies
+    // 1. Get worth of foil policies
     //
     auto foilPolicyWorth = runner->EvaluateAction(state_id, action_id, fact_pi.get());
+    auto BestWorth = runner->solver->GetQValuesAtState(0);
+    //
+    // 2. Check budget of fact and foil policies
+    //
+    size_t foils_in_Budget = 0;
+    for (auto &w : foilPolicyWorth) {
+        bool isInBudget = runner->mdp->isQValueInBudget(w);
+        if (isInBudget) {
+            foils_in_Budget++;
+        }
+    }
+    size_t facts_in_Budget = 0;
+    for (auto &w : BestWorth) {
+        bool isInBudget = runner->mdp->isQValueInBudget(w);
+        if (isInBudget) {
+            facts_in_Budget++;
+        }
+    }
+    if (foils_in_Budget==0 && facts_in_Budget > 0) {
+        bod["type"] = "Non-moral";
+        return {200, bod.dump()};
+    }
+
+    //
+    // 3. Check for Pareto dominance.
+    //
     vector<QValue> candidates = vector<QValue>();// The QValue candidates (corresponding to state-actions)
     candidates.insert(candidates.end(), foilPolicyWorth.begin(), foilPolicyWorth.end());
-    auto BestWorth = runner->solver->GetQValuesAtState(0);
+
     candidates.insert(candidates.end(), BestWorth.begin(), BestWorth.end());
 
     vector<int> indicesOfUndominated = vector<int>();// Indices of candidate QValues that are undominated.
@@ -106,23 +130,6 @@ crow::response REST_App::HandleQueryFoilAction(const crow::request &req) {
     }
     if (undominated==0) {
         bod["type"] = "Pareto Dominance";
-        return {200, bod.dump()};
-    }
-    //
-    // 2. Check budget of foil policies
-    //
-    size_t inBudget = 0;
-    for (size_t w_i = 0; w_i < foilPolicyWorth.size(); ++w_i) {
-        QValue& w = foilPolicyWorth[w_i];
-        bool isInBudget = runner->mdp->isQValueInBudget(w);
-        if (isInBudget) {
-            inBudget++;
-        }
-        if  (isInBudget || w_i < foilPolicyWorth.size()) {
-        }
-    }
-    if (inBudget==0) {
-        bod["type"] = "Non-moral";
         return {200, bod.dump()};
     }
 
@@ -140,12 +147,11 @@ crow::response REST_App::HandleQueryFoilAction(const crow::request &req) {
             break;
         }
     }
-    if (areAllUndominatedOverBudget && inBudget==undominated) {
+    if (areAllUndominatedOverBudget && foils_in_Budget==undominated) {
         bod["type"] = "Pareto Dominance and Non-moral";
         return {200, bod.dump()};
 
     }
-
     //
     // 4. Check if counter-factual is actually counterfactual
     //
@@ -196,9 +202,8 @@ crow::response REST_App::HandleQueryFoilAction(const crow::request &req) {
     // If foils are better/equal to fact, then choice is user pref'.
     bod["type"] = "User preference";
     return {200, bod.dump()};
-
-
 }
+
 
 crow::response REST_App::HandleQValues(const crow::request &req) {
     auto json_req = crow::json::load(req.body);
@@ -237,7 +242,7 @@ crow::response REST_App::HandleGetPolicyAttacks(const crow::request &req) {
         std::cout << ss.str() << "\n";
         return {400, ss.str()};
     }
-    if (policyIdx > runner->mehr->attacks.size()) {
+    if (policyIdx >= runner->mehr->attacks.size()) {
         return {400, std::format("Invalid request for MEHR attacks. Policy with index {} does not exist.", policyIdx)};
     }
 
@@ -639,6 +644,7 @@ crow::response REST_App::HandleRandomTrajectory(const crow::request &req) {
     if (!finishedSolving) { return {400, "No MDP yet. Use /MDP to pass a problem file."}; }
     finishedSolving = false;// prevent other requests
     size_t time_steps=0;
+    size_t policy_idx = 0;
     unsigned seed = 0;
     bool add_to_history = false;
     try {
@@ -650,22 +656,30 @@ crow::response REST_App::HandleRandomTrajectory(const crow::request &req) {
         if (json_req.has("add_worth_to_history")) {
             add_to_history = json_req["add_worth_to_history"].b();
         }
+        if (json_req.has("policy_idx")) {
+            policy_idx = json_req["policy_idx"].i();
+        }
 
     } catch (runtime_error &err) {
         return {400, format("MPlan failed to read PlanFromHistory request. {}", err.what())};
     }
-    vector<size_t> states(0,0);
+    vector<size_t> states(1,0);
     states.reserve(time_steps);
     vector<double> probs;
     probs.reserve(time_steps);
     vector<QValue> worth;
     worth.reserve(time_steps);
     vector<string> actions;
-    worth.reserve(time_steps);
+    actions.reserve(time_steps);
 
-    auto pol_idx = runner->non_accept->getMinimumNonAcceptPolicyIdxs()[0];
+    vector<QValue*> agg_imm_worth(1,nullptr);
+    vector<double> agg_probs(1,1);
+    vector<QValue*> agg_fut_worth(1,nullptr);
+
+
+    auto pol_idx = runner->non_accept->getMinimumNonAcceptPolicyIdxs()[policy_idx];
     auto& pol = runner->policies[pol_idx];
-
+    auto agg_qval = QValue(*runner->mdp);
     for (size_t i = 0; i < time_steps; ++i) {
         auto a_idx = pol->policy[static_cast<int>(states.back())];
         auto scr = runner->mdp->SampleSuccessor(states.back(), a_idx);
@@ -673,8 +687,16 @@ crow::response REST_App::HandleRandomTrajectory(const crow::request &req) {
         states.push_back(scr->target);
         probs.push_back(scr->probability);
         worth.emplace_back(runner->mdp->MultiJudge(scr));
+
+        agg_imm_worth[0] = &agg_qval;
+        agg_probs[0] = probs.back();
+        agg_fut_worth[0] = &worth.back();
+        QValue q = runner->mdp->MultiGather(agg_imm_worth, agg_probs, agg_fut_worth);
+        agg_qval = q;
+
         if (add_to_history) {TotalHistory.emplace_back(worth.back());}
     }
+
     json resp_payload = json::object();
     resp_payload["visited_states"] = states;
     resp_payload["actions"] = actions;
@@ -684,10 +706,10 @@ crow::response REST_App::HandleRandomTrajectory(const crow::request &req) {
         js_worth.push_back(JSONBuilder::toJSON(qv));
     }
     resp_payload["transition_worth"] = js_worth;
-
+    resp_payload["cumulative_worth"] = JSONBuilder::toJSON(agg_qval);
+    finishedSolving = true;
     return {200, resp_payload.dump()};
 }
-
 
 
 

@@ -13,6 +13,8 @@
 #include "Utilitarianism.hpp"
 #include <stack>
 
+#include "Stats.h"
+
 QValue MDP::MultiJudge(Successor* successor) {
     QValue qv = QValue();
     qv.expectations.reserve(considerations.size());
@@ -122,6 +124,7 @@ int MDP::CompareByConsiderations(QValue& qv1, QValue& qv2) {
     return result;
 }
 int MDP::ParetoCompare(const QValue& qv1, const QValue& qv2) const {
+    Stats::paretoComparisons++;
     bool greater = false;
     bool lesser = false;
 

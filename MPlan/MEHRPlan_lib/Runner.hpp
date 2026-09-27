@@ -12,7 +12,7 @@
 #include "ExtractSolutions.hpp"
 #include <chrono>
 #include "History.hpp"
-#include "MEHRPlan_lib/Logger.hpp"
+#include "Logger.hpp"
 #include "nlohmann/json.hpp"
 #include "JSONBuilder.hpp"
 
@@ -48,7 +48,6 @@ enum Solver_Stage {
     DONE_SOLUTION_EXTRACTION,
     DONE_MEHR
 };
-
 enum Planning_Mode {
     DOMAIN_HEURISTIC=0,
     INDEPENDENT_HEURISTIC,
@@ -97,44 +96,26 @@ public:
         stage = INIT_MDP;
         return EXIT_SUCCESS;
     }
-    std::ifstream static OpenFile(std::string& fn) {
-        string tries;
-        // Try as it comes
-        std::ifstream file(fn);
-        file.open(fn);
-        if (file.is_open()) {
-            return file;
-        }
-        tries = fn;
-        // Try with slash
-        fn = "/" + fn;
-        file.open(fn);
-        if (file.is_open()) {
-            return file;
-        }
-        tries += "\n" + fn;
-        // Try with data folder path
-        string path = DATA_FOLDER_PATH;
-        path += "/" + fn;
-        file.open(path);
-        if (file.is_open()) {
-            return file;
-        }
-        tries += "\n" + path;
+    static std::ifstream OpenFile(const std::string& fn) {
+        const std::vector<std::string> paths = {
+            fn,
+            "/" + fn,
+            std::string(DATA_FOLDER_PATH) + fn
+        };
 
-        path = DATA_FOLDER_PATH;
-        path += fn;
-        file.open(path);
-        if (file.is_open()) {
-            return file;
-        }
-        tries += "\n" + path;
-
-        if (!file.is_open()) {
-            throw std::runtime_error("Could not open file. Tried:\n" + tries + "\n");
+        std::string tries;
+        for (const auto& path : paths) {
+            std::ifstream file(path);
+            if (file.is_open()) {
+                return file;
+            }
+            if (!tries.empty()) {
+                tries += "\n";
+            }
+            tries += path;
         }
 
-        return file;
+        throw std::runtime_error("Could not open file. Tried:\n" + tries + "\n");
     }
 
     [[nodiscard]] string MakePoliciesString() const {
@@ -167,9 +148,9 @@ public:
         if (planning_mode == INDEPENDENT_HEURISTIC) {
             Log::writeLog(std::format("Starting build heuristic..."), LogLevel::Info);
             d = CPUTime(&Solver::BuildIndependentHeuristic, *solver);
-            Log::writeLog(std::format("Finished Building Heuristic in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
+            Log::writeLog(std::format("Finished Building Heuristic in {} {}.", d, TIME_METRIC_STR), LogLevel::Warn);
         } else {
-            Log::writeLog(std::format("Skipped building Heuristic in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
+            Log::writeLog(std::format("Skipped building Heuristic in {} {}.", d, TIME_METRIC_STR), LogLevel::Warn);
         }
         stage = DONE_HEURISTIC;
         return d;
@@ -184,23 +165,23 @@ public:
             Log::writeLog(std::format("Starting heuristic planning..."), LogLevel::Info);
             d = CPUTime(&Solver::MC_iAO_Star, *solver);
         }
-        Log::writeLog(std::format("Finished Planning in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
+        Log::writeLog(std::format("Finished Planning in {} {}", d, TIME_METRIC_STR), LogLevel::Warn);
         stage = DONE_PLANING;
         return d;
     }
 
-    long long timeExtractSols() {
+    long long timeExtractSols(bool prune_dominated = true) {
         if (stage < DONE_PLANING) { throw std::runtime_error("Not ready for Extract Solutions."); }
         Log::writeLog(std::format("Starting extract solutions..."), LogLevel::Info);
         soln_extractor = make_unique<SolutionExtracter>(*mdp, make_history_paths);
-        long long d = CPUTime(&SolutionExtracter::Extract, *soln_extractor, policies, histories, solver->mPi);
+        soln_extractor->prune_dominated = prune_dominated;
+        long long d = CPUTime(&SolutionExtracter::Extract, *soln_extractor, policies, histories, solver->mPi, solver->mBackupOrder);
         undominated_policies = policies.size();
 #ifdef DEBUG
-        Log::writeFormatLog(LogLevel::Warn, "{}", MakePoliciesString());
-        Log::writeFormatLog(LogLevel::Warn, "{}", soln_extractor->stringify(policies, *mdp));
+        Log::writeFormatLog(LogLevel::Debug, "{}", MakePoliciesString());
+        Log::writeFormatLog(LogLevel::Debug, "{}", soln_extractor->stringify(policies, *mdp));
 #endif
-        Log::writeLog(std::format("Extracted {} policies.", policies.size()), LogLevel::Info);
-        Log::writeLog(std::format("Finished Extracting Solutions in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
+        Log::writeLog(std::format("Extracted {} policies in {} {}.", policies.size(), d, TIME_METRIC_STR), LogLevel::Warn);
         stage = DONE_SOLUTION_EXTRACTION;
         return d;
     }
@@ -213,22 +194,37 @@ public:
         non_accept = make_shared<NonAcceptability>(mdp->mehr_theories.size(), policies.size());
         // Time and start MEHR:
         long long d = CPUTime(&MEHR::Slow_FindNonAccept, *mehr, *non_accept);
-
-        Log::writeLog(mehr->ToString(*non_accept), LogLevel::Debug);
-        Log::writeLog(std::format("Finished MEHR in {} {}.", d, TIME_METRIC_STR), LogLevel::Info);
+        if (Log::getLogLevel() >= LogLevel::Debug) {
+            Log::writeLog(mehr->ToString(*non_accept), LogLevel::Debug);
+        }
+        Log::writeLog(std::format("Finished MEHR in {} {}.", d, TIME_METRIC_STR), LogLevel::Warn);
         stage = DONE_MEHR;
         return d;
     }
 
-    void Plan(std::string &fileOut) {
+    void Plan_Only(std::string &fileOut) {
         durations.heuristicTime = timeHeuristic();
         durations.planTime = timePlan();
         Log::writeLog(std::format("Total time {} {}", durations.Total(), TIME_METRIC_STR), LogLevel::Info);
-
-
         json result;
         result.merge_patch(JSONBuilder::toJSON(durations));
         result.merge_patch(JSONBuilder::addInputJSON(fileIn));
+        WriteJSONFile(result, fileOut);
+    }
+    void MEHR_Only(const std::string &fileOut) {
+        // Selected actions are all available actions.
+        solver->mPi = vector<vector<int>>(mdp->states.size());
+        solver->mPi[0].resize(mdp->getActions(*mdp->states[0])->size(),0);
+        iota(solver->mPi[0].begin(), solver->mPi[0].end(), 0);
+        // The selected actions form the plan that solution extraction consumes.
+        stage = DONE_PLANING;
+        durations.solutionExtractionTime = timeExtractSols(false);
+        durations.mehrTime = timeMEHR();
+
+        if (fileOut=="-1") {
+            return;
+        }
+        json result = JSONBuilder::toJSON(*this);
         WriteJSONFile(result, fileOut);
     }
 
@@ -239,11 +235,11 @@ public:
         durations.mehrTime = timeMEHR();
     }
     void FullSolve(const std::string &fileOut) {
-            FullSolve();
-            Log::writeLog(std::format("Total time {} {}", durations.Total(), TIME_METRIC_STR), LogLevel::Info);
-            // Save File
-            json result = JSONBuilder::toJSON(*this);
-            WriteJSONFile(result, fileOut);
+        FullSolve();
+        Log::writeLog(std::format("Total time {} {}", durations.Total(), TIME_METRIC_STR), LogLevel::Info);
+        // Save File
+        json result = JSONBuilder::toJSON(*this);
+        WriteJSONFile(result, fileOut);
     }
 
     static void WriteJSONFile(json &data, const std::string &fileOut) {
@@ -274,7 +270,8 @@ public:
         // Get Policies
         vector<unique_ptr<Policy>> newPolicies;
         policy_hists newHistories;
-        r.solutionExtractionTime = CPUTime(&SolutionExtracter::Extract, *soln_extractor, newPolicies, newHistories, solver->mPi);
+        vector<int> bo = solver->mBackupOrder;
+        r.solutionExtractionTime = CPUTime(&SolutionExtracter::Extract, *soln_extractor, newPolicies, newHistories, solver->mPi, bo);
         r.newPolicyIndices = vector<size_t>(newPolicies.size());
         for (size_t piIdx = 0; piIdx < newPolicies.size(); ++piIdx) {
             policies.emplace_back(std::move(newPolicies[piIdx]));
@@ -324,7 +321,7 @@ public:
         vector<unique_ptr<Policy>> newPolicies;
         policy_hists newHistories;
         soln_extractor->ForceStateAction(stateIdx, act_idx);
-        r.solutionExtractionTime = CPUTime(&SolutionExtracter::Extract, *soln_extractor, newPolicies, newHistories, solver->mPi);
+        r.solutionExtractionTime = CPUTime(&SolutionExtracter::Extract, *soln_extractor, newPolicies, newHistories, solver->mPi, solver->mBackupOrder);
 
         // Do MEHR
         size_t old_policies_size = policies.size();

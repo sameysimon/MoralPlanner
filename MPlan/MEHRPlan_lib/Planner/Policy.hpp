@@ -10,6 +10,9 @@
 #include <iostream>
 
 
+struct PolicyActionMapEq;
+struct PolicyActionMapHash;
+
 using namespace std;
 
 struct ArrayHash {
@@ -31,12 +34,24 @@ struct ArrayEqual {
     }
 };
 
+// forward declare
+class Policy;
+
+struct PolicyActionMapHash {
+    size_t operator()(Policy* pi) const;
+};
+struct PolicyActionMapEq {
+    bool operator()(const Policy* lhs, const Policy* rhs) const;
+};
+
+
 
 
 class Policy {
 public:
     unordered_map<int, int> policy;
     unordered_map<int, QValue> worth;
+
     vector<pair<size_t, size_t>> forced_actions;
     size_t root_stateIdx = 0;
 
@@ -44,8 +59,12 @@ public:
     vector<pair<size_t, size_t>> included_state_actions;
 
     QValue* ptr_policy_value = nullptr;
+
     size_t semantic_hash = 0;
     bool semantic_hash_valid = false;
+
+    size_t action_map_hash = 0;
+    bool action_map_valid = false;
 
     explicit Policy(MDP&, std::size_t rootStateIdx = 0)
         : root_stateIdx(rootStateIdx) {}
@@ -81,13 +100,14 @@ public:
     }
 
     void importPolicy(Policy& pi) {
+        semantic_hash_valid=false;
         for (auto it : pi.policy) {
             policy[it.first] = it.second;
         }
         worth.insert(pi.worth.begin(), pi.worth.end());
     }
-
     void setWorth(size_t stateIdx, QValue qv) {
+        semantic_hash_valid=false;
         worth.insert_or_assign(static_cast<int>(stateIdx), qv );
         if (stateIdx==root_stateIdx) {
             ptr_policy_value = nullptr;
@@ -95,6 +115,7 @@ public:
         null_semantic_hash();
     }
     QValue& AddWorth(MDP& mdp, size_t state) {
+        semantic_hash_valid=false;
         auto [it, inserted] = worth.try_emplace(static_cast<int>(state), mdp);
         if (inserted) {
             if (state==root_stateIdx) {
@@ -105,7 +126,40 @@ public:
         return it->second;
     }
     void AddAction(int state, int stateTimeAction) {
+        semantic_hash_valid=false;
+        action_map_hash=false;
         policy.insert_or_assign(state, stateTimeAction);
+    }
+
+    optional<int> getAction(int state) const {
+        auto it = policy.find(state);
+        if (it == policy.end()) {
+            return nullopt;
+        }
+        return it->second;
+    }
+
+    static bool checkActionsCompatible(const std::unordered_map<int,int>& currActionMap, const Policy& newPolicy) {
+        for (const auto& [state, action] : newPolicy.policy) {
+            auto it = currActionMap.find(state);
+            if (it != currActionMap.end() && it->second != action) {
+                return false;
+            }
+        }
+        return true;
+    }
+    static bool checkActionsCompatible(const vector<Policy*>& pols) {
+        unordered_map<int, int> combinedActions;
+        for (auto pi : pols) {
+            for (const auto& [state, action] : pi->policy) {
+                auto [it, inserted] = combinedActions.emplace(state,action);
+                if (!inserted && it->second != action) {
+                    return false;
+                }
+            }
+
+        }
+        return true;
     }
 
     void MergePolicies(vector<Policy*>& policies, vector<Successor*>& successors, MDP& mdp) {
@@ -157,36 +211,20 @@ public:
             }
         }
     }
-
-    static bool checkActionsCompatible(const std::unordered_map<int,int>& currActionMap, const Policy& newPolicy) {
-        for (const auto& [state, action] : newPolicy.policy) {
-            auto it = currActionMap.find(state);
-            if (it != currActionMap.end() && it->second != action) {
-                return false;
+    bool AreActionsDifferent(const Policy& b, bool one_way=true) const {
+        for (auto& it : policy) {
+            if (b.getAction(it.second)!=it.first) {
+                return true;
             }
         }
-        return true;
-    }
-    static bool checkActionsCompatible(const vector<Policy*>& pols) {
-        unordered_map<int, int> combinedActions;
-        for (auto pi : pols) {
-            for (const auto& [state, action] : pi->policy) {
-                auto [it, inserted] = combinedActions.emplace(state,action);
-                if (!inserted && it->second != action) {
-                    return false;
-                }
-            }
-
+        if (one_way) {
+            return false;
         }
-        return true;
+        return b.AreActionsDifferent(*this, false);
+
     }
 
-    optional<int> getAction(int state) {
-        if (policy.find(state)==policy.end()) {
-            return nullopt;
-        }
-        return policy[state];
-    }
+
 
     QValue* getExpectationPtr() {
         if (ptr_policy_value==nullptr) {
@@ -251,7 +289,8 @@ public:
         QValueHash qValHash;
         size_t result = qValHash(*getExpectationPtr());
 
-        std::vector<std::size_t> hist_hashes;
+        std::vector<std::size_t> hashes;
+        /*
         for (auto &hist : history_set) {
             size_t hist_hash = qValHash(hist->mWorth);
             int rounded = (int)(hist->probability*1000000.0);
@@ -263,34 +302,35 @@ public:
         for (size_t it : hist_hashes) {
             QValue::hash_combine(result, it);
         }
-        hist_hashes.clear();
+        */
+        hashes.clear();
         for (auto &it : forced_actions) {
             size_t acts_hash = std::hash<size_t>()(it.first);
             QValue::hash_combine(acts_hash, std::hash<size_t>()(it.second));
-            hist_hashes.push_back(acts_hash);
+            hashes.push_back(acts_hash);
         }
-        std::sort(hist_hashes.begin(), hist_hashes.end());
-        QValue::hash_combine(result, hist_hashes.size());
-        for (size_t it : hist_hashes) {
-            QValue::hash_combine(result, it);
-        }
+        std::sort(hashes.begin(), hashes.end());
+        //QValue::hash_combine(result, hist_hashes.size());
+        //for (size_t it : hist_hashes) {
+        //    QValue::hash_combine(result, it);
+        //}
         return result;
     }
-    size_t CalculateActionMappingHash() {
+     size_t CalculateActionMappingHash() {
         std::vector<std::pair<int, int>> actions;
         actions.reserve(policy.size());
         for (const auto& entry : policy) {
             actions.emplace_back(entry);
         }
-
         std::sort(actions.begin(), actions.end());
-
         std::size_t result = actions.size();
         for (const auto& [state, action] : actions) {
             std::size_t entryHash = std::hash<int>{}(state);
             QValue::hash_combine(entryHash, std::hash<int>{}(action));
             QValue::hash_combine(result, entryHash);
         }
+        action_map_hash = result;
+        action_map_valid = true;
         return result;
     }
 };
@@ -314,7 +354,7 @@ struct PolicyPtrEqual {
                 return false;
             }
         }
-
+        return true;
         // if every history has an equivalent, then they match.
         for (auto &lhsHist : lhs->history_set) {
             bool found = false;
@@ -339,3 +379,11 @@ struct PolicyPtrHash {
     }
 };
 
+inline size_t PolicyActionMapHash::operator()(Policy* pi) const {
+    return pi->CalculateActionMappingHash();
+}
+
+
+inline bool PolicyActionMapEq::operator()(const Policy* lhs, const Policy* rhs) const {
+    return !lhs->AreActionsDifferent(*rhs);
+}

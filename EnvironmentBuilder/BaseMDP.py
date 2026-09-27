@@ -98,8 +98,6 @@ class MDP(ABC):
         return s
 
     def __buildSuccessors(self, state: State, action:str):
-        if (state.id==18 and action=='right'):
-            print()
         successorsValues = [(state.props, 1)]
         for ruleFunc in self.rules:
             ruleSuccessorsValues = []

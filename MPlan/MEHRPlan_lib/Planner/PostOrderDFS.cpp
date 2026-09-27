@@ -5,7 +5,7 @@
 using namespace std;
 
 // Uses Depth-First-Search on states in internal SolSet to build bpsg (Z)
-bool Solver::PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unique_ptr<unordered_set<int>>& foundStates) {
+bool Solver::PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visited, unique_ptr<unordered_set<int>>& foundStates, vector<int>& backupOrder) {
     if (visited.find(stateIdx) != visited.end()) {
         return false; // If already visited, don't search.
     }
@@ -24,20 +24,18 @@ bool Solver::PostOrderDFSCall(int stateIdx, int time, unordered_set<int>& visite
 
         for (auto scr : *scrs) {
             int ttime = time+1;
-            if (PostOrderDFSCall(scr->target, ttime, visited, foundStates)) {
-                mBackupOrder.emplace_back(scr->target);
+            if (PostOrderDFSCall(scr->target, ttime, visited, foundStates, backupOrder)) {
+                backupOrder.emplace_back(scr->target);
             }
         }
     }
-    //Z->emplace_back(stateIdx);
     return true;
 }
 
 
-void Solver::setPostOrderDFS() {
-    mBackupOrder.clear();
-    unordered_set<int> visited = unordered_set<int>();
-
-    PostOrderDFSCall(0, 0, visited, mFoundStates);
-    mBackupOrder.emplace_back(0);
+void Solver::setPostOrderDFS(vector<int>& backupOrder) {
+    backupOrder.clear();
+    mVisitedStates = unordered_set<int>();
+    PostOrderDFSCall(0, 0, mVisitedStates, mFoundStates, backupOrder);
+    backupOrder.emplace_back(0);
 }

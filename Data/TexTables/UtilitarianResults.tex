@@ -1,19 +1,57 @@
-% Please add the following required packages to your document preamble:
-% \usepackage{multirow}
-% \usepackage[table,xcdraw]{xcolor}
-% Beamer presentation requires \usepackage{colortbl} instead of \usepackage[table,xcdraw]{xcolor}
-\begin{tabular}{|l|ll|l|l|l|}
-\hline
-\rowcolor[HTML]{C0C0C0} 
-\multicolumn{1}{|c|}{\cellcolor[HTML]{C0C0C0}}                                   & \multicolumn{2}{c|}{\cellcolor[HTML]{C0C0C0}$W^{\pi^*}(0,s_0)$}                                       & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}}                                                                                                              & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}}                                                                         & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}}                                                                                              \\ \cline{2-3}
-\rowcolor[HTML]{C0C0C0} 
-\multicolumn{1}{|c|}{\multirow{-2}{*}{\cellcolor[HTML]{C0C0C0}\textbf{Config.}}} & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}Hal} & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}Carla} & \multicolumn{1}{c|}{\multirow{-2}{*}{\cellcolor[HTML]{C0C0C0}\begin{tabular}[c]{@{}c@{}}Moral/\\ \acrshort{pcs}\end{tabular}}} & \multicolumn{1}{c|}{\multirow{-2}{*}{\cellcolor[HTML]{C0C0C0}\begin{tabular}[c]{@{}c@{}}Non-\\ Accept.\end{tabular}}} & \multicolumn{1}{c|}{\multirow{-2}{*}{\cellcolor[HTML]{C0C0C0}\begin{tabular}[c]{@{}c@{}}Average\\ Time (\mu) \end{tabular}}} \\ \hline
-$(H)^0$                                                                          & \multicolumn{1}{l|}{$§0$}                        & -                                                  & $§1/§2$                                                                                                                                                    & $§3$                                                                                                                  & $§4$                                                                                                                                       \\ \hline
-$(C)^0$                                                                          & \multicolumn{1}{l|}{-}                           & $§0$                                               & $§1/§2$                                                                                                                                                    & $§3$                                                                                                                  & $§4$                                                                                                                                       \\ \hline
-$(H+C)^0$                                                                        & \multicolumn{2}{c|}{$§0$}                                                                             & $§1/§2$                                                                                                                                                    & $§3$                                                                                                                  & $§4$                                                                                                                                       \\ \hline
-$(H, C)^0$                                                                       & \multicolumn{1}{l|}{$§0$}                        & $§1$                                               & $§2/§3$                                                                                                                                                    & $§4$                                                                                                                  & $§5$                                                                                                                                       \\ \hline
-$(H)^0, (C)^0$                                                                   & \multicolumn{1}{l|}{$§0$}                        & $§1$                                               & $§2/§3$                                                                                                                                                    & $§4$                                                                                                                  & $§5$                                                                                                                                       \\ \hline
-$(H)^0, (C)^0, (H,C)^0$                                                          & \multicolumn{1}{l|}{$§0$}                        & $§1$                                               & $§2/§3$                                                                                                                                                    & $§4$                                                                                                                  & $§5$                                                                                                                                       \\ \hline
-$(HL)^0, (CL)^0$                                                                 & \multicolumn{1}{l|}{$§0$}                        & $§1$                                               & $§2/§3$                                                                                                                                                    & $§4$                                                                                                                  & $§5$                                                                                                                                       \\ \hline
-$(HL)^0, (CL)^0, (HS)^1, (CS)^1$                                                 & \multicolumn{1}{l|}{$§0$}                        & $§1$                                               & $§2/§3$                                                                                                                                                    & $§4$                                                                                                                  & $§5$                                                                                                                                       \\ \hline
+{
+\renewcommand{\arraystretch}{1.25}
+\rowcolors{1}{gray!12}{white}
+
+\begin{tabular}{@{}lccccc@{}}
+\hiderowcolors
+\toprule
+
+\multicolumn{1}{c}{\multirow{2}{*}{\textbf{Configuration}}}
+& \multicolumn{2}{c}{$\worthf^{\pi}[0][s_0]$}
+& \multirow{2}{*}{\textbf{\begin{tabular}[c]{@{}c@{}}Moral/\\PCS\end{tabular}}}
+& \multirow{2}{*}{\textbf{\begin{tabular}[c]{@{}c@{}}Non-\\Accept\end{tabular}}}
+& \multirow{2}{*}{\textbf{\begin{tabular}[c]{@{}c@{}}Average\\Time (\unit{\micro\second})\end{tabular}}}
+\\
+
+\cmidrule(lr){2-3}
+
+& \textbf{Hal}
+& \textbf{Carla}
+&
+&
+&
+\\
+
+\midrule
+\showrowcolors
+
+$(\textsf{h})^0$
+& $§0$ & $-$ & $§1/§2$ & $§3$ & $§4$ \\
+
+$(\textsf{c})^0$
+& $-$ & $§0$ & $§1/§2$ & $§3$ & $§4$ \\
+
+$(\textsf{h+c})^0$
+& \multicolumn{2}{c}{$§0$} & $§1/§2$ & $§3$ & $§4$ \\
+
+$(\textsf{h}, \textsf{c})^0$
+& $§0$ & $§1$ & $§2/§3$ & $§4$ & $§5$ \\
+
+$(\textsf{h})^0, (\textsf{c})^0$
+& $§0$ & $§1$ & $§2/§3$ & $§4$ & $§5$ \\
+
+$(\textsf{h})^0, (\textsf{c})^0, (\textsf{h, c})^0$
+& $§0$ & $§1$ & $§2/§3$ & $§4$ & $§5$ \\
+
+$(\textsf{h})^1, (\textsf{c})^0$
+& $§0$ & $§1$ & $§2/§3$ & $§4$ & $§5$ \\
+
+$(\textsf{hl})^0, (\textsf{cl})^0$
+& $§0$ & $§1$ & $§2/§3$ & $§4$ & $§5$ \\
+
+$(\textsf{hl})^0, (\textsf{cl})^0, (\textsf{hs})^0, (\textsf{cs})^0$
+& $§0$ & $§1$ & $§2/§3$ & $§4$ & $§5$ \\
+
+\bottomrule
 \end{tabular}
+}

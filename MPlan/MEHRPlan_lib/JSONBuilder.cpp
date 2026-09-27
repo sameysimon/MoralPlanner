@@ -28,10 +28,7 @@ json JSONBuilder::toJSON(Runner& run) {
 // Add input file to end of json for easy processing!
 json JSONBuilder::addInputJSON(const std::string &fileIn) {
     json r = json::object();
-    std::ifstream inputFile = std::ifstream(fileIn);
-    if (!inputFile.is_open()) {
-        throw std::runtime_error("Error loading input file: '" + fileIn + "'");
-    }
+    std::ifstream inputFile = Runner::OpenFile(fileIn);
     json inFile = json::parse(inputFile);
     r.merge_patch(inFile);
     return r;
@@ -216,10 +213,10 @@ json JSONBuilder::toJSON(QValue& qv) {
 
 json JSONBuilder::toJSON(Solver& solver) {
     json r;
-    r[FIELD::EXPANDED_STATES] = solver.expanded_states;
+    r[FIELD::EXPANDED_STATES] = Stats::expandedStates;
     r[FIELD::BSG_SIZE] = solver.mPi.size();
-    r[FIELD::BACKUPS] = solver.backups;
-    r[FIELD::ITERATIONS] = solver.expansions;
+    r[FIELD::BACKUPS] = Stats::backups;
+    r[FIELD::ITERATIONS] = Stats::iAOStarLoops;
     return r;
 }
 

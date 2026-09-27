@@ -90,26 +90,26 @@ def Experiment():
         '3_class_deaths': 'first',
         'crew_deaths': 'first',
         'Ram': 'first',
-        'Num_of_sols': 'first',
-        'Num_of_min_non_accept': 'first',
-        'Min_non_accept': 'first',
-        'Total_time': 'mean'
+        'Number of Solutions': 'first',
+        'Number of Minimal Non-Acceptability Policies': 'first',
+        'Minimal Non-Acceptability': 'first',
+        'Total Time': 'mean'
     }
-    summary_table = df.groupby('Config_name', sort=False).agg(agg_rules).reset_index()
+    summary_table = df.groupby('Configuration', sort=False).agg(agg_rules).reset_index()
     summary_table = summary_table.fillna("N/A")
-    summary_table['Num_of_sols'] = summary_table.apply(lambda row: f"{int(row['Num_of_min_non_accept'])}/{int(row['Num_of_sols'])}", axis=1)
+    summary_table['Number of Solutions'] = summary_table.apply(lambda row: f"{int(row['Number of Minimal Non-Acceptability Policies'])}/{int(row['Number of Solutions'])}", axis=1)
     print(summary_table)
-    summary_table = summary_table.drop(columns=['Config_name', 'Num_of_min_non_accept'])
-    summary_table['Min_non_accept'] = summary_table['Min_non_accept'].round(4)
+    summary_table = summary_table.drop(columns=['Configuration', 'Number of Minimal Non-Acceptability Policies'])
+    summary_table['Minimal Non-Acceptability'] = summary_table['Minimal Non-Acceptability'].round(4)
 
 
 # To save envs to file, then start server and send experiments
 def StartServerAndPost():
-    er.StartServerAndPost(er.makeMdpFileName(configs[0]["Name"], 0))
+    er.StartServerAndPost(er.getMdpFileName(configs[0]["Name"], 0))
 
 # To send a file to existing server...
 def PostToServer():
-    er.PostMDPToServer(er.makeMdpFileName(configs[0]["Name"], 0))
+    er.PostMDPToServer(er.getMdpFileName(configs[0]["Name"], 0))
 
 
 PostToServer()

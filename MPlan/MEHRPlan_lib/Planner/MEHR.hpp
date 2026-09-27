@@ -74,7 +74,7 @@ struct NonAcceptability {
     [[nodiscard]] vector<size_t> getMinimumNonAcceptPolicyIdxs() {
         vector<size_t> minPolicies;
         minNacc = getMinimumNonAccept();
-        for (auto i = 1; i < getTotalPolicies(); ++i) {
+        for (auto i = 0; i < getTotalPolicies(); ++i) {
             if (getPolicyNonAccept(i) == minNacc) {
                 minPolicies.push_back(i);
             }

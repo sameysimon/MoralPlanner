@@ -1,12 +1,23 @@
-% Please add the following required packages to your document preamble:
-% \usepackage{multirow}
-% \usepackage[table,xcdraw]{xcolor}
-% Beamer presentation requires \usepackage{colortbl} instead of \usepackage[table,xcdraw]{xcolor}
-\begin{tabular}{|c|cll|c|c|c|}
-\hline
-\rowcolor[HTML]{C0C0C0} 
-\cellcolor[HTML]{C0C0C0}                          & \multicolumn{3}{c|}{\cellcolor[HTML]{C0C0C0}$W^{\pi^*}(0,s_0)$}                                                  & \cellcolor[HTML]{C0C0C0}                                                                                  & \cellcolor[HTML]{C0C0C0}                                                                         & \cellcolor[HTML]{C0C0C0}                                                                                       \\ \cline{2-4}
-\rowcolor[HTML]{C0C0C0} 
-\multirow{-2}{*}{\cellcolor[HTML]{C0C0C0}Config.} & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}Hal} & \multicolumn{1}{c|}{\cellcolor[HTML]{C0C0C0}Necessity} & Law  & \multirow{-2}{*}{\cellcolor[HTML]{C0C0C0}\begin{tabular}[c]{@{}c@{}}Moral/\\ PCS\end{tabular}} & \multirow{-2}{*}{\cellcolor[HTML]{C0C0C0}\begin{tabular}[c]{@{}c@{}}Non-\\ Accept.\end{tabular}} & \multirow{-2}{*}{\cellcolor[HTML]{C0C0C0}\begin{tabular}[c]{@{}c@{}}Average\\ Time (\mu)\end{tabular}} \\ \hline
-\multicolumn{1}{|l|}{$§0$}                        & \multicolumn{1}{l|}{$§1$}                        & \multicolumn{1}{l|}{$§2$}                              & $§3$ & \multicolumn{1}{l|}{$§4/§5$}                                                                              & \multicolumn{1}{l|}{$§6$}                                                                        & \multicolumn{1}{l|}{$§7$}                                                                                      \\ \hline
+{
+\renewcommand{\arraystretch}{1.25}
+\rowcolors{1}{gray!12}{white}
+
+\begin{tabular}{@{}ccccccc@{}}
+\hiderowcolors
+\toprule
+\multirow{2}{*}{\bfseries Configuration} &
+  \multicolumn{3}{c}{$\vnworthf^{\pi}[0][s_0]$} &
+  \multirow{2}{*}{\bfseries \begin{tabular}[c]{@{}c@{}}Moral/\\ PCS\end{tabular}} &
+  \multirow{2}{*}{\bfseries \begin{tabular}[c]{@{}c@{}}Non-\\ Accept\end{tabular}} &
+  \multirow{2}{*}{\bfseries \begin{tabular}[c]{@{}c@{}}Average\\ Time (\mu)\end{tabular}} \\ \cmidrule(lr){2-4}
+ &
+ \textbf{Hal} &
+  \textbf{Necessity} &
+  \textbf{Law} &
+   &
+   &
+   \\ 
+   \midrule \showrowcolors \multicolumn{1}{l}{§0} & §1 & §2 & §3 & §4/§5 & §6 & §7 \\ 
+  \bottomrule
 \end{tabular}
+}

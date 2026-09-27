@@ -166,27 +166,34 @@ class OrdinalNecessity(Consideration):
         
         if (not (successor.action in ['steal', 'break_in', 'sneak_inside', 'attack_Carla'])):
             return 0
+        # Does not apply if Hal is dead
+        #if (not successor.targetState.props["Hal_alive"]):
+        #    return 0
+        
+        #int_add = -1 if successor.action=='intimidate' else 0
+        int_add = 0
+        
         die_chance = ((successor.targetState.props['time']  + 1) ) / (self.horizon + 1)
-        if (die_chance >= 0.5):
+        if (die_chance >= 0.3):
             # MORE THAN 50% DEATH
             if (successor.sourceState.props['time']>0):
                 if (successor.sourceState.props['Carla_sold'] == 'refused_high'):
-                    return -1
+                    return -1 + int_add
                 if (successor.sourceState.props['Carla_sold'] == 'refused_low'):
-                    return -2
-                return -3
+                    return -2 + int_add
+                return -3 + int_add
             else:
-                return -1
+                return -1 + int_add
         else:
             # LESS THAN 50% OF DEATH
             if (successor.sourceState.props['Carla_sold'] == 'refused_high'):
-                return -2
+                return -2 + int_add
             if (successor.sourceState.props['Carla_sold'] == 'refused_low'):
-                return -3
+                return -3 + int_add
             if (successor.sourceState.props['Carla_reply'] == 'refused_ask'):
-                return -4
+                return -4 + int_add
             return -5
-        
+                
     def StateHeuristic(self, state:State):
         return 0
 

@@ -3,6 +3,8 @@ project(MEHRPlan_lib)
 include_directories(Environment, Planner, Environment/MoralTheories)
 
 set(HEADER_FILES
+        Stats.h
+        time_config.hpp
         Environment/Successor.hpp
         Environment/Action.hpp
         Environment/State.hpp
@@ -28,6 +30,9 @@ set(HEADER_FILES
         Environment/MoralTheories/Fairness.hpp
         Planner/Policy_Counter.h
         MPlanRandom.hpp
+        Runner.hpp
+        REST_App.hpp
+        JSONBuilder.hpp
 )
 
 set(SOURCE_FILES
@@ -58,6 +63,10 @@ set(SOURCE_FILES
         Environment/MoralTheories/Fairness.cpp
         Environment/MoralTheories/Fairness.hpp
         Planner/PPrune.cpp
+        JSONBuilder.cpp
+        REST_App.cpp
+        MPlanRandom.hpp
+        #Planner/CCS_Prune.h
 )
 
 
@@ -65,6 +74,11 @@ add_library(MEHRPlan_lib STATIC ${SOURCE_FILES} ${HEADER_FILES})
 
 set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/_deps/nlohmann_json-build" ${CMAKE_PREFIX_PATH})
 find_package(nlohmann_json CONFIG REQUIRED)
+
+target_compile_definitions(MEHRPlan_lib PUBLIC
+        DATA_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data/MDPs/"
+        OUTPUT_FOLDER_PATH="${CMAKE_SOURCE_DIR}/../Data/MPlan-out/"
+)
 
 target_link_libraries(MEHRPlan_lib nlohmann_json::nlohmann_json)
 
