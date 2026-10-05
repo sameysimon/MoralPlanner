@@ -1,12 +1,9 @@
 from EnvironmentBuilder.TutorProblem.TeacherProblem import TeacherProblem
-from EnvironmentBuilder.GridWorld.GridWorldProblem import GridWorldProblem
 from EnvironmentBuilder.LostInsulin.Main import LostInsulin
 from EnvironmentBuilder.LostInsulin.Basic import BasicLostInsulin
 from EnvironmentBuilder.Titanic.TitanicProblem import Titanic
 from EnvironmentBuilder.Elder.ElderProblem import Elder
 
-#from EnvironmentBuilder.SearchRescue.SearchRescueProblem import SearchRescue
-from EnvironmentBuilder.SearchRescue.SearchRescueTwo import SearchRescue
 from EnvironmentBuilder.SearchRescue.Rescue import Rescue
 
 from EnvironmentBuilder.SaveEnvironment import SaveEnvToJSON
@@ -31,13 +28,11 @@ class Domains(str, Enum):
     
 
 domains = {
-    "WindyDrone": GridWorldProblem,
     "Tutor": TeacherProblem,
     "LostInsulin": LostInsulin,
     "BasicLostInsulin": BasicLostInsulin,
     "Random": AbstractMDP,
     "Elder": Elder,
-    "SearchRescue": SearchRescue,
     "Rescue": Rescue,
     "Titanic": Titanic
 }

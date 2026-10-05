@@ -178,20 +178,20 @@ class OrdinalNecessity(Consideration):
             # MORE THAN 50% DEATH
             if (successor.sourceState.props['time']>0):
                 if (successor.sourceState.props['Carla_sold'] == 'refused_high'):
-                    return -1 + int_add
+                    return -1
                 if (successor.sourceState.props['Carla_sold'] == 'refused_low'):
-                    return -2 + int_add
-                return -3 + int_add
+                    return -2
+                return -3
             else:
-                return -1 + int_add
+                return -1
         else:
             # LESS THAN 50% OF DEATH
             if (successor.sourceState.props['Carla_sold'] == 'refused_high'):
-                return -2 + int_add
+                return -2
             if (successor.sourceState.props['Carla_sold'] == 'refused_low'):
-                return -3 + int_add
+                return -3
             if (successor.sourceState.props['Carla_reply'] == 'refused_ask'):
-                return -4 + int_add
+                return -4
             return -5
                 
     def StateHeuristic(self, state:State):
@@ -229,6 +229,9 @@ class HalSmall(Consideration):
             return HAL_ARREST
         if (successor.action == 'attack_Carla' and successor.targetState.props['Carla_reply']=='refused_attack'):
             return HAL_DEFEAT
+        if (successor.action == 'attack_Carla'):
+            return HAL_WIN
+        
         if (successor.action == 'buy_high' and successor.targetState.props['Carla_reply']=='sold'):
             return HAL_PAYS_HIGH
         if (successor.action == 'buy_low' and successor.targetState.props['Carla_reply']=='sold'):
@@ -238,8 +241,7 @@ class HalSmall(Consideration):
         if (successor.action == 'buy_high'):
             return 0
             
-        elif (successor.action == 'attack_Carla'):
-            return HAL_WIN
+
         return 0
         
     def StateHeuristic(self, state:State):

@@ -1,0 +1,492 @@
+{
+    "Actions": [
+        "go_to:3",
+        "go_to:1",
+        "go_to:0",
+        "go_to:2",
+        "heal"
+    ],
+    "Average_histories": 3,
+    "Backups": 25,
+    "Best_subgraph_size": 22,
+    "Considerations": [
+        {
+            "Component_of": [
+                "Rawls",
+                "AU"
+            ],
+            "Default": 0,
+            "Heuristic": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "Name": "0:wellbeing",
+            "Type": "Utility"
+        },
+        {
+            "Component_of": [
+                "Rawls",
+                "AU"
+            ],
+            "Default": 0,
+            "Heuristic": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "Name": "1:wellbeing",
+            "Type": "Utility"
+        }
+    ],
+    "Domain": "Rescue",
+    "Duration_CQ1": 0,
+    "Duration_CQ2": 0,
+    "Duration_Heuristic": 11,
+    "Duration_MEHR": 1,
+    "Duration_Outs": 0,
+    "Duration_Plan": 16,
+    "Duration_Sols": 38,
+    "Duration_Sols_Reduce": 0,
+    "Duration_Total": 66,
+    "Expanded": 11,
+    "Goals": [],
+    "Histories": {},
+    "Horizon": 4,
+    "Iterations": 5,
+    "Max_histories": 3,
+    "Min_histories": 3,
+    "Non_accept_by_theory": [],
+    "Num_Min_Non_Acceptability": 1,
+    "SolutionTotal": 2,
+    "Solutions": [
+        {
+            "Acceptability": 0.0,
+            "Action_Map": {
+                "0": "go_to:3",
+                "11": "go_to:1",
+                "3": "go_to:0",
+                "4": "go_to:0",
+                "5": "go_to:0"
+            },
+            "Expectation": {
+                "0:wellbeing": "0.75",
+                "1:wellbeing": "0.75"
+            },
+            "Non_accept_by_theory": [
+                0.0,
+                0.0
+            ]
+        },
+        {
+            "Acceptability": 2.0,
+            "Action_Map": {
+                "0": "go_to:2",
+                "10": "heal",
+                "2": "heal",
+                "9": "heal"
+            },
+            "Expectation": {
+                "0:wellbeing": "0",
+                "1:wellbeing": "1.3333"
+            },
+            "Non_accept_by_theory": [
+                1.0,
+                1.0
+            ]
+        }
+    ],
+    "Solutions_Order": [
+        0,
+        1
+    ],
+    "State_tags": [
+        "{'time': 0, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 1, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 1, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 1, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}",
+        "{'time': 1, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}",
+        "{'time': 1, 'curr_tile': 3, 'success': False, 'holding': '1', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 2, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 3, 'success': False, 'holding': '1', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 2, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', '?'], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', ''], 'horizon': 3}"
+    ],
+    "State_time": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+    ],
+    "State_transitions": [
+        {
+            "go_to:1": [
+                [
+                    1,
+                    1,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    2,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    3,
+                    0,
+                    0
+                ],
+                [
+                    0.25,
+                    4,
+                    0,
+                    0
+                ],
+                [
+                    0.25,
+                    5,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    6,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.3333333333333333,
+                    7,
+                    1,
+                    0
+                ],
+                [
+                    0.6666666666666667,
+                    8,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    6,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.6666666666666666,
+                    9,
+                    0,
+                    1
+                ],
+                [
+                    0.33333333333333337,
+                    10,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    11,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    11,
+                    3,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    11,
+                    0,
+                    3
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    12,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    13,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    14,
+                    0,
+                    0
+                ],
+                [
+                    0.25,
+                    15,
+                    0,
+                    0
+                ],
+                [
+                    0.25,
+                    16,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    17,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.3333333333333333,
+                    18,
+                    1,
+                    0
+                ],
+                [
+                    0.6666666666666667,
+                    12,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    17,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.3333333333333333,
+                    18,
+                    1,
+                    0
+                ],
+                [
+                    0.6666666666666667,
+                    12,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    17,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.6666666666666666,
+                    19,
+                    0,
+                    1
+                ],
+                [
+                    0.33333333333333337,
+                    13,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    17,
+                    0,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    0.6666666666666666,
+                    19,
+                    0,
+                    1
+                ],
+                [
+                    0.33333333333333337,
+                    13,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    20,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    21,
+                    0,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    14,
+                    0,
+                    0
+                ]
+            ]
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
+    "Theories": [
+        {
+            "Name": "Rawls",
+            "Rank": 0,
+            "Type": "Maximin"
+        },
+        {
+            "Name": "AU",
+            "Rank": 0,
+            "Type": "Utility"
+        }
+    ],
+    "Total_Attacks": 9,
+    "Total_reachable_policies": 41,
+    "Total_states": 22
+}

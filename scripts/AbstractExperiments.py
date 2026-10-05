@@ -16,6 +16,8 @@ import re
 from matplotlib.ticker import MaxNLocator
 import ast
 import random
+from pathlib import Path
+
 
 EXPERIMENT_COLUMN_NAMES = {
     "Config_name": "Configuration",
@@ -81,12 +83,22 @@ def GenerateConfigs(inputConfigs, defaultConfig):
 
 class ExperimentRunner:
     time_columns = ['Total Time', "Heuristic Time", 'Planning Time', 'MEHR Time', 'Solution Extraction Time']
-    def __init__(self, domain, configs:list=None, outFolder=None, MoralPlanner_Location="/", date_time=None) -> None:
+    def __init__(self, domain, configs:list=None, outFolder=None, MoralPlanner_Location=None, date_time=None, logLevel=1) -> None:
         fs_start = MoralPlanner_Location
         self.domain = domain
         self.configs = configs
-        self.planner = f"{os.getcwd()}{fs_start}MPlan/cmake-build-release-clang/MPlan"
-        self.planner = f"{os.getcwd()}{fs_start}MPlan/cmake-build-release/MPlan"
+
+        f = MoralPlanner_Location
+        if MoralPlanner_Location is None:
+            f = __file__
+        ROOT = Path(f).resolve().parents[1]
+        MPLAN = ROOT / "MPlan" / "build" / "MPlan"
+        if not MPLAN.exists():
+            raise RuntimeError(
+                f"MPlan has not been built. Expected executable at {MPLAN}"
+            )
+        self.planner = MPLAN
+        
         self.hasPlannerRun = False
 
         self.horizon = 3
@@ -104,13 +116,13 @@ class ExperimentRunner:
         if date_time is None:
             self.datetimeNow = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         
-        self.loglevel = 1
+        self.loglevel = logLevel
         if not outFolder is None:
-            self.outputFolder = f"{os.getcwd()}{fs_start}Data/Experiments/{domain}/{outFolder}"
+            self.outputFolder = MPLAN = ROOT / "Data" / "Experiments" / domain / outFolder
         else:
-            self.outputFolder = f"{os.getcwd()}{fs_start}Data/Experiments/{domain}/{self.datetimeNow}"
+            self.outputFolder = MPLAN = ROOT / "Data" / "Experiments" / domain / self.datetimeNow
         
-        self.texTablesFolder = f"{os.getcwd()}{fs_start}Data/TexTables"
+        self.texTablesFolder = ROOT / "Data" / "TexTables"
         self.mdpFolder = f"{self.outputFolder}/mdps"
         self.figuresFolder = f"{self.outputFolder}/Figures"
         self.rawOutFolder = f"{self.outputFolder}/raw"

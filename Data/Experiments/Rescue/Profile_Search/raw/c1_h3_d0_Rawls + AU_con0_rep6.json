@@ -1,0 +1,193 @@
+{
+    "Actions": [
+        "go_to:0",
+        "go_to:1",
+        "heal"
+    ],
+    "Average_histories": 3,
+    "Backups": 13,
+    "Best_subgraph_size": 8,
+    "Considerations": [
+        {
+            "Component_of": [
+                "Rawls",
+                "AU"
+            ],
+            "Default": 0,
+            "Heuristic": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "Name": "0:wellbeing",
+            "Type": "Utility"
+        }
+    ],
+    "Domain": "Rescue",
+    "Duration_CQ1": 0,
+    "Duration_CQ2": 0,
+    "Duration_Heuristic": 3,
+    "Duration_MEHR": 0,
+    "Duration_Outs": 0,
+    "Duration_Plan": 10,
+    "Duration_Sols": 22,
+    "Duration_Sols_Reduce": 0,
+    "Duration_Total": 35,
+    "Expanded": 6,
+    "Goals": [],
+    "Histories": {},
+    "Horizon": 4,
+    "Iterations": 5,
+    "Max_histories": 3,
+    "Min_histories": 3,
+    "Non_accept_by_theory": [],
+    "Num_Min_Non_Acceptability": 1,
+    "SolutionTotal": 1,
+    "Solutions": [
+        {
+            "Acceptability": 0.0,
+            "Action_Map": {
+                "0": "go_to:1",
+                "1": "heal",
+                "3": "heal",
+                "4": "heal"
+            },
+            "Expectation": {
+                "0:wellbeing": "2"
+            },
+            "Non_accept_by_theory": [
+                0.0,
+                0.0
+            ]
+        }
+    ],
+    "Solutions_Order": [
+        0
+    ],
+    "State_tags": [
+        "{'time': 0, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 3}",
+        "{'time': 1, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 3}",
+        "{'time': 2, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 3}",
+        "{'time': 3, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 3}"
+    ],
+    "State_time": [
+        0,
+        1,
+        2,
+        2,
+        2,
+        3,
+        3,
+        3
+    ],
+    "State_transitions": [
+        {
+            "go_to:1": [
+                [
+                    1,
+                    1,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    2,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    3,
+                    1
+                ],
+                [
+                    0.0,
+                    4,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    5,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    6,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    7,
+                    1
+                ],
+                [
+                    0.0,
+                    5,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    6,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    7,
+                    1
+                ],
+                [
+                    0.0,
+                    5,
+                    0
+                ]
+            ]
+        },
+        {},
+        {},
+        {}
+    ],
+    "Theories": [
+        {
+            "Name": "Rawls",
+            "Rank": 0,
+            "Type": "Maximin"
+        },
+        {
+            "Name": "AU",
+            "Rank": 0,
+            "Type": "Utility"
+        }
+    ],
+    "Total_Attacks": 0,
+    "Total_reachable_policies": 5,
+    "Total_states": 8
+}
