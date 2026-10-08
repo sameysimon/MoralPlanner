@@ -1,0 +1,5565 @@
+{
+    "Actions": [
+        "go_to:5",
+        "go_to:4",
+        "go_to:3",
+        "go_to:1",
+        "go_to:0",
+        "go_to:2",
+        "heal"
+    ],
+    "Average_histories": 7,
+    "Backups": 57,
+    "Best_subgraph_size": 313,
+    "Considerations": [
+        {
+            "Component_of": [
+                "Rawls"
+            ],
+            "Default": 0,
+            "Heuristic": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            "Name": "0:wellbeing",
+            "Type": "Utility"
+        }
+    ],
+    "Domain": "Rescue",
+    "Duration_CQ1": 0,
+    "Duration_CQ2": 0,
+    "Duration_Heuristic": 45,
+    "Duration_MEHR": 0,
+    "Duration_Outs": 0,
+    "Duration_Plan": 33,
+    "Duration_Sols": 59,
+    "Duration_Sols_Reduce": 0,
+    "Duration_Total": 137,
+    "Expanded": 14,
+    "Goals": [],
+    "Histories": {},
+    "Horizon": 8,
+    "Iterations": 9,
+    "Max_histories": 7,
+    "Min_histories": 7,
+    "Non_accept_by_theory": [],
+    "Num_Min_Non_Acceptability": 1,
+    "SolutionTotal": 1,
+    "Solutions": [
+        {
+            "Acceptability": 0.0,
+            "Action_Map": {
+                "0": "go_to:1",
+                "1": "heal",
+                "149": "heal",
+                "150": "heal",
+                "20": "heal",
+                "26": "heal",
+                "48": "heal",
+                "49": "heal",
+                "7": "heal",
+                "8": "heal",
+                "91": "heal",
+                "97": "heal"
+            },
+            "Expectation": {
+                "0:wellbeing": "6"
+            },
+            "Non_accept_by_theory": [
+                0.0
+            ]
+        }
+    ],
+    "Solutions_Order": [
+        0
+    ],
+    "State_tags": [
+        "{'time': 0, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 1, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 1, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 1, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 1, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 1, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 2, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 3, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 4, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 5, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 6, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 4, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 2, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '', '?', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 5, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 3, 'success': False, 'holding': '0', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '?', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '?', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', '?'], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '', '', ''], 'horizon': 7}",
+        "{'time': 7, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', '?', '?', '', ''], 'horizon': 7}"
+    ],
+    "State_time": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7,
+        7
+    ],
+    "State_transitions": [
+        {
+            "go_to:1": [
+                [
+                    1,
+                    1,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    2,
+                    0
+                ],
+                [
+                    0.5,
+                    3,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    4,
+                    0
+                ],
+                [
+                    0.5,
+                    5,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    6,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    7,
+                    1
+                ],
+                [
+                    0.0,
+                    8,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    9,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    10,
+                    0
+                ],
+                [
+                    0.5,
+                    11,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    9,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    12,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    15,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    13,
+                    0
+                ],
+                [
+                    0.5,
+                    14,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    16,
+                    0
+                ],
+                [
+                    0.5,
+                    17,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    15,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    18,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    19,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    20,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    21,
+                    0
+                ],
+                [
+                    0.5,
+                    22,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    23,
+                    0
+                ],
+                [
+                    0.5,
+                    24,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    25,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    26,
+                    1
+                ],
+                [
+                    0.0,
+                    20,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    25,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    26,
+                    1
+                ],
+                [
+                    0.0,
+                    20,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    27,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    21,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    28,
+                    0
+                ],
+                [
+                    0.5,
+                    29,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    30,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    31,
+                    0
+                ],
+                [
+                    0.5,
+                    32,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    33,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    34,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    22,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    35,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    0.5,
+                    36,
+                    0
+                ],
+                [
+                    0.5,
+                    37,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    38,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    39,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    40,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    41,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    42,
+                    0
+                ],
+                [
+                    0.5,
+                    43,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    23,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    44,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    45,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    46,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    24,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    24,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    47,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    48,
+                    1
+                ],
+                [
+                    0.0,
+                    49,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    50,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    51,
+                    0
+                ],
+                [
+                    0.5,
+                    52,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    50,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    53,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    56,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    54,
+                    0
+                ],
+                [
+                    0.5,
+                    55,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    57,
+                    0
+                ],
+                [
+                    0.5,
+                    58,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    56,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    59,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    60,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    49,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    61,
+                    0
+                ],
+                [
+                    0.5,
+                    62,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    63,
+                    0
+                ],
+                [
+                    0.5,
+                    64,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    47,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    48,
+                    1
+                ],
+                [
+                    0.0,
+                    49,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    50,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    65,
+                    1
+                ],
+                [
+                    0.0,
+                    66,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    69,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    67,
+                    0
+                ],
+                [
+                    0.5,
+                    68,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    70,
+                    0
+                ],
+                [
+                    0.5,
+                    71,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    69,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    72,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    73,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    74,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    51,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    75,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    67,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    76,
+                    0
+                ],
+                [
+                    0.5,
+                    77,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    75,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    68,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    78,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    74,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    52,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    74,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    52,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    79,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    50,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    53,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    80,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    75,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    67,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    75,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    68,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    81,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    54,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    82,
+                    0
+                ],
+                [
+                    0.5,
+                    83,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    81,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    55,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    81,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    55,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    84,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    56,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    85,
+                    1
+                ],
+                [
+                    0.0,
+                    86,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    69,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    67,
+                    0
+                ],
+                [
+                    0.5,
+                    68,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    69,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    72,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    89,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    87,
+                    0
+                ],
+                [
+                    0.5,
+                    88,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    57,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    89,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    90,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    58,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    56,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    59,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    91,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    92,
+                    0
+                ],
+                [
+                    0.5,
+                    93,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    94,
+                    0
+                ],
+                [
+                    0.5,
+                    95,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    96,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    97,
+                    1
+                ],
+                [
+                    0.0,
+                    91,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    96,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    97,
+                    1
+                ],
+                [
+                    0.0,
+                    91,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    98,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    92,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    99,
+                    0
+                ],
+                [
+                    0.5,
+                    100,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    101,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    102,
+                    0
+                ],
+                [
+                    0.5,
+                    103,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    104,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    105,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    93,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    106,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    0.5,
+                    107,
+                    0
+                ],
+                [
+                    0.5,
+                    108,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    109,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    110,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    111,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    112,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    113,
+                    0
+                ],
+                [
+                    0.5,
+                    114,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    94,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    115,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    116,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    117,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    95,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    95,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    118,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    119,
+                    0
+                ],
+                [
+                    0.5,
+                    120,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    118,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    121,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    124,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    122,
+                    0
+                ],
+                [
+                    0.5,
+                    123,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    125,
+                    0
+                ],
+                [
+                    0.5,
+                    126,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    124,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    127,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    128,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    118,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    129,
+                    1
+                ],
+                [
+                    0.0,
+                    98,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    118,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    129,
+                    1
+                ],
+                [
+                    0.0,
+                    98,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    107,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    102,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    108,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    103,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    130,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    113,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    99,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    131,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    132,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    114,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    100,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    100,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    133,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    101,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    102,
+                    0
+                ],
+                [
+                    0.5,
+                    103,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    134,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    107,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    102,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    135,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    136,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    103,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    105,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    106,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    137,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    107,
+                    0
+                ],
+                [
+                    0.5,
+                    108,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    109,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    138,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    139,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    111,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    124,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    140,
+                    1
+                ],
+                [
+                    0.0,
+                    112,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    124,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    140,
+                    1
+                ],
+                [
+                    0.0,
+                    112,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    0.5,
+                    141,
+                    0
+                ],
+                [
+                    0.5,
+                    142,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    138,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    143,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    139,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    144,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    145,
+                    0
+                ],
+                [
+                    0.5,
+                    146,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    115,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    147,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    116,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    148,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    149,
+                    1
+                ],
+                [
+                    0.0,
+                    150,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    151,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    152,
+                    0
+                ],
+                [
+                    0.5,
+                    153,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    151,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    154,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    157,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    155,
+                    0
+                ],
+                [
+                    0.5,
+                    156,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    158,
+                    0
+                ],
+                [
+                    0.5,
+                    159,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    157,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    160,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    161,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    150,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    162,
+                    0
+                ],
+                [
+                    0.5,
+                    163,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    164,
+                    0
+                ],
+                [
+                    0.5,
+                    165,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    148,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    149,
+                    1
+                ],
+                [
+                    0.0,
+                    150,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    151,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    166,
+                    1
+                ],
+                [
+                    0.0,
+                    167,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    170,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    168,
+                    0
+                ],
+                [
+                    0.5,
+                    169,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    171,
+                    0
+                ],
+                [
+                    0.5,
+                    172,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    170,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    173,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    174,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    175,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    152,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    176,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    168,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    177,
+                    0
+                ],
+                [
+                    0.5,
+                    178,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    176,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    169,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    179,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    175,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    153,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    175,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    153,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    180,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    151,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    154,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    181,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    176,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    168,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    176,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    169,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    182,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    155,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    183,
+                    0
+                ],
+                [
+                    0.5,
+                    184,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    182,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    156,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    182,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    156,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    185,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    157,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    186,
+                    1
+                ],
+                [
+                    0.0,
+                    187,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    170,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    168,
+                    0
+                ],
+                [
+                    0.5,
+                    169,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    170,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    173,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    190,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    188,
+                    0
+                ],
+                [
+                    0.5,
+                    189,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    158,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    190,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    191,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    159,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    157,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    160,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    167,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    162,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    192,
+                    0
+                ],
+                [
+                    0.5,
+                    193,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    194,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    195,
+                    0
+                ],
+                [
+                    0.5,
+                    196,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    197,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    198,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    163,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    199,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    0.5,
+                    200,
+                    0
+                ],
+                [
+                    0.5,
+                    201,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    202,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    203,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    204,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    187,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    205,
+                    0
+                ],
+                [
+                    0.5,
+                    206,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    164,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    207,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    208,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    209,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    165,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    165,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    151,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    166,
+                    1
+                ],
+                [
+                    0.0,
+                    167,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    170,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    210,
+                    1
+                ],
+                [
+                    0.0,
+                    211,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    214,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    212,
+                    0
+                ],
+                [
+                    0.5,
+                    213,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    171,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    214,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    215,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    172,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    175,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    216,
+                    1
+                ],
+                [
+                    0.0,
+                    217,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    176,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    218,
+                    1
+                ],
+                [
+                    0.0,
+                    219,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    220,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    212,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    177,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    220,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    213,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    178,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    182,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    221,
+                    1
+                ],
+                [
+                    0.0,
+                    222,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    223,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    188,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    183,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    223,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    189,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    184,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    157,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    186,
+                    1
+                ],
+                [
+                    0.0,
+                    187,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    220,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    212,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    220,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    213,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    223,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    189,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    190,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    224,
+                    1
+                ],
+                [
+                    0.0,
+                    225,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    214,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    212,
+                    0
+                ],
+                [
+                    0.5,
+                    213,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    214,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    215,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    190,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    191,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    226,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    227,
+                    0
+                ],
+                [
+                    0.5,
+                    228,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    229,
+                    0
+                ],
+                [
+                    0.5,
+                    230,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    231,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    232,
+                    1
+                ],
+                [
+                    0.0,
+                    226,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    231,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    232,
+                    1
+                ],
+                [
+                    0.0,
+                    226,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    233,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    227,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    234,
+                    0
+                ],
+                [
+                    0.5,
+                    235,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    236,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    237,
+                    0
+                ],
+                [
+                    0.5,
+                    238,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    239,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    240,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    228,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    241,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    0.5,
+                    242,
+                    0
+                ],
+                [
+                    0.5,
+                    243,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    244,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    245,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    246,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    247,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    248,
+                    0
+                ],
+                [
+                    0.5,
+                    249,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    229,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    250,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    251,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    252,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    230,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    230,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    253,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    254,
+                    0
+                ],
+                [
+                    0.5,
+                    255,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    253,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    256,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    259,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    257,
+                    0
+                ],
+                [
+                    0.5,
+                    258,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    260,
+                    0
+                ],
+                [
+                    0.5,
+                    261,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    259,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    262,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    263,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    253,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    264,
+                    1
+                ],
+                [
+                    0.0,
+                    233,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    253,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    264,
+                    1
+                ],
+                [
+                    0.0,
+                    233,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    242,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    237,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    243,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    238,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    265,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    248,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    234,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    266,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    267,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    249,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    235,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    235,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    268,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    236,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    0.5,
+                    237,
+                    0
+                ],
+                [
+                    0.5,
+                    238,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    269,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    242,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    237,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    270,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    271,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    238,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    240,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    241,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    272,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    242,
+                    0
+                ],
+                [
+                    0.5,
+                    243,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    244,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    273,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    274,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:4": [
+                [
+                    1,
+                    246,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    259,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    275,
+                    1
+                ],
+                [
+                    0.0,
+                    247,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    259,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    275,
+                    1
+                ],
+                [
+                    0.0,
+                    247,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    0.5,
+                    276,
+                    0
+                ],
+                [
+                    0.5,
+                    277,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    273,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    278,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    274,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    279,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    280,
+                    0
+                ],
+                [
+                    0.5,
+                    281,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    250,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    282,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    251,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    285,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    283,
+                    0
+                ],
+                [
+                    0.5,
+                    284,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    286,
+                    0
+                ],
+                [
+                    0.5,
+                    287,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    285,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    288,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    289,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    290,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    254,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    291,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    283,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    292,
+                    0
+                ],
+                [
+                    0.5,
+                    293,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    291,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    284,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    294,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    290,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    255,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    290,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    255,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    295,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    253,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    256,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    296,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    291,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    283,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    291,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    284,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    297,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    257,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    0.5,
+                    298,
+                    0
+                ],
+                [
+                    0.5,
+                    299,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    297,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    258,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    297,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    258,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    300,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    285,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    283,
+                    0
+                ],
+                [
+                    0.5,
+                    284,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    285,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    288,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    303,
+                    0
+                ]
+            ],
+            "go_to:3": [
+                [
+                    0.5,
+                    301,
+                    0
+                ],
+                [
+                    0.5,
+                    302,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    260,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    303,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    304,
+                    0
+                ]
+            ],
+            "go_to:5": [
+                [
+                    1,
+                    261,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    259,
+                    3
+                ]
+            ],
+            "go_to:3": [
+                [
+                    1,
+                    262,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    285,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    305,
+                    1
+                ],
+                [
+                    0.0,
+                    265,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    285,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    305,
+                    1
+                ],
+                [
+                    0.0,
+                    265,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    276,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    270,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    277,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    271,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    306,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    280,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    266,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:2": [
+                [
+                    1,
+                    281,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    267,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    290,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    307,
+                    1
+                ],
+                [
+                    0.0,
+                    268,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    290,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    307,
+                    1
+                ],
+                [
+                    0.0,
+                    268,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    291,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    308,
+                    1
+                ],
+                [
+                    0.0,
+                    269,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    291,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    308,
+                    1
+                ],
+                [
+                    0.0,
+                    269,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    309,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    1,
+                    276,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    270,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    297,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    310,
+                    1
+                ],
+                [
+                    0.0,
+                    272,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    297,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    310,
+                    1
+                ],
+                [
+                    0.0,
+                    272,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:1": [
+                [
+                    1,
+                    311,
+                    0
+                ]
+            ],
+            "go_to:2": [
+                [
+                    0.5,
+                    276,
+                    0
+                ],
+                [
+                    0.5,
+                    277,
+                    0
+                ]
+            ],
+            "go_to:4": [
+                [
+                    1,
+                    273,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    303,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    312,
+                    1
+                ],
+                [
+                    0.0,
+                    279,
+                    0
+                ]
+            ]
+        },
+        {
+            "go_to:0": [
+                [
+                    1,
+                    303,
+                    0
+                ]
+            ],
+            "heal": [
+                [
+                    1.0,
+                    312,
+                    1
+                ],
+                [
+                    0.0,
+                    279,
+                    0
+                ]
+            ]
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+    ],
+    "Theories": [
+        {
+            "Name": "Rawls",
+            "Rank": 0,
+            "Type": "Maximin"
+        }
+    ],
+    "Total_Attacks": 0,
+    "Total_reachable_policies": 307122927566816,
+    "Total_states": 313
+}
