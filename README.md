@@ -1,31 +1,16 @@
 # The Machine Ethics Hypothetical Retrospection (MEHR) Planner.
 
-This is a hybrid Python and C++ project for generating and solving ethical decision-making problems in various Multi-Moral Markov Decision Processes (MMMDPs) and Multi-Moral Stochastic Shortest Path Problems (MMSSPs). It integrates Multi-Objective AO* planning algorithm and moral theories including Utilitarianism and Deontology.
+  This project contains a heuristic solver for
+  Multi-Moral Markov Decision Processes (MMMDPs) and Multi-Moral Stochastic Shortest Path Problems (MMSSPs). These formalisms are introduced in the publication [Uncertain Machine Ethics Planning](https://dl.acm.org/doi/abs/10.5555/3709347.3743636) and in the upcoming PhD thesis Ethical Planning and Decision Making under Moral and Outcome Uncertainty.
 
-MMMDP environments are given to the planner in a JSON format. To create JSON MDP files, use the `EnvironmentBuilder` Python package. It is tested with Python 3.12.2, though most versions should work fine. Only the *argparse* package is required for environment generation.
+  The experimental code from the thesis is launched from Jupyter Notebook files, described below. The outputs for the AAMAS paper are in `Data/LostInsulin/AAMAS Results`.
+  
+  The solver adapts Multi-Objective Dynamic Programming over for the Pareto Front of policies in a  Multi-Objective Markov Decision Process.
 
-
-**To execute the Lost Insulin experiments featured in our AAMAS 2025 paper**, use the `RunInsulinExperiments.py` script. It contains a list of dicts `configs` that allow you to modify experiment parameters (moral theories, rankings, horizon etc.)
-It will (re-)generate environment files for each configuration and call the planner 5 times. Results are stored in the `Data/Experiments/LostInsulin` directory. Results are summarised in `experiments_out.csv`, `theoryResults.csv` and `theoryTimes.csv` in the same folder. You will need the [`Pandas`](https://pandas.pydata.org/) and [`NumPy`](https://numpy.org/) Python packages for this to work.
-
-
-The Planner is implemented in C++ 17. A `CMakeLists.txt` file is included and we use the [`nlohmann_json`](https://github.com/nlohmann/json) library for importing JSON environments. For testing, we also use the [`Google Tests`](https://github.com/google/googletest) library.
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- **C++ Compiler**:
-  - Supports C++17 or later. Tested on Clang.
-- **CMake**:
-  - Tested on version 3.14.
-- **Python**:
-  - Tested on version 3.8.
+MMMDP/MMSSPs  are specified in a JSON format, created using the `EnvironmentBuilder` Python package. 
 
 
-### Installation
+## Installation
 
 #### Clone the Repository
 
@@ -34,7 +19,7 @@ git clone https://github.com/sameysimon/MoralPlanner.git
 cd MoralPlanner
 ```
 
-#### Build the Project
+#### Build the Planner Project
 
 1. Create a build directory and run CMake:
 
@@ -57,68 +42,53 @@ cd MoralPlanner
    ctest
    ```
 
-#### Install Python Dependencies
+#### Install the Python Environment
 
-Navigate to the `EnvironmentBuilder` directory and install Python dependencies:
+It is recommended that you build a virtual environment for this project. First, navigate to the project root.
 
+**Without Conda**, create a virtual environment, activate it with source, then install the packages from the `pyproject.toml` file
 ```bash
-cd EnvironmentBuilder
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate [MACOS/LINUX]
+.\.venv\Scripts\Activate.ps1 [WINDOWS]
+python -m pip install -e .
 ```
-You may need to make a virtual environment: `python3 -m venv myVEnvName` then `source myVenvName/bin/activate`.
-
----
-
-## Project Structure
-
+Similary, **using Conda**,
+```bash
+conda create --name MoralPlanner python pip
+conda activate MoralPlanner
+python -m pip install .
 ```
-MoralPlanner
-├── Data/                   # Data storage for experiments, outputs, and MDPs
-├── EnvironmentBuilder/     # Python scripts for MDP environment generation
-├── scripts/                # Python scripts to run domain experiments
-├── MPlan/                  # Core C++ library and executable
-│   ├── MEHRPlan_lib/       # Library for planners and moral theories
-│   ├── Google_tests/       # Unit tests for C++ planner
+Each time you come back in a new terminal, you will have to use either `source .venv/bin/activate` or `conda activate MoralPlanner`.
 
-
-```
-
----
 
 ## Usage
 
-### Generating random Python Environments
-
-Generate random abstract environments for testing
+### Running Scripts
+There are some example executions in the scripts directory. They must be executed as a module from the project root, for example,
 ```bash
-cd MoralPlanner
-python3 -m EnvironmentBuilder.MDPFactory --branchFactor <int> --actionFactor <int> --horizon <int> --theories <list> [options] -- <output_file>
+python -m scripts.RunBasicInsulin
 ```
-This table sums it up!
+If interacting with this code base in Visual Studio Code, most scripts have a launch configuration in `.vscode/launch.json`. Therefore, if you open the project from the root, scripts can be executed from the Run and Debug tab on the left. 
 
-| **Argument**       | **Type**    | **Required** | **Description**                                                                                           |
-|---------------------|-------------|--------------|-----------------------------------------------------------------------------------------------------------|
-| `--branchFactor -bf`| `int`       | Yes          | The branching factor of the MDP. Must be greater than 0.                                                  |
-| `--actionFactor -a` | `int`       | Yes          | The action factor of the MDP. Must be greater than 0.                                                     |
-| `--horizon -h`      | `int`       | Yes          | The horizon of the MDP. Must be greater than 1.                                                           |
-| `--theories -t`     | `list`      | Yes          | A list of theories with integer-string pairs (e.g., `0 utility 1 law`).                                   |
-| `--budget -b`       | `int`       | No           | Budget for the MDP. Defaults to `0`. Must be greater than 1 if provided. '--' terminates the list         |
-| `--goals -g`        | `float`     | No           | The probability that states with depth > `horizon/2` are goals. Defaults to `0` (no goals).               |
-| `--seed -s`         | `float`     | No           | The seed for random number generation. Defaults to `123`.                                                 |
-| `--help -h`         |             | No           | For more information.                                                                                     |
-| `<output_file>`     | `str`       | Yes          | Path to the output file (e.g., `outputs/my_mdp.json`). If not provided, defaults to a predefined location. |
+### Running Notebooks
+The notebooks can be opened using a Jupyter Notebook local server. From the project root, call
+```
+python -m jupyterlab
+```
+Use the GUI to find the experiments in the `Notebooks` directory. Original results can be examined by executing the first 'setup' cell, then skipping the cells calling `buildEnvironments` and `runPlanner`. Executing the following cells processes the original data.
 
-*Note*, the number of states is exponential in time: $$|S| = \sum\limits_{t=0}^{T} (|A| \cdot B)^{t},$$ where $S$ is the set of all states, $T$ is the horizon, $|A|$ is the number of actions applicable at every state and $B$ is the number of successor states for every action.
+I recommend using the Jupyter extension for Visual Studio Code, rather than the standalone Jupyter local server.
 
 ### Running the Planner
 
-Execute the planner:
+To execute the planner on its own, build it as described above, then call it with a MMMDP/MMSSP .json file, as shown below. The file path does not need to be relative. 
 
 ```bash
 cd MPlan/build
 ./MPlan ../Data/your_fun_path/exampleMMMDP.json
 ```
-
+There are a few optional arguments:
 | **Argument**   | **Type** | **Required** | **Description**                                                                                      |
 |----------------|----------|----------|------------------------------------------------------------------------------------------------------|
 | `--Debug  -D`  | `int`    | No       | Set Debug log level. Fatal=0, Error=1, Warn=2, Info=3, Debug=4, Trace=5, All=6. Default is Warn.     |
@@ -126,23 +96,6 @@ cd MPlan/build
 | `<output_file>` | `string` | Yes      | Path to the output file where results will be saved. The output will include policies and MEHR data. |
 
 
-### Running Experiments from the paper
-Use the Python script to re-run the experiments from our paper.
-```bash
-python3 MoralPlanner/RunInsulinExperiments.py
-```
-Results will be generated in directory `MoralPlanner/Data/Experiments/<YYYY-MM-DD HH:MM:SS>`. Inside there will be all the raw output as JSON files as well as `experiments_out.csv` collecting results and `grouped_experiments_out.csv`. 
-
-### Running Unit Tests
-
-Run the included tests:
-
-```bash
-# Assuming MPlan is built in directory 'MPlan/build'
-cd MPlan/build/
-ctest
-```
----
 ## MDP Environment JSON Fields
 All MMMDP/SSPs are stored as JSON files. The following is a guide to the various keys and how information is structured.
 

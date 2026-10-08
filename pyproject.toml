@@ -5,6 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "MoralPlanner"
 version = "0.1.0"
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "jupyterlab",
+    "ipykernel",
+    "networkx",
+    "scipy"
+]
 
-[tool.setuptools]
-packages = ["scripts", "EnvironmentBuilder"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["EnvironmentBuilder*", "scripts*"]
+namespaces = false
