@@ -76,13 +76,14 @@ class Odds():
 
 class BasicLostInsulin(MDP):
 
-    def __init__(self, Theories, Considerations, InitialProps=None, Horizon=2, **kwargs):
+    def __init__(self, Theories, Considerations, InitialProps=None, Horizon=2, Budget=2, **kwargs):
         super().__init__()
         if InitialProps==None:
             InitialProps=BasicLostInsulin.defaultProps
         if not Horizon==None:
             InitialProps['horizon'] = Horizon
         self.horizon=Horizon
+        self.budget = Budget
         
         self.stateFactory(InitialProps) # Create at least one initial state
         self.rules = [BasicLostInsulin.ToSteal, BasicLostInsulin.DeathChance, BasicLostInsulin.NextTime] 
