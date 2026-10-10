@@ -23,7 +23,7 @@ class JsonMDPFixture : public TestBase {
 };
 
 TEST_F(JsonMDPFixture, ConstructorTest) {
-    MDP mdp = *getMDP("test.json");
+    MDP mdp = *getMDP("MdpBuildTest.json");
 
     ASSERT_EQ(mdp.states.size(), 2);
     ASSERT_EQ(mdp.total_states, 2);
