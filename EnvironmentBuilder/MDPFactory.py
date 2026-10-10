@@ -1,4 +1,3 @@
-from EnvironmentBuilder.TutorProblem.TeacherProblem import TeacherProblem
 from EnvironmentBuilder.LostInsulin.Main import LostInsulin
 from EnvironmentBuilder.LostInsulin.Basic import BasicLostInsulin
 from EnvironmentBuilder.Titanic.TitanicProblem import Titanic
@@ -28,7 +27,6 @@ class Domains(str, Enum):
     
 
 domains = {
-    "Tutor": TeacherProblem,
     "LostInsulin": LostInsulin,
     "BasicLostInsulin": BasicLostInsulin,
     "Random": AbstractMDP,
