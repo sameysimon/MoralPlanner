@@ -14,13 +14,6 @@
                 "AU"
             ],
             "Default": 0,
-            "Heuristic": [
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
             "Name": "0:wellbeing",
             "Type": "Utility"
         }
@@ -63,13 +56,6 @@
     ],
     "Solutions_Order": [
         0
-    ],
-    "State_tags": [
-        "{'time': 0, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 2}",
-        "{'time': 1, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital'], 'horizon': 2}"
     ],
     "State_time": [
         0,

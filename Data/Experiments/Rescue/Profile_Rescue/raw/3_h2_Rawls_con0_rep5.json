@@ -15,19 +15,6 @@
                 "Rawls"
             ],
             "Default": 0,
-            "Heuristic": [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
             "Name": "0:wellbeing",
             "Type": "Utility"
         },
@@ -36,19 +23,6 @@
                 "Rawls"
             ],
             "Default": 0,
-            "Heuristic": [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
             "Name": "1:wellbeing",
             "Type": "Utility"
         },
@@ -57,19 +31,6 @@
                 "Rawls"
             ],
             "Default": 0,
-            "Heuristic": [
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ],
             "Name": "2:wellbeing",
             "Type": "Utility"
         }
@@ -145,19 +106,6 @@
         0,
         1,
         2
-    ],
-    "State_tags": [
-        "{'time': 0, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 1, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 1, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 1, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 0, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 1, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 1, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 2, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 2, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 3, 'success': True, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}",
-        "{'time': 2, 'curr_tile': 3, 'success': False, 'holding': 'nothing', 'tile_type': ['base', 'hospital', 'hospital', 'hospital'], 'horizon': 2}"
     ],
     "State_time": [
         0,
